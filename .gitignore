@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node / Frontend (futuro)
+node_modules/
+dist/
+.vite/
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Storage data
+backend/storage_data/
+backend/data/
+
+# Build artifacts
+*.pdf
+*.zip
