@@ -41,3 +41,9 @@ backend/data/
 # Build artifacts
 *.pdf
 *.zip
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
