@@ -12,6 +12,7 @@ import {
   Phone,
   ShieldCheck,
   Sparkles,
+  Stethoscope,
   User as UserIcon,
 } from "lucide-react";
 
@@ -20,6 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClinicalEvolutionTab } from "@/components/clinical/ClinicalEvolutionTab";
 import { OdontogramChart } from "@/components/odontogram/OdontogramChart";
 import { ToothDetailSheet } from "@/components/odontogram/ToothDetailSheet";
 import { groupByTooth } from "@/components/odontogram/fdi";
@@ -176,15 +179,37 @@ export default function PatientRecordPage() {
         </Alert>
       )}
 
-      {/* Odontogram */}
-      <OdontogramChart
-        snapshot={odontogramQuery.data}
-        isLoading={odontogramQuery.isLoading}
-        onSelectTooth={handleSelectTooth}
-        selectedTooth={selectedTooth}
-      />
+      {/* Tabs: Odontograma | Evolução Clínica */}
+      <Tabs defaultValue="odontogram" className="w-full" data-testid="patient-tabs">
+        <TabsList>
+          <TabsTrigger value="odontogram" data-testid="tab-odontogram">
+            <Sparkles className="h-3.5 w-3.5" />
+            Odontograma
+          </TabsTrigger>
+          <TabsTrigger value="evolution" data-testid="tab-evolution">
+            <Stethoscope className="h-3.5 w-3.5" />
+            Evolução Clínica
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Slide-over */}
+        <TabsContent value="odontogram" className="space-y-4">
+          <OdontogramChart
+            snapshot={odontogramQuery.data}
+            isLoading={odontogramQuery.isLoading}
+            onSelectTooth={handleSelectTooth}
+            selectedTooth={selectedTooth}
+          />
+        </TabsContent>
+
+        <TabsContent value="evolution">
+          <ClinicalEvolutionTab
+            patientId={patientId}
+            patientReadOnly={isAnonymized}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Slide-over (shared across tabs) */}
       <ToothDetailSheet
         patientId={patientId}
         toothFdi={selectedTooth}

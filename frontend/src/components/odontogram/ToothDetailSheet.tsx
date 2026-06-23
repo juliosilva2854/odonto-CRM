@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, ChevronRight } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -29,11 +28,11 @@ import type {
 
 import {
   FACE_NAMES,
-  STATUS_VISUAL,
   faceLayoutFor,
   isAnterior,
   isUpperArch,
 } from "./fdi";
+import { ProcedureRow } from "./ProcedureRow";
 
 interface ToothDetailSheetProps {
   patientId: string;
@@ -176,40 +175,15 @@ function ToothDetail({
             </p>
           ) : (
             <ul className="mt-3 space-y-2" data-testid="tooth-procedures-list">
-              {proceduresForTooth.map((p) => {
-                const v = STATUS_VISUAL[p.status];
-                return (
-                  <li
-                    key={p.id}
-                    className="flex items-start justify-between gap-3 rounded-xl border border-border bg-card px-3.5 py-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">
-                        {/* Lookup procedure name from catalog (best-effort) */}
-                        {procedureOptions.find((c) => c.id === p.procedure_id)?.name ?? "Procedimento"}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        Faces: {p.faces.length === 0 ? "—" : p.faces.join(" · ")}
-                      </p>
-                      {p.notes && (
-                        <p className="mt-1 text-xs text-muted-foreground/90 line-clamp-2">
-                          “{p.notes}”
-                        </p>
-                      )}
-                    </div>
-                    <Badge
-                      variant="default"
-                      className={cn("shrink-0", v.badgeClass)}
-                    >
-                      <span
-                        className="h-1.5 w-1.5 rounded-full"
-                        style={{ backgroundColor: v.fill }}
-                      />
-                      {v.label}
-                    </Badge>
-                  </li>
-                );
-              })}
+              {proceduresForTooth.map((p) => (
+                <ProcedureRow
+                  key={p.id}
+                  patientId={patientId}
+                  procedure={p}
+                  catalogProcedure={procedureOptions.find((c) => c.id === p.procedure_id)}
+                  disabled={disabled}
+                />
+              ))}
             </ul>
           )}
         </section>

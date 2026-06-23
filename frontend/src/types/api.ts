@@ -174,17 +174,64 @@ export interface AddProcedurePayload {
 // ────────────────────────────────────────────────────────────────────
 // Clinical — Records (with CFO Lock metadata)
 // ────────────────────────────────────────────────────────────────────
+export type ClinicalRecordType =
+  | "evolution"
+  | "anamnesis"
+  | "prescription"
+  | "exam"
+  | "consent"
+  | "other";
+
+export interface ClinicalRecordAttachment {
+  filename: string;
+  url: string;
+  mime?: string | null;
+  size_bytes?: number | null;
+  sha256?: string | null;
+}
+
 export interface ClinicalRecord {
   id: string;
   clinic_id: string;
   patient_id: string;
+  appointment_id: string | null;
   author_user_id: string;
-  type: string;
-  title: string | null;
+  record_type: ClinicalRecordType;
+  title: string;
   content: string;
+  attachments: ClinicalRecordAttachment[];
   locked_at: string | null;
   is_locked: boolean;
   locks_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ClinicalRecordAddendum {
+  id: string;
+  clinic_id: string;
+  record_id: string;
+  author_user_id: string;
+  content: string;
+  attachments: ClinicalRecordAttachment[];
+  created_at: string;
+}
+
+export interface ClinicalRecordCreatePayload {
+  appointment_id?: string | null;
+  record_type?: ClinicalRecordType;
+  title: string;
+  content: string;
+  attachments?: ClinicalRecordAttachment[];
+}
+
+export interface ClinicalRecordUpdatePayload {
+  title?: string;
+  content?: string;
+  attachments?: ClinicalRecordAttachment[];
+}
+
+export interface ClinicalRecordAddendumPayload {
+  content: string;
+  attachments?: ClinicalRecordAttachment[];
 }

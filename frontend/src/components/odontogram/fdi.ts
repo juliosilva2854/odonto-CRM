@@ -128,6 +128,20 @@ const STATUS_PRIORITY: Record<ToothProcedureStatus, number> = {
   done: 4,
 };
 
+/**
+ * Mirrors the backend state machine in
+ *   backend/src/modules/clinical/odontogram/enums.py::ALLOWED_PROCEDURE_TRANSITIONS
+ *
+ * Used by the UI to show only valid status options in dropdowns.
+ */
+export const ALLOWED_TRANSITIONS: Record<ToothProcedureStatus, ToothProcedureStatus[]> = {
+  planned: ["to_execute", "in_progress", "cancelled"],
+  to_execute: ["in_progress", "cancelled", "planned"],
+  in_progress: ["done", "cancelled"],
+  done: [],
+  cancelled: [],
+};
+
 /** Returns the dominant (highest priority) status for a given face code. */
 export function dominantStatusForFace(
   procedures: ToothProcedure[],
