@@ -2,18 +2,22 @@
 
 S0/S1: Clinic + 3 Users + 15 Feature Flags
 S2:    + 3 Specialties + 3 Procedures + 2 Patients + LGPD consents
+S3:    + 2 Rooms + 3 Appointments (estados variados)
 """
 from __future__ import annotations
 
 import asyncio
+import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy import select
 
 from src.core.database import AsyncSessionLocal
 from src.core.security import hash_password
+from src.modules.agenda.enums import AppointmentStatus
+from src.modules.agenda.models import Appointment, Room
 from src.modules.auth.enums import UserRole
 from src.modules.auth.models import Professional, User
 from src.modules.clinical.catalog.enums import ProcedureCategory
@@ -321,6 +325,139 @@ async def _seed_patients(session, clinic: Clinic, users: dict[str, User]) -> Non
 
 
 # ─────────────────────────────────────────────────────────────
+#  S3 — Rooms + Appointments
+# ─────────────────────────────────────────────────────────────
+
+
+SEED_ROOMS = [
+    {
+        "name": "Sala 1 - Clínica Geral",
+        "description": "Sala equipada para atendimentos gerais e dentística.",
+        "color_hex": "#3B82F6",
+        "equipments": {"cadeira": "Gnatus G6", "raio_x_intraoral": True},
+    },
+    {
+        "name": "Sala 2 - Cirurgia / Endo",
+        "description": "Sala cirúrgica com equipamentos para endodontia.",
+        "color_hex": "#F97316",
+        "equipments": {"cadeira": "Dabi Atlante", "microscopio": True, "negatoscopio": True},
+    },
+]
+
+
+async def _seed_rooms(session, clinic: Clinic) -> dict[str, Room]:
+    by_name: dict[str, Room] = {}
+    for spec in SEED_ROOMS:
+        stmt = select(Room).where(Room.clinic_id == clinic.id, Room.name == spec["name"])
+        existing = (await session.execute(stmt)).scalar_one_or_none()
+        if existing:
+            by_name[spec["name"]] = existing
+            continue
+        room = Room(clinic_id=clinic.id, **spec)
+        session.add(room)
+        await session.flush()
+        print(f"[seed] Created room: {room.name}")
+        by_name[spec["name"]] = room
+    return by_name
+
+
+async def _seed_appointments(
+    session,
+    clinic: Clinic,
+    users: dict[str, User],
+    rooms: dict[str, Room],
+) -> None:
+    # Idempotência: se já existem appointments dessa clínica, pula.
+    existing = (await session.execute(
+        select(Appointment.id).where(Appointment.clinic_id == clinic.id).limit(1)
+    )).first()
+    if existing:
+        return
+
+    dentist_user = users["dentist@demo.odonto"]
+    admin = users["admin@demo.odonto"]
+
+    # Professional do dentist
+    prof = (await session.execute(
+        select(Professional).where(Professional.user_id == dentist_user.id)
+    )).scalar_one()
+
+    # Pacientes seedados
+    patients_rows = (await session.execute(
+        select(Patient).where(Patient.clinic_id == clinic.id).order_by(Patient.full_name).limit(2)
+    )).scalars().all()
+    if len(patients_rows) < 2:
+        print("[seed] Skipping appointments — need >= 2 patients.")
+        return
+
+    sala_1 = rooms["Sala 1 - Clínica Geral"]
+    sala_2 = rooms["Sala 2 - Cirurgia / Endo"]
+
+    today = datetime.now(timezone.utc).replace(hour=14, minute=0, second=0, microsecond=0)
+    tomorrow = today + timedelta(days=1)
+
+    seed_specs = [
+        # 1) HOJE 14:00 - SCHEDULED (Maria, Sala 1)
+        {
+            "patient": patients_rows[0],
+            "room": sala_1,
+            "starts_at": today,
+            "ends_at": today + timedelta(minutes=40),
+            "status": AppointmentStatus.SCHEDULED,
+            "procedure_hint": "Profilaxia (Limpeza)",
+            "notes": "Primeira consulta do mês.",
+        },
+        # 2) HOJE 15:00 - CONFIRMED (Lucas, Sala 1)
+        {
+            "patient": patients_rows[1],
+            "room": sala_1,
+            "starts_at": today + timedelta(hours=1),
+            "ends_at": today + timedelta(hours=1, minutes=50),
+            "status": AppointmentStatus.CONFIRMED,
+            "procedure_hint": "Restauração 1 face (dente 16)",
+            "notes": "Confirmado via WhatsApp.",
+        },
+        # 3) AMANHÃ 09:00 - SCHEDULED (Maria, Sala 2 - Endo)
+        {
+            "patient": patients_rows[0],
+            "room": sala_2,
+            "starts_at": tomorrow.replace(hour=9),
+            "ends_at": tomorrow.replace(hour=10, minute=30),
+            "status": AppointmentStatus.SCHEDULED,
+            "procedure_hint": "Avaliação canal molar",
+            "notes": "Encaminhada para endodontia.",
+        },
+    ]
+
+    for s in seed_specs:
+        appointment = Appointment(
+            clinic_id=clinic.id,
+            patient_id=s["patient"].id,
+            professional_id=prof.id,
+            room_id=s["room"].id,
+            starts_at=s["starts_at"],
+            ends_at=s["ends_at"],
+            status=s["status"],
+            procedure_hint=s["procedure_hint"],
+            notes=s["notes"],
+            pin_code=f"{secrets.randbelow(10000):04d}",
+            qr_token=secrets.token_urlsafe(32)[:64],
+            confirmed_at=(
+                datetime.now(timezone.utc)
+                if s["status"] == AppointmentStatus.CONFIRMED
+                else None
+            ),
+            created_by_user_id=admin.id,
+        )
+        session.add(appointment)
+        await session.flush()
+        print(
+            f"[seed] Created appointment: {s['patient'].full_name} | {s['room'].name} | "
+            f"{s['starts_at'].strftime('%Y-%m-%d %H:%M')} | {s['status'].value} | PIN={appointment.pin_code}"
+        )
+
+
+# ─────────────────────────────────────────────────────────────
 
 
 async def run_seed() -> None:
@@ -332,6 +469,8 @@ async def run_seed() -> None:
             specialties = await _seed_specialties(session, clinic)
             await _seed_procedures(session, clinic, specialties)
             await _seed_patients(session, clinic, users)
+            rooms = await _seed_rooms(session, clinic)
+            await _seed_appointments(session, clinic, users, rooms)
             await session.commit()
             print("[seed] Done.")
         except Exception:

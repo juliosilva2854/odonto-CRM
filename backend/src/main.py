@@ -18,6 +18,8 @@ from src.core.errors import (
 from src.core.logging import configure_logging, get_logger
 from src.core.middleware import RequestContextMiddleware
 from src.modules.audit import register_handlers as register_audit_handlers
+from src.modules.agenda.realtime import register_handlers as register_agenda_realtime
+from src.modules.agenda.router import router as agenda_router
 from src.modules.auth.router import router as auth_router
 from src.modules.clinical.catalog.router import router as catalog_router
 from src.modules.patients.router import router as patients_router
@@ -27,8 +29,9 @@ settings = get_settings()
 configure_logging()
 log = get_logger(__name__)
 
-# ── Register cross-module event handlers (audit, future integrations)
+# ── Register cross-module event handlers (audit, realtime broadcast)
 register_audit_handlers()
+register_agenda_realtime()
 
 
 @asynccontextmanager
@@ -78,6 +81,7 @@ app.include_router(auth_router)
 app.include_router(tenancy_router)
 app.include_router(patients_router)
 app.include_router(catalog_router)
+app.include_router(agenda_router)
 
 
 @app.get("/api", tags=["health"])
