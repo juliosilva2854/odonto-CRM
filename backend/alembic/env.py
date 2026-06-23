@@ -20,6 +20,7 @@ from src.modules.patients import models as _patients_models  # noqa: F401
 from src.modules.clinical.catalog import models as _catalog_models  # noqa: F401
 from src.modules.clinical.odontogram import models as _odontogram_models  # noqa: F401
 from src.modules.clinical.records import models as _records_models  # noqa: F401
+from src.modules.finance.quotes import models as _quotes_models  # noqa: F401
 from src.modules.audit import models as _audit_models  # noqa: F401
 from src.modules.agenda import models as _agenda_models  # noqa: F401
 

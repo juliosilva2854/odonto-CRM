@@ -24,6 +24,8 @@ from src.modules.auth.router import router as auth_router
 from src.modules.clinical.catalog.router import router as catalog_router
 from src.modules.clinical.odontogram.router import router as odontogram_router
 from src.modules.clinical.records.router import router as clinical_records_router
+from src.modules.finance.quotes.handlers import register_handlers as register_quotes_handlers
+from src.modules.finance.quotes.router import router as quotes_router
 from src.modules.patients.router import router as patients_router
 from src.modules.tenancy.router import router as tenancy_router
 
@@ -31,9 +33,10 @@ settings = get_settings()
 configure_logging()
 log = get_logger(__name__)
 
-# ── Register cross-module event handlers (audit, realtime broadcast)
+# ── Register cross-module event handlers (audit, realtime broadcast, finance↔clinical bridge)
 register_audit_handlers()
 register_agenda_realtime()
+register_quotes_handlers()
 
 
 @asynccontextmanager
@@ -86,6 +89,7 @@ app.include_router(catalog_router)
 app.include_router(agenda_router)
 app.include_router(odontogram_router)
 app.include_router(clinical_records_router)
+app.include_router(quotes_router)
 
 
 @app.get("/api", tags=["health"])

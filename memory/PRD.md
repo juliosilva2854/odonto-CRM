@@ -33,8 +33,8 @@ Arquitetura monolito modular, conteinerizada, com suporte a self-hosting e SaaS.
 | 1 | S2 | Patients (LGPD) + Catálogo + DataAccessLog | ✅ Entregue |
 | 1 | S3 | Agenda Multi-recurso + Check-in | ✅ Entregue |
 | 3 | S4.1 | Odontograma (Event-Sourced) + Prontuário (Lock CFO 24h) | ✅ Entregue (Fev/2026) |
-| 3 | S4.2 | Orçamentos (Quotes) + bridge Event Bus → Odontograma | ⏳ **Em andamento** |
-| 2 | S5-S6 | Frontend MVP + Anamnese | ⏳ Pendente |
+| 3 | S4.2 | Orçamentos (Quotes) + bridge Event Bus → Odontograma | ✅ Entregue (Fev/2026) |
+| 2 | S5-S6 | Frontend MVP + Anamnese | ⏳ **Próximo** |
 | 3 | S7-S9 | Clínico (refinos) + Contrato | ⏳ Pendente |
 | 4 | S10-S11 | Financeiro + Comissões | ⏳ Pendente |
 | 5 | S12-S13 | WhatsApp Automatizado | ⏳ Pendente |
@@ -175,11 +175,55 @@ Ver `/app/memory/test_credentials.md`
 
 ## Backlog / Próximos Sprints
 
-### Sprint S4.2 — Orçamentos (Quotes) [próximo]
-- Modelos: `Quote`, `QuoteItem` (com snapshot de preço e link opcional `tooth_procedure_id`)
-- Endpoints: criação, aprovação total/parcial item-a-item, rejeição, cancelamento
-- Evento `finance.quote_item_approved` → handler em `odontogram` muda status `planned → to_execute`
-- Migration `0005_quotes`
+### Sprint S4.2 — Orçamentos (Quotes) com Bridge Finance↔Clinical ✅ NOVO (Fev/2026)
+
+**Modelos novos (2):**
+- `finance.quotes.Quote` — orçamento com numeração humana `ORC-YYYY-NNNNNN` (única por clínica)
+- `finance.quotes.QuoteItem` — item com snapshots de preço, comissão e `deductions` (preparado para Splits)
+
+**Enums (3):** `QuoteStatus` (draft/sent/approved_partial/approved/rejected/cancelled/expired), `QuoteItemStatus` (pending/approved/rejected), `DeductionType` (card_fee/lab_fee/material/platform_fee/other).
+
+**Endpoints novos (7) em `/api/finance/quotes/`:**
+- `POST /` — cria orçamento (1..50 itens, valida totais server-side)
+- `GET /` — paginado, filtros `patient_id` e `status`
+- `GET /{id}` — detalhe (carrega items via `selectinload`)
+- `POST /{id}/items/{item_id}/approve` — aprovação granular item-a-item
+- `POST /{id}/items/{item_id}/reject` — rejeição com motivo
+- `POST /{id}/approve` — bulk-approve de todos os itens pending
+- `POST /{id}/cancel` — cancelamento manual
+
+**🔗 Event Bridge Finance ↔ Clinical (regra de ouro):**
+- Aprovação de item emite `finance.quote_item_approved` no EventBus in-process
+- `finance.quotes.handlers._on_quote_item_approved` (registrado em `main.py`) abre **sessão própria** e chama `OdontogramService.change_status(tp_id, TO_EXECUTE, trigger="quote_approved")`
+- ToothProcedure transiciona `planned → to_execute` automaticamente
+- Item ad-hoc sem `tooth_procedure_id` (ex: profilaxia) é aprovado sem disparar bridge
+
+**Preparo para Splits (S11):**
+- `commission_pct_snapshot` (5,2) + `commission_amount_snapshot` (10,2) frozen no `QuoteItem`
+- `deductions: JSONB` lista de `{type, amount, label}` — taxas/materiais a deduzir ANTES do split
+- Permite que o módulo financeiro futuro compute liquidação sem recálculo de snapshots
+
+**Reconciliação automática do agregado Quote:**
+- Todos aprovados → `APPROVED` (+ `approved_at`/`approved_by_user_id`)
+- Todos rejeitados → `REJECTED`
+- Misto (qualquer aprovado) → `APPROVED_PARTIAL`
+- State machine de itens: `pending → approved/rejected` (terminal)
+
+**Migration `0005_quotes`** — 2 tabelas + 2 enums + 4 índices + unique constraint `(clinic_id, number)`. Upgrade/downgrade testados.
+
+**Bugfix incidental:** snapshots de `deductions` em JSONB usam `model_dump(mode="json")` para serializar `Decimal` → `str` corretamente (asyncpg+JSONB rejeita Decimal nativo).
+
+**Testes pytest novos (8)** — `tests/test_quotes.py`:
+- Criação com snapshots completos (preço, comissão, deductions)
+- Desconto inválido → 422
+- **Bridge ouro: aprovar item → ToothProcedure muda para `to_execute`** ✓
+- Aprovação parcial (state `approved_partial`)
+- Dupla decisão bloqueada
+- Cancelamento + bloqueio de ações posteriores
+- Item ad-hoc sem `tooth_procedure_id` (não dispara bridge)
+- Listagem paginada
+
+**Suite total: 18/18 testes verdes** ✅
 
 ### S5-S6 — Frontend MVP
 - React + Vite + TS · login, agenda, pacientes, prontuário, odontograma visual (chart FDI clicável)
