@@ -31,9 +31,11 @@ Arquitetura monolito modular, conteinerizada, com suporte a self-hosting e SaaS.
 | 0 | S0 | Fundação (Docker, core/, Alembic) | ✅ Entregue |
 | 1 | S1 | Tenancy + Auth + RBAC + Seed | ✅ Entregue |
 | 1 | S2 | Patients (LGPD) + Catálogo + DataAccessLog | ✅ Entregue |
-| 1 | S3 | Agenda Multi-recurso + Check-in (próximo) | ⏳ Próximo |
-| 2 | S4-S6 | Frontend MVP + Anamnese | ⏳ Pendente |
-| 3 | S7-S9 | Clínico (Odontograma + Quotes + Contrato) | ⏳ Pendente |
+| 1 | S3 | Agenda Multi-recurso + Check-in | ✅ Entregue |
+| 3 | S4.1 | Odontograma (Event-Sourced) + Prontuário (Lock CFO 24h) | ✅ Entregue (Fev/2026) |
+| 3 | S4.2 | Orçamentos (Quotes) + bridge Event Bus → Odontograma | ⏳ **Em andamento** |
+| 2 | S5-S6 | Frontend MVP + Anamnese | ⏳ Pendente |
+| 3 | S7-S9 | Clínico (refinos) + Contrato | ⏳ Pendente |
 | 4 | S10-S11 | Financeiro + Comissões | ⏳ Pendente |
 | 5 | S12-S13 | WhatsApp Automatizado | ⏳ Pendente |
 | 6 | S14-S15 | Pagamento Online + BI | ⏳ Pendente |
@@ -100,7 +102,53 @@ Catálogo:
 
 **Seed atualizado:** + 3 especialidades (Clínica Geral, Ortodontia, Endodontia) + 3 procedimentos (Profilaxia, Restauração 1F, Canal Molar) com TUSS + 2 pacientes (Maria adulta · Lucas menor com responsável) + LGPD consents registrados.
 
-## Como executar
+### Sprint S4.1 — Odontograma (Event-Sourced) + Prontuário (Lock CFO) ✅ NOVO (Fev/2026)
+
+**Modelos novos (4):**
+- `clinical.odontogram.OdontogramEvent` — log append-only (event sourcing, CFO-compliant)
+- `clinical.odontogram.ToothProcedure` — projeção materializada (leitura rápida do chart de 32 dentes)
+- `clinical.records.ClinicalRecord` — evolução clínica com lock window
+- `clinical.records.ClinicalRecordAddendum` — adendos append-only após o lock
+
+**Enums (3):** `OdontogramEventType`, `ToothProcedureStatus` (planned/to_execute/in_progress/done/cancelled), `ClinicalRecordType`.
+
+**Endpoints novos (12):**
+
+Odontograma (`/api/clinical/...`):
+- `GET /patients/{id}/odontogram` — estado atual (projeção)
+- `POST /patients/{id}/odontogram/procedures` — planeja procedimento por dente FDI + faces
+- `POST /odontogram/procedures/{tp_id}/status` — máquina de estados validada
+- `DELETE /odontogram/procedures/{tp_id}` — cancela
+- `POST /patients/{id}/odontogram/notes` — anotação livre
+- `GET /patients/{id}/odontogram/events` — histórico append-only
+
+Prontuário (`/api/clinical/...`):
+- `POST /patients/{id}/records` — criação
+- `GET /patients/{id}/records` — paginado
+- `GET /records/{id}` — detalhe (com `is_locked` + `locks_at`)
+- `PUT /records/{id}` — edição (bloqueada após `lock_hours`)
+- `POST /records/{id}/addendums` — append-only (sela `locked_at` no primeiro adendo pós-lock)
+- `GET /records/{id}/addendums` — lista
+
+**Regras de negócio implementadas:**
+- **Padrão FDI/ISO 3950** com validação completa (adultos 11-48 + decíduos 51-85)
+- **State machine** de procedimentos com transições explícitas (`can_transition_procedure`)
+- **Snapshots imutáveis** de preço e comissão no momento do planejamento (anti-retroativo)
+- **Lock CFO** configurável por clínica via feature flag `clinical_records.config.lock_hours` (default 24h)
+- **Adendos append-only** após o lock — selam `locked_at` para auditoria
+- **Edição restrita** ao autor original (ou admin) durante a janela
+- **Pacientes anonimizados** (LGPD) bloqueiam acesso ao prontuário/odontograma
+
+**Migration `0004_clinical_records`** — 4 tabelas + 3 enums + 10 índices (incluindo partial index por `deleted_at IS NULL` em `tooth_procedures`).
+
+**Testes pytest** (`/app/backend/tests/`):
+- `test_odontogram.py` (7 testes): projeção, validação FDI/face, state machine, eventos, anotações
+- `test_clinical_records.py` (3 testes): janela de edição, lock CFO, adendos append-only
+- **10/10 passando** ✅
+
+**Bugfix incidental:** `validation_exception_handler` em `core/errors.py` quebrava ao serializar `RequestValidationError.errors()` quando Pydantic v2 incluía exceções no `ctx`. Trocado por `jsonable_encoder(exc.errors())`.
+
+
 
 ```bash
 cp .env.example .env
@@ -127,12 +175,15 @@ Ver `/app/memory/test_credentials.md`
 
 ## Backlog / Próximos Sprints
 
-### S3 — Agenda Multi-recurso + Check-in
-- Módulo `agenda/rooms` (CRUD de consultórios)
-- Módulo `agenda/appointments` com **EXCLUDE constraint** anti-conflito (3 recursos)
-- Módulo `agenda/checkin` (QR / PIN / Manual)
-- WebSocket/SSE para status "Sala de Espera"
-- Eventos: `AppointmentScheduled`, `PatientCheckedIn`
+### Sprint S4.2 — Orçamentos (Quotes) [próximo]
+- Modelos: `Quote`, `QuoteItem` (com snapshot de preço e link opcional `tooth_procedure_id`)
+- Endpoints: criação, aprovação total/parcial item-a-item, rejeição, cancelamento
+- Evento `finance.quote_item_approved` → handler em `odontogram` muda status `planned → to_execute`
+- Migration `0005_quotes`
+
+### S5-S6 — Frontend MVP
+- React + Vite + TS · login, agenda, pacientes, prontuário, odontograma visual (chart FDI clicável)
+- Stack confirmado em PRD; iniciar após S4.2
 
 ### Pontos de atenção identificados em S2
 - Sprint S3: validar política de retenção de DataAccessLog (LGPD não exige TTL, mas pode crescer rápido — considerar particionamento mensal a partir de S15).
