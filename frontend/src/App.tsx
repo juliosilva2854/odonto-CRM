@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -7,9 +7,11 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Toaster } from "@/components/ui/toaster";
 import DashboardPage from "@/pages/DashboardPage";
 import FinanceQuotesPage from "@/pages/FinanceQuotesPage";
 import LoginPage from "@/pages/LoginPage";
@@ -17,6 +19,17 @@ import NotFoundPage from "@/pages/NotFoundPage";
 import PatientRecordPage from "@/pages/PatientRecordPage";
 import PatientsListPage from "@/pages/PatientsListPage";
 import { setOnUnauthorized } from "@/lib/api";
+
+// FullCalendar is ~86 KB gzip; only load when the user actually opens the agenda.
+const AgendaPage = lazy(() => import("@/pages/AgendaPage"));
+
+function PageFallback() {
+  return (
+    <div className="flex flex-1 items-center justify-center py-24 text-muted-foreground">
+      <Loader2 className="h-5 w-5 animate-spin" />
+    </div>
+  );
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,7 +66,22 @@ function AppRoutes() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/agenda" element={<Placeholder title="Agenda" />} />
+          <Route
+            path="/agenda"
+            element={
+              <Suspense fallback={<PageFallback />}>
+                <AgendaPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <Suspense fallback={<PageFallback />}>
+                <AgendaPage />
+              </Suspense>
+            }
+          />
           <Route path="/patients" element={<PatientsListPage />} />
           <Route path="/patients/:id" element={<PatientRecordPage />} />
           <Route path="/finance/quotes" element={<FinanceQuotesPage />} />
@@ -86,6 +114,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppRoutes />
+        <Toaster />
       </BrowserRouter>
     </QueryClientProvider>
   );

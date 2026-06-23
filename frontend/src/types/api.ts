@@ -338,3 +338,53 @@ export interface QuoteRejectPayload {
 export interface QuoteCancelPayload {
   reason?: string | null;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Agenda — Rooms, Appointments, Check-in
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AppointmentStatus =
+  | "scheduled"
+  | "confirmed"
+  | "waiting_room"
+  | "in_progress"
+  | "completed"
+  | "cancelled"
+  | "no_show";
+
+export interface Room {
+  id: string;
+  clinic_id: string;
+  name: string;
+  description: string | null;
+  equipments: Record<string, unknown>;
+  color_hex: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AppointmentBoardItem {
+  id: string;
+  starts_at: string;
+  ends_at: string;
+  status: AppointmentStatus;
+  patient_id: string;
+  patient_name: string;
+  professional_id: string;
+  professional_name: string;
+  room_id: string;
+  room_name: string;
+  procedure_hint: string | null;
+  confirmed_at: string | null;
+}
+
+export interface AppointmentCreatePayload {
+  patient_id: string;
+  professional_id: string;
+  room_id: string;
+  starts_at: string;
+  ends_at: string;
+  procedure_hint?: string | null;
+  notes?: string | null;
+  generate_checkin_codes?: boolean;
+}

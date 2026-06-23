@@ -17,13 +17,7 @@ export function cleanPhoneNumber(phone: string | null | undefined): string {
   return phone.replace(/\D+/g, "");
 }
 
-/**
- * Builds a Brazilian-Portuguese sales follow-up message for a quote.
- *
- * Keeps it warm, concise, and ends with a soft CTA so the receptionist can
- * naturally continue the conversation. Line breaks are real `\n` chars —
- * encodeURIComponent will turn them into `%0A` automatically.
- */
+/**\n * Builds a Brazilian-Portuguese sales follow-up message for a quote.\n *\n * Boutique Clinic register \u2014 formal treatment (Sr(a). + senhor(a)), no emojis,\n * single paragraph. Line breaks are real `\\n` chars \u2014 encodeURIComponent\n * will turn them into `%0A` automatically.\n */
 export function buildQuoteWhatsappMessage({
   patient,
   clinic,
@@ -33,24 +27,20 @@ export function buildQuoteWhatsappMessage({
   clinic: Pick<ClinicSummary, "trade_name">;
   quote: Pick<Quote, "number" | "total">;
 }): string {
-  const greetingName = patient.social_name?.trim() || firstName(patient.full_name);
+  const treatmentName =
+    patient.social_name?.trim() || patient.full_name.trim();
   const clinicName = clinic.trade_name.trim();
   const formattedTotal = formatBRL(quote.total);
 
   return [
-    `Olá, ${greetingName}! Tudo bem? 😊`,
+    `Ol\u00e1, Sr(a). ${treatmentName}. Como o(a) senhor(a) est\u00e1?`,
     "",
-    `Aqui é da clínica ${clinicName}. O(a) Dr(a). finalizou o seu planejamento clínico personalizado (orçamento ${quote.number}).`,
+    `Aqui \u00e9 da recep\u00e7\u00e3o da cl\u00ednica ${clinicName}. O seu planejamento cl\u00ednico personalizado j\u00e1 foi cuidadosamente estruturado pelo Doutor(a).`,
     "",
-    `O valor do investimento ficou em *${formattedTotal}*, com condições facilitadas.`,
+    `O valor do investimento do seu tratamento ficou em *${formattedTotal}*.`,
     "",
-    "Posso te enviar o documento em PDF por aqui para você avaliar com calma?",
+    "O(a) senhor(a) gostaria que eu enviasse o documento detalhado por aqui para sua avalia\u00e7\u00e3o em casa?",
   ].join("\n");
-}
-
-function firstName(fullName: string): string {
-  const part = fullName.trim().split(/\s+/)[0];
-  return part || fullName;
 }
 
 /**

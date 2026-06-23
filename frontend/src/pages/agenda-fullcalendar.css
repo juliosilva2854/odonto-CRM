@@ -1,0 +1,245 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   FullCalendar — Modern Premium overrides.
+   FullCalendar v6 injects its base CSS at runtime; we only override here.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.agenda-card .fc {
+  --fc-border-color: hsl(var(--border));
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: hsl(var(--background));
+  --fc-today-bg-color: hsl(var(--accent) / 0.04);
+  --fc-now-indicator-color: hsl(var(--accent));
+  --fc-event-bg-color: hsl(var(--card));
+  --fc-event-border-color: hsl(var(--border));
+  --fc-event-text-color: hsl(var(--foreground));
+  --fc-list-event-hover-bg-color: hsl(var(--secondary));
+  font-family: inherit;
+  color: hsl(var(--foreground));
+}
+
+/* Header toolbar */
+.agenda-card .fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.agenda-card .fc .fc-toolbar-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: hsl(var(--foreground));
+}
+
+/* Buttons — replace ugly native blue */
+.agenda-card .fc .fc-button {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: none;
+  box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  transition: all 0.15s ease;
+}
+.agenda-card .fc .fc-button:hover {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+.agenda-card .fc .fc-button:focus,
+.agenda-card .fc .fc-button:active {
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.5);
+  outline: none;
+}
+.agenda-card .fc .fc-button-primary:not(:disabled).fc-button-active,
+.agenda-card .fc .fc-button-primary:not(:disabled):active {
+  background: hsl(var(--accent));
+  border-color: hsl(var(--accent));
+  color: white;
+  box-shadow: 0 1px 2px 0 rgb(79 70 229 / 0.25);
+}
+.agenda-card .fc .fc-button-group .fc-button:not(:first-child) {
+  margin-left: -1px;
+}
+.agenda-card .fc .fc-button .fc-icon {
+  font-size: 0.85rem;
+}
+
+/* Day headers */
+.agenda-card .fc .fc-col-header-cell {
+  background: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+.agenda-card .fc .fc-col-header-cell-cushion {
+  padding: 8px 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+}
+
+/* Time labels */
+.agenda-card .fc .fc-timegrid-slot-label {
+  border-color: hsl(var(--border));
+}
+.agenda-card .fc .fc-timegrid-slot-label-cushion {
+  padding-right: 8px;
+  font-size: 0.68rem;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.agenda-card .fc .fc-timegrid-axis {
+  border-color: hsl(var(--border));
+}
+
+/* Slot lines — make them whisper-soft */
+.agenda-card .fc .fc-timegrid-slot {
+  border-color: hsl(var(--border));
+  height: 1.65rem;
+}
+.agenda-card .fc .fc-timegrid-slot-minor {
+  border-top-style: dotted;
+  border-top-color: hsl(var(--border) / 0.6);
+}
+
+/* Day cell hover (hint clickable empty slots) */
+.agenda-card .fc .fc-timegrid-col:hover {
+  background: hsl(var(--secondary) / 0.4);
+}
+
+/* Today column accent */
+.agenda-card .fc .fc-day-today {
+  background: hsl(var(--accent) / 0.04) !important;
+}
+.agenda-card .fc .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
+  color: hsl(var(--accent));
+}
+
+/* Now indicator */
+.agenda-card .fc .fc-timegrid-now-indicator-line {
+  border-top-width: 2px;
+  border-color: hsl(var(--accent));
+}
+.agenda-card .fc .fc-timegrid-now-indicator-arrow {
+  border-color: hsl(var(--accent));
+}
+
+/* Events */
+.agenda-card .fc .fc-timegrid-event,
+.agenda-card .fc .fc-daygrid-event {
+  border-radius: 0.6rem !important;
+  border-width: 1px;
+  border-left-width: 3px;
+  box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  padding: 0;
+  margin: 1px 2px;
+  overflow: hidden;
+}
+.agenda-card .fc .fc-timegrid-event .fc-event-main,
+.agenda-card .fc .fc-daygrid-event .fc-event-main {
+  padding: 0;
+}
+.agenda-card .fc .fc-timegrid-event-harness {
+  margin-right: 2px;
+}
+
+/* Selection rectangle (drag-to-create) */
+.agenda-card .fc .fc-highlight {
+  background: hsl(var(--accent) / 0.08);
+  border: 1px dashed hsl(var(--accent) / 0.6);
+  border-radius: 0.5rem;
+}
+
+/* Custom event content */
+.agenda-event {
+  padding: 6px 8px;
+  font-family: inherit;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  cursor: pointer;
+}
+.agenda-event-time {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: inherit;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.agenda-event-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.agenda-event-name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.005em;
+}
+.agenda-event-meta {
+  font-size: 10px;
+  opacity: 0.75;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.agenda-event-status {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* Month view */
+.agenda-card .fc .fc-daygrid-day-frame {
+  padding: 4px;
+}
+.agenda-card .fc .fc-daygrid-day-number {
+  font-size: 11px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  padding: 4px 6px;
+  text-decoration: none;
+}
+.agenda-card .fc .fc-day-today .fc-daygrid-day-number {
+  color: hsl(var(--accent));
+  font-weight: 700;
+}
+
+/* Scrollbars inside the calendar */
+.agenda-card .fc-scroller::-webkit-scrollbar { width: 8px; }
+.agenda-card .fc-scroller::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
+
+/* Remove the default subtle box shadow around the calendar root */
+.agenda-card .fc .fc-scrollgrid {
+  border-color: hsl(var(--border));
+  border-radius: 0.85rem;
+  overflow: hidden;
+}
+.agenda-card .fc .fc-scrollgrid > tbody > tr > td,
+.agenda-card .fc .fc-scrollgrid > thead > tr > th {
+  border-color: hsl(var(--border));
+}
