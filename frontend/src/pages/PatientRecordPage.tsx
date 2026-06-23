@@ -10,6 +10,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  ReceiptText,
   ShieldCheck,
   Sparkles,
   Stethoscope,
@@ -26,6 +27,7 @@ import { ClinicalEvolutionTab } from "@/components/clinical/ClinicalEvolutionTab
 import { OdontogramChart } from "@/components/odontogram/OdontogramChart";
 import { ToothDetailSheet } from "@/components/odontogram/ToothDetailSheet";
 import { groupByTooth } from "@/components/odontogram/fdi";
+import { QuotesTab } from "@/components/quotes/QuotesTab";
 import { cn, initialsOf } from "@/lib/utils";
 import { clinicalRecordsService } from "@/services/clinical-records.service";
 import { odontogramService } from "@/services/odontogram.service";
@@ -190,6 +192,10 @@ export default function PatientRecordPage() {
             <Stethoscope className="h-3.5 w-3.5" />
             Evolução Clínica
           </TabsTrigger>
+          <TabsTrigger value="quotes" data-testid="tab-quotes">
+            <ReceiptText className="h-3.5 w-3.5" />
+            Orçamentos
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="odontogram" className="space-y-4">
@@ -206,6 +212,10 @@ export default function PatientRecordPage() {
             patientId={patientId}
             patientReadOnly={isAnonymized}
           />
+        </TabsContent>
+
+        <TabsContent value="quotes">
+          <QuotesTab patientId={patientId} patientReadOnly={isAnonymized} />
         </TabsContent>
       </Tabs>
 

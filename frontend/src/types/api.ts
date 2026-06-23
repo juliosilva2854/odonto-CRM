@@ -235,3 +235,106 @@ export interface ClinicalRecordAddendumPayload {
   content: string;
   attachments?: ClinicalRecordAttachment[];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Finance — Quotes
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type QuoteStatus =
+  | "draft"
+  | "sent"
+  | "approved_partial"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "expired";
+
+export type QuoteItemStatus = "pending" | "approved" | "rejected";
+
+export type DeductionType =
+  | "card_fee"
+  | "lab_fee"
+  | "material"
+  | "platform_fee"
+  | "other";
+
+export interface QuoteDeduction {
+  type: DeductionType;
+  amount: string;
+  label?: string | null;
+}
+
+export interface QuoteItem {
+  id: string;
+  clinic_id: string;
+  quote_id: string;
+  procedure_id: string;
+  procedure_code_snapshot: string;
+  procedure_name_snapshot: string;
+  tooth_procedure_id: string | null;
+  tooth_fdi: string | null;
+  faces: string[];
+  description: string | null;
+  quantity: string;
+  unit_price: string;
+  discount_amount: string;
+  line_total: string;
+  commission_pct_snapshot: string | null;
+  commission_amount_snapshot: string | null;
+  deductions: Array<Record<string, unknown>>;
+  status: QuoteItemStatus;
+  decided_at: string | null;
+  decided_by_user_id: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Quote {
+  id: string;
+  clinic_id: string;
+  patient_id: string;
+  number: string;
+  status: QuoteStatus;
+  subtotal: string;
+  discount_amount: string;
+  total: string;
+  notes: string | null;
+  valid_until: string | null;
+  created_by_user_id: string;
+  approved_by_user_id: string | null;
+  approved_at: string | null;
+  items: QuoteItem[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuoteItemCreatePayload {
+  procedure_id: string;
+  tooth_procedure_id?: string | null;
+  tooth_fdi?: string | null;
+  faces?: string[];
+  description?: string | null;
+  quantity?: string;
+  unit_price_override?: string | null;
+  discount_amount?: string;
+  commission_pct?: string | null;
+  commission_amount?: string | null;
+  deductions?: QuoteDeduction[];
+}
+
+export interface QuoteCreatePayload {
+  patient_id: string;
+  items: QuoteItemCreatePayload[];
+  discount_amount?: string;
+  notes?: string | null;
+  valid_until?: string | null;
+}
+
+export interface QuoteRejectPayload {
+  reason?: string | null;
+}
+
+export interface QuoteCancelPayload {
+  reason?: string | null;
+}
