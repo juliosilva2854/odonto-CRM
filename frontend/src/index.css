@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────
+   "Boutique Clinic" Design System
+   - Off-white cream background (eggshell), not stark white
+   - Deep moss/slate green as primary (soft luxe; never neon)
+   - Champagne brass accent for premium markers
+   - Hybrid type: Playfair (display) + Inter (UI)
+   ───────────────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    /* Brand palette — HSL (no commas, Tailwind v3 format) */
+    --cream: 40 33% 96%;          /* #F7F4ED  background */
+    --ink: 30 7% 11%;             /* #1C1917  body text */
+    --moss: 145 9% 21%;           /* #2F3A33  primary */
+    --moss-soft: 145 9% 32%;      /* hover / muted moss */
+    --brass: 35 36% 60%;          /* #C9A56B  accent */
+    --brass-soft: 35 36% 72%;     /* hover brass */
+    --stone-100: 36 16% 92%;
+    --stone-200: 36 14% 86%;
+    --stone-300: 30 8% 75%;
+    --stone-500: 25 6% 50%;
+    --stone-700: 24 7% 30%;
+
+    /* shadcn semantic tokens, mapped onto the brand palette */
+    --background: var(--cream);
+    --foreground: var(--ink);
+    --card: 40 40% 98%;
+    --card-foreground: var(--ink);
+    --popover: 40 40% 98%;
+    --popover-foreground: var(--ink);
+    --primary: var(--moss);
+    --primary-foreground: 40 33% 96%;
+    --secondary: var(--stone-100);
+    --secondary-foreground: var(--ink);
+    --muted: var(--stone-100);
+    --muted-foreground: var(--stone-500);
+    --accent: var(--brass);
+    --accent-foreground: 30 7% 11%;
+    --destructive: 0 65% 42%;
+    --destructive-foreground: 40 33% 96%;
+    --border: var(--stone-200);
+    --input: var(--stone-200);
+    --ring: var(--moss);
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "ss01", "cv11";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2 {
+    @apply font-serif tracking-tight;
+  }
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans tracking-tight;
+  }
+
+  /* Subtle scrollbar to match the off-white theme */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--stone-200));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--stone-300)); }
+
+  /* Focus ring — discreet but always visible */
+  :where(button, a, input, textarea, select):focus-visible {
+    outline: 2px solid hsl(var(--ring) / 0.6);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+}
+
+@layer utilities {
+  /* Subtle paper grain — adds boutique texture without noise.
+     Applied selectively on hero / login splash. */
+  .bg-grain {
+    background-image:
+      radial-gradient(hsl(var(--ink) / 0.025) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+}
