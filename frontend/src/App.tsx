@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
+import FinanceQuotesPage from "@/pages/FinanceQuotesPage";
 import LoginPage from "@/pages/LoginPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import PatientRecordPage from "@/pages/PatientRecordPage";
@@ -55,6 +56,7 @@ function AppRoutes() {
           <Route path="/agenda" element={<Placeholder title="Agenda" />} />
           <Route path="/patients" element={<PatientsListPage />} />
           <Route path="/patients/:id" element={<PatientRecordPage />} />
+          <Route path="/finance/quotes" element={<FinanceQuotesPage />} />
           <Route path="/finance" element={<Placeholder title="Financeiro" />} />
           <Route path="/settings" element={<Placeholder title="Configurações" />} />
         </Route>

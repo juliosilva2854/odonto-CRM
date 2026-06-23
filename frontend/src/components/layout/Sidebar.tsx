@@ -3,6 +3,7 @@ import {
   Calendar,
   LayoutDashboard,
   Receipt,
+  ReceiptText,
   Settings,
   Users,
   type LucideIcon,
@@ -21,6 +22,10 @@ const NAV_PRIMARY: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { to: "/agenda", label: "Agenda", Icon: Calendar },
   { to: "/patients", label: "Pacientes", Icon: Users },
+];
+
+const NAV_FINANCE: NavItem[] = [
+  { to: "/finance/quotes", label: "Orçamentos", Icon: ReceiptText },
   { to: "/finance", label: "Financeiro", Icon: Receipt },
 ];
 
@@ -49,6 +54,17 @@ export function Sidebar() {
         </p>
         <ul className="space-y-0.5">
           {NAV_PRIMARY.map((item) => (
+            <li key={item.to}>
+              <SidebarLink item={item} />
+            </li>
+          ))}
+        </ul>
+
+        <p className="mt-6 px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
+          Financeiro
+        </p>
+        <ul className="space-y-0.5">
+          {NAV_FINANCE.map((item) => (
             <li key={item.to}>
               <SidebarLink item={item} />
             </li>

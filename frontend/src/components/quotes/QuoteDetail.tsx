@@ -36,6 +36,7 @@ import {
   QuoteStatusBadge,
   formatBRL,
 } from "./quote-status";
+import { QuotePdfDialog } from "./QuotePdfDialog";
 
 interface QuoteDetailProps {
   quoteId: string;
@@ -184,6 +185,9 @@ export function QuoteDetail({
                 {formatBRL(quote.discount_amount)}
               </span>
             )}
+            <div className="mt-2">
+              <QuotePdfDialog quote={quote} />
+            </div>
           </div>
         </CardContent>
       </Card>
