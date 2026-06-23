@@ -17,12 +17,18 @@ from src.core.errors import (
 )
 from src.core.logging import configure_logging, get_logger
 from src.core.middleware import RequestContextMiddleware
+from src.modules.audit import register_handlers as register_audit_handlers
 from src.modules.auth.router import router as auth_router
+from src.modules.clinical.catalog.router import router as catalog_router
+from src.modules.patients.router import router as patients_router
 from src.modules.tenancy.router import router as tenancy_router
 
 settings = get_settings()
 configure_logging()
 log = get_logger(__name__)
+
+# ── Register cross-module event handlers (audit, future integrations)
+register_audit_handlers()
 
 
 @asynccontextmanager
@@ -70,6 +76,8 @@ async def health() -> dict[str, str]:
 # ── Routers
 app.include_router(auth_router)
 app.include_router(tenancy_router)
+app.include_router(patients_router)
+app.include_router(catalog_router)
 
 
 @app.get("/api", tags=["health"])

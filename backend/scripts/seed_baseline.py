@@ -1,11 +1,14 @@
-"""Seed baseline: demo clinic + 3 users + default feature flags.
+"""Seed baseline — idempotent.
 
-Idempotent — pode rodar várias vezes sem duplicar.
+S0/S1: Clinic + 3 Users + 15 Feature Flags
+S2:    + 3 Specialties + 3 Procedures + 2 Patients + LGPD consents
 """
 from __future__ import annotations
 
 import asyncio
 import uuid
+from datetime import datetime, timezone
+from decimal import Decimal
 
 from sqlalchemy import select
 
@@ -13,9 +16,16 @@ from src.core.database import AsyncSessionLocal
 from src.core.security import hash_password
 from src.modules.auth.enums import UserRole
 from src.modules.auth.models import Professional, User
+from src.modules.clinical.catalog.enums import ProcedureCategory
+from src.modules.clinical.catalog.models import Procedure, Specialty
+from src.modules.patients.enums import ConsentScope, Gender
+from src.modules.patients.models import Patient, PatientConsent
 from src.modules.tenancy.models import Clinic, ClinicFeature
 
-# ── Default feature flags. Drives which modules are visible / enabled.
+# ─────────────────────────────────────────────────────────────
+#  Static seed data
+# ─────────────────────────────────────────────────────────────
+
 DEFAULT_FEATURES: dict[str, bool] = {
     "patients": True,
     "anamnesis": True,
@@ -28,12 +38,11 @@ DEFAULT_FEATURES: dict[str, bool] = {
     "financial_core": True,
     "commission_split": True,
     "recurring_charges": True,
-    "online_payment": False,        # Fase 6
-    "whatsapp": False,              # Fase 5
+    "online_payment": False,
+    "whatsapp": False,
     "email": False,
-    "dashboard_bi": False,          # Fase 6
+    "dashboard_bi": False,
 }
-
 
 SEED_CLINIC = {
     "legal_name": "Demo Odonto Clínica LTDA",
@@ -59,7 +68,7 @@ SEED_USERS = [
             "cro_number": "12345",
             "cro_state": "SP",
             "specialty": "Clínica Geral",
-            "default_commission_pct": 40.00,
+            "default_commission_pct": Decimal("40.00"),
             "color_hex": "#10B981",
         },
     },
@@ -70,6 +79,110 @@ SEED_USERS = [
         "role": UserRole.RECEPTION,
     },
 ]
+
+SEED_SPECIALTIES = [
+    {"name": "Clínica Geral", "description": "Atendimento geral, profilaxia e dentística."},
+    {"name": "Ortodontia", "description": "Aparelhos ortodônticos e correção de posicionamento."},
+    {"name": "Endodontia", "description": "Tratamento endodôntico (canal) e retratamentos."},
+]
+
+SEED_PROCEDURES = [
+    {
+        "code": "PROF-01",
+        "tuss_code": "81000019",
+        "name": "Profilaxia (Limpeza)",
+        "description": "Remoção de placa bacteriana e tártaro supragengival.",
+        "category": ProcedureCategory.PREVENTIVE,
+        "specialty_name": "Clínica Geral",
+        "requires_tooth": False,
+        "requires_faces": False,
+        "base_price": Decimal("150.00"),
+        "default_duration_min": 40,
+    },
+    {
+        "code": "REST-RES-1F",
+        "tuss_code": "85100080",
+        "name": "Restauração em Resina - 1 face",
+        "description": "Restauração estética em resina composta, uma face.",
+        "category": ProcedureCategory.RESTORATIVE,
+        "specialty_name": "Clínica Geral",
+        "requires_tooth": True,
+        "requires_faces": True,
+        "base_price": Decimal("280.00"),
+        "default_duration_min": 50,
+        "default_color_hex": "#3B82F6",
+        "completed_color_hex": "#10B981",
+    },
+    {
+        "code": "CAN-MOL",
+        "tuss_code": "85200111",
+        "name": "Tratamento Endodôntico - Molar",
+        "description": "Canal em dente molar (3-4 condutos).",
+        "category": ProcedureCategory.ENDODONTIC,
+        "specialty_name": "Endodontia",
+        "requires_tooth": True,
+        "requires_faces": False,
+        "base_price": Decimal("950.00"),
+        "default_duration_min": 90,
+        "default_color_hex": "#8B5CF6",
+        "completed_color_hex": "#10B981",
+    },
+]
+
+SEED_PATIENTS = [
+    {
+        "full_name": "Maria Silva Souza",
+        "social_name": None,
+        "cpf": "529.982.247-25",  # CPF válido
+        "birth_date": datetime(1985, 6, 15, tzinfo=timezone.utc),
+        "gender": Gender.FEMALE,
+        "phone_e164": "+5511988887777",
+        "email": "maria.silva@example.com",
+        "address_street": "Rua das Flores",
+        "address_number": "123",
+        "address_neighborhood": "Vila Mariana",
+        "address_city": "São Paulo",
+        "address_state": "SP",
+        "address_zipcode": "04111-000",
+        "is_minor": False,
+        "notes": "Paciente recorrente. Prefere agendamento pela manhã.",
+        "consents": [
+            (ConsentScope.LGPD_DATA_PROCESSING, True),
+            (ConsentScope.WHATSAPP_COMMUNICATION, True),
+        ],
+    },
+    {
+        "full_name": "Lucas Oliveira Santos",
+        "social_name": None,
+        "cpf": "248.438.034-80",  # CPF válido
+        "birth_date": datetime(2015, 3, 22, tzinfo=timezone.utc),
+        "gender": Gender.MALE,
+        "phone_e164": "+5511977776666",
+        "email": None,
+        "address_street": "Avenida Paulista",
+        "address_number": "1000",
+        "address_complement": "Apto 502",
+        "address_neighborhood": "Bela Vista",
+        "address_city": "São Paulo",
+        "address_state": "SP",
+        "address_zipcode": "01310-100",
+        "is_minor": True,
+        "guardian_name": "Carla Oliveira Santos",
+        "guardian_cpf": "390.533.447-05",  # CPF válido
+        "guardian_phone_e164": "+5511966665555",
+        "notes": "Odontopediatria. Mãe acompanha todas as consultas.",
+        "consents": [
+            (ConsentScope.LGPD_DATA_PROCESSING, True),
+            (ConsentScope.WHATSAPP_COMMUNICATION, True),
+            (ConsentScope.IMAGE_USE, False),
+        ],
+    },
+]
+
+
+# ─────────────────────────────────────────────────────────────
+#  Idempotent seed helpers
+# ─────────────────────────────────────────────────────────────
 
 
 async def _get_or_create_clinic(session) -> Clinic:
@@ -98,36 +211,116 @@ async def _seed_features(session, clinic: Clinic) -> None:
         print(f"[seed] Created {created} feature flag(s)")
 
 
-async def _seed_users(session, clinic: Clinic) -> None:
+async def _seed_users(session, clinic: Clinic) -> dict[str, User]:
+    """Returns dict by email so subsequent seeds can reference an actor."""
+    by_email: dict[str, User] = {}
     for spec in SEED_USERS:
-        stmt = select(User).where(
-            User.clinic_id == clinic.id, User.email == spec["email"].lower()
-        )
+        email = spec["email"].lower()
+        stmt = select(User).where(User.clinic_id == clinic.id, User.email == email)
         user = (await session.execute(stmt)).scalar_one_or_none()
-        if user:
+        if user is None:
+            user = User(
+                id=uuid.uuid4(),
+                clinic_id=clinic.id,
+                email=email,
+                password_hash=hash_password(spec["password"]),
+                full_name=spec["full_name"],
+                role=spec["role"],
+                is_active=True,
+            )
+            session.add(user)
+            await session.flush()
+            print(f"[seed] Created user: {user.email} ({user.role.value})")
+
+            if spec["role"] == UserRole.DENTIST and "professional" in spec:
+                prof = Professional(user_id=user.id, clinic_id=clinic.id, **spec["professional"])
+                session.add(prof)
+                await session.flush()
+                print(f"[seed] Created professional for {user.email}")
+        by_email[email] = user
+    return by_email
+
+
+async def _seed_specialties(session, clinic: Clinic) -> dict[str, Specialty]:
+    by_name: dict[str, Specialty] = {}
+    for spec in SEED_SPECIALTIES:
+        stmt = select(Specialty).where(
+            Specialty.clinic_id == clinic.id, Specialty.name == spec["name"]
+        )
+        existing = (await session.execute(stmt)).scalar_one_or_none()
+        if existing:
+            by_name[spec["name"]] = existing
             continue
-        user = User(
-            id=uuid.uuid4(),
+        specialty = Specialty(clinic_id=clinic.id, **spec)
+        session.add(specialty)
+        await session.flush()
+        print(f"[seed] Created specialty: {specialty.name}")
+        by_name[spec["name"]] = specialty
+    return by_name
+
+
+async def _seed_procedures(session, clinic: Clinic, specialties: dict[str, Specialty]) -> None:
+    for spec in SEED_PROCEDURES:
+        stmt = select(Procedure).where(
+            Procedure.clinic_id == clinic.id, Procedure.code == spec["code"]
+        )
+        if (await session.execute(stmt)).scalar_one_or_none():
+            continue
+        specialty = specialties.get(spec["specialty_name"])
+        proc = Procedure(
             clinic_id=clinic.id,
-            email=spec["email"].lower(),
-            password_hash=hash_password(spec["password"]),
-            full_name=spec["full_name"],
-            role=spec["role"],
+            code=spec["code"],
+            tuss_code=spec.get("tuss_code"),
+            name=spec["name"],
+            description=spec.get("description"),
+            category=spec["category"],
+            specialty_id=specialty.id if specialty else None,
+            requires_tooth=spec.get("requires_tooth", True),
+            requires_faces=spec.get("requires_faces", False),
+            default_color_hex=spec.get("default_color_hex", "#3B82F6"),
+            completed_color_hex=spec.get("completed_color_hex", "#10B981"),
+            base_price=spec["base_price"],
+            default_duration_min=spec.get("default_duration_min", 30),
             is_active=True,
         )
-        session.add(user)
+        session.add(proc)
         await session.flush()
-        print(f"[seed] Created user: {user.email} ({user.role.value})")
+        print(f"[seed] Created procedure: {proc.code} - {proc.name}")
 
-        if spec["role"] == UserRole.DENTIST and "professional" in spec:
-            prof = Professional(
-                user_id=user.id,
-                clinic_id=clinic.id,
-                **spec["professional"],
+
+async def _seed_patients(session, clinic: Clinic, users: dict[str, User]) -> None:
+    admin = users["admin@demo.odonto"]
+    for spec in SEED_PATIENTS:
+        stmt = select(Patient).where(
+            Patient.clinic_id == clinic.id, Patient.cpf == spec["cpf"]
+        )
+        if (await session.execute(stmt)).scalar_one_or_none():
+            continue
+
+        consents_data = spec.pop("consents", [])
+        patient = Patient(clinic_id=clinic.id, **spec)
+        session.add(patient)
+        await session.flush()
+        print(f"[seed] Created patient: {patient.full_name} ({patient.cpf})")
+
+        for scope, granted in consents_data:
+            session.add(
+                PatientConsent(
+                    clinic_id=clinic.id,
+                    patient_id=patient.id,
+                    scope=scope,
+                    granted=granted,
+                    document_version="lgpd-v1.0",
+                    granted_via="in_person",
+                    actor_user_id=admin.id,
+                )
             )
-            session.add(prof)
+        if consents_data:
             await session.flush()
-            print(f"[seed] Created professional profile for {user.email}")
+            print(f"[seed]   + {len(consents_data)} consent(s) for {patient.full_name}")
+
+
+# ─────────────────────────────────────────────────────────────
 
 
 async def run_seed() -> None:
@@ -135,7 +328,10 @@ async def run_seed() -> None:
         try:
             clinic = await _get_or_create_clinic(session)
             await _seed_features(session, clinic)
-            await _seed_users(session, clinic)
+            users = await _seed_users(session, clinic)
+            specialties = await _seed_specialties(session, clinic)
+            await _seed_procedures(session, clinic, specialties)
+            await _seed_patients(session, clinic, users)
             await session.commit()
             print("[seed] Done.")
         except Exception:
