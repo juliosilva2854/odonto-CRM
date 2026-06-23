@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Navigate } from "react-router-dom";
-import { Lock, Mail, Loader2, ArrowRight } from "lucide-react";
+import { Lock, Mail, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
 
 import { BrandMark } from "@/components/brand/BrandMark";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,7 +24,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // If already authed, send to the intended destination (or dashboard).
   if (isAuthed) {
     const target = (location.state as LocationState)?.from?.pathname ?? "/dashboard";
     return <Navigate to={target} replace />;
@@ -42,14 +41,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[1.05fr_1fr]">
-      {/* ─── Left: editorial visual ──────────────────────────── */}
+    <div className="grid min-h-screen w-full lg:grid-cols-[1.1fr_1fr]">
+      {/* ─── Left: visual splash ─────────────────────────────── */}
       <aside
         data-testid="login-visual-panel"
-        className="relative hidden overflow-hidden bg-primary text-primary-foreground lg:flex lg:flex-col lg:justify-between"
+        className="relative hidden overflow-hidden bg-foreground text-white lg:flex lg:flex-col lg:justify-between"
       >
-        <div className="absolute inset-0 bg-grain opacity-50" aria-hidden />
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary-foreground/5" aria-hidden />
+        <div className="absolute inset-0 bg-dotgrid opacity-30" aria-hidden />
+        <div
+          className="pointer-events-none absolute -left-32 top-1/3 h-[420px] w-[420px] rounded-full bg-accent/40 blur-[120px]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -right-24 bottom-0 h-[360px] w-[360px] rounded-full bg-indigo-500/30 blur-[120px]"
+          aria-hidden
+        />
 
         <div className="relative z-10 flex items-center gap-3 px-12 pt-12">
           <BrandMark size="md" withWordmark tone="light" />
@@ -57,38 +63,38 @@ export default function LoginPage() {
 
         <figure className="relative z-10 px-12 pb-16">
           <blockquote className="max-w-lg">
-            <p className="font-serif text-3xl leading-snug text-primary-foreground/95">
-              “A excelência clínica merece um software que respeite o
-              <span className="text-accent"> tempo, o sigilo</span> e a
-              <span className="text-accent italic"> estética </span>
-              do seu consultório.”
+            <p className="text-3xl font-semibold leading-snug tracking-tight text-white/95">
+              Operar uma clínica de alto padrão exige software{" "}
+              <span className="text-accent">objetivo</span>,{" "}
+              <span className="text-accent">rápido</span> e{" "}
+              <span className="text-accent">sem fricção</span>.
             </p>
           </blockquote>
-          <figcaption className="mt-6 flex items-center gap-3 text-sm text-primary-foreground/60">
+          <figcaption className="mt-6 flex items-center gap-3 text-sm text-white/55">
             <span className="h-px w-10 bg-accent/60" />
-            Dental CRM · Boutique Edition
+            Dental.CRM · Modern Premium
           </figcaption>
         </figure>
 
-        <div className="relative z-10 grid grid-cols-3 gap-8 border-t border-primary-foreground/10 px-12 py-8 text-xs uppercase tracking-[0.18em] text-primary-foreground/55">
+        <div className="relative z-10 grid grid-cols-3 gap-6 border-t border-white/10 px-12 py-7 text-[11px] uppercase tracking-[0.18em] text-white/55">
           <Stat label="Padrão FDI" value="ISO 3950" />
           <Stat label="Trava CFO" value="24h" />
           <Stat label="Multi-tenant" value="LGPD" />
         </div>
       </aside>
 
-      {/* ─── Right: form ─────────────────────────────────────── */}
-      <section className="flex items-center justify-center px-6 py-10 sm:px-10">
+      {/* ─── Right: form ────────────────────────────────────── */}
+      <section className="flex items-center justify-center bg-background px-6 py-10 sm:px-10">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
             <BrandMark size="md" withWordmark />
           </div>
 
-          <h1 className="text-3xl font-semibold leading-tight">
-            Bem-vindo de volta.
+          <h1 className="text-3xl font-semibold leading-tight tracking-tight">
+            Acesse sua clínica.
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Acesse o painel da sua clínica para continuar.
+            Entre com suas credenciais profissionais.
           </p>
 
           <form
@@ -153,6 +159,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               size="lg"
+              variant="accent"
               disabled={isPending}
               className="w-full"
               data-testid="login-submit-button"
@@ -171,7 +178,8 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-10 text-center text-xs text-muted-foreground">
+          <p className="mt-10 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+            <ShieldCheck className="h-3.5 w-3.5" />
             Protegido por criptografia · Conformidade LGPD/CFO
           </p>
         </div>
@@ -183,7 +191,9 @@ export default function LoginPage() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="font-serif text-2xl text-primary-foreground/90">{value}</div>
+      <div className="text-xl font-semibold text-white/95 tracking-tight normal-case">
+        {value}
+      </div>
       <div className="mt-1">{label}</div>
     </div>
   );

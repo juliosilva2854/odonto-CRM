@@ -13,6 +13,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
 import LoginPage from "@/pages/LoginPage";
 import NotFoundPage from "@/pages/NotFoundPage";
+import PatientRecordPage from "@/pages/PatientRecordPage";
+import PatientsListPage from "@/pages/PatientsListPage";
 import { setOnUnauthorized } from "@/lib/api";
 
 const queryClient = new QueryClient({
@@ -25,10 +27,6 @@ const queryClient = new QueryClient({
   },
 });
 
-/**
- * Wires the axios 401 interceptor to react-router navigation so the user
- * is bounced back to /login on token expiry — without a full page reload.
- */
 function AuthInterceptorBinding() {
   const navigate = useNavigate();
   useEffect(() => {
@@ -55,7 +53,8 @@ function AppRoutes() {
         >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/agenda" element={<Placeholder title="Agenda" />} />
-          <Route path="/patients" element={<Placeholder title="Pacientes" />} />
+          <Route path="/patients" element={<PatientsListPage />} />
+          <Route path="/patients/:id" element={<PatientRecordPage />} />
           <Route path="/finance" element={<Placeholder title="Financeiro" />} />
           <Route path="/settings" element={<Placeholder title="Configurações" />} />
         </Route>
@@ -69,12 +68,12 @@ function AppRoutes() {
 function Placeholder({ title }: { title: string }) {
   return (
     <div className="mx-auto max-w-3xl py-16 text-center" data-testid={`placeholder-${title.toLowerCase()}`}>
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
         Próximos sprints
       </p>
-      <h1 className="mt-2 text-4xl font-semibold">{title}</h1>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight">{title}</h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        Esta área será habilitada na sequência da S5 conforme o roadmap.
+        Esta área será habilitada na sequência do roadmap.
       </p>
     </div>
   );

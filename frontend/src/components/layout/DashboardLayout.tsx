@@ -10,7 +10,7 @@ export function DashboardLayout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />
         <main
-          className="flex-1 px-8 py-8 animate-fade-in"
+          className="flex-1 px-6 py-8 sm:px-10 animate-fade-in"
           data-testid="dashboard-main"
         >
           <Outlet />

@@ -15,8 +15,6 @@ interface NavItem {
   to: string;
   label: string;
   Icon: LucideIcon;
-  /** Optional flag/feature gate label shown as a hint. */
-  hint?: string;
 }
 
 const NAV_PRIMARY: NavItem[] = [
@@ -35,21 +33,21 @@ export function Sidebar() {
     <aside
       data-testid="app-sidebar"
       className={cn(
-        "flex h-screen w-64 flex-col border-r border-primary/20 bg-primary text-primary-foreground",
-        "sticky top-0 z-30",
+        "sticky top-0 z-30 flex h-screen w-60 flex-col",
+        "border-r border-border bg-card",
       )}
     >
       {/* Brand */}
-      <div className="px-6 py-7">
-        <BrandMark size="md" withWordmark tone="light" />
+      <div className="px-5 py-5">
+        <BrandMark size="md" withWordmark />
       </div>
 
       {/* Primary nav */}
-      <nav className="flex-1 px-4 pb-6">
-        <p className="px-3 pb-2 pt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-primary-foreground/50">
+      <nav className="flex-1 px-3 pb-4">
+        <p className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
           Clínica
         </p>
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {NAV_PRIMARY.map((item) => (
             <li key={item.to}>
               <SidebarLink item={item} />
@@ -57,10 +55,10 @@ export function Sidebar() {
           ))}
         </ul>
 
-        <p className="mt-8 px-3 pb-2 pt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-primary-foreground/50">
+        <p className="mt-6 px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
           Sistema
         </p>
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {NAV_SECONDARY.map((item) => (
             <li key={item.to}>
               <SidebarLink item={item} />
@@ -70,8 +68,11 @@ export function Sidebar() {
       </nav>
 
       {/* Footer caption */}
-      <div className="border-t border-primary-foreground/10 px-6 py-4 text-[11px] font-medium uppercase tracking-wider text-primary-foreground/40">
-        v0.5 · Boutique
+      <div className="border-t border-border px-5 py-3 text-[11px] font-medium text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-success" />
+          v0.5.2 · Modern Premium
+        </div>
       </div>
     </aside>
   );
@@ -85,19 +86,21 @@ function SidebarLink({ item }: { item: NavItem }) {
       data-testid={`sidebar-link-${item.label.toLowerCase()}`}
       className={({ isActive }) =>
         cn(
-          "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+          "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
           isActive
-            ? "bg-primary-foreground/10 text-primary-foreground"
-            : "text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground",
+            ? "bg-secondary text-foreground shadow-xs"
+            : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
         )
       }
     >
       {({ isActive }) => (
         <>
-          {isActive && (
-            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-accent" />
-          )}
-          <Icon className="h-4 w-4 shrink-0" />
+          <Icon
+            className={cn(
+              "h-4 w-4 shrink-0 transition-colors",
+              isActive ? "text-accent" : "text-muted-foreground group-hover:text-foreground",
+            )}
+          />
           <span>{item.label}</span>
         </>
       )}

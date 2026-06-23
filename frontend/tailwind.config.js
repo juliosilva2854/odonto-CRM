@@ -12,7 +12,8 @@ export default {
     },
     extend: {
       colors: {
-        // Boutique Clinic palette — CSS variables in index.css.
+        // ─── Modern Premium SaaS palette ──────────────────────────
+        // Backed by CSS variables (see index.css). Vercel/Stripe-feel.
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -38,6 +39,14 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
@@ -46,26 +55,44 @@ export default {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
-        // Brand-specific aliases for explicit usage
-        ink: "hsl(var(--ink))",
-        cream: "hsl(var(--cream))",
-        moss: "hsl(var(--moss))",
-        brass: "hsl(var(--brass))",
       },
       fontFamily: {
-        // Hybrid typography — serif for display, sans for UI.
-        serif: ['"Playfair Display"', "Georgia", "serif"],
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        // 100% sans-serif. Geist > Inter > system. No serif anywhere.
+        sans: [
+          "Geist",
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "sans-serif",
+        ],
+        mono: [
+          "Geist Mono",
+          "JetBrains Mono",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "monospace",
+        ],
       },
       borderRadius: {
+        // Default leans modern: rounded-xl is the new "md".
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "calc(var(--radius) - 8px)",
+        xl: "calc(var(--radius) + 4px)",
+        "2xl": "calc(var(--radius) + 8px)",
       },
       boxShadow: {
-        // Whisper-soft elevation; reserved for cards/modals only.
-        soft: "0 1px 2px 0 rgb(28 25 23 / 0.04), 0 1px 1px 0 rgb(28 25 23 / 0.03)",
-        elevated: "0 6px 24px -8px rgb(28 25 23 / 0.10), 0 2px 6px -2px rgb(28 25 23 / 0.05)",
+        // Whisper-soft, very modern (Vercel-style).
+        xs: "0 1px 2px 0 rgb(15 23 42 / 0.04)",
+        soft: "0 1px 2px 0 rgb(15 23 42 / 0.05), 0 1px 1px 0 rgb(15 23 42 / 0.03)",
+        elevated:
+          "0 4px 16px -4px rgb(15 23 42 / 0.08), 0 2px 6px -2px rgb(15 23 42 / 0.04)",
+        glow:
+          "0 0 0 1px rgb(99 102 241 / 0.12), 0 8px 24px -8px rgb(99 102 241 / 0.30)",
       },
       keyframes: {
         "accordion-down": {
@@ -80,11 +107,24 @@ export default {
           from: { opacity: "0", transform: "translateY(4px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "slide-in-right": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "slide-out-right": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(100%)" },
+        },
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 280ms ease-out both",
+        "fade-in": "fade-in 240ms ease-out both",
+        "slide-in-right": "slide-in-right 260ms cubic-bezier(0.32, 0.72, 0, 1)",
+        "slide-out-right": "slide-out-right 200ms cubic-bezier(0.32, 0.72, 0, 1)",
       },
     },
   },

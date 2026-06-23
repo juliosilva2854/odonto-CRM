@@ -21,45 +21,44 @@ export function Header() {
   return (
     <header
       data-testid="app-header"
-      className="sticky top-0 z-20 flex h-16 items-center gap-6 border-b border-border bg-background/85 px-8 backdrop-blur"
+      className="sticky top-0 z-20 flex h-16 items-center gap-6 border-b border-border glass px-8"
     >
-      {/* Clinic context — tenant identification */}
+      {/* Clinic context */}
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-[11px] font-semibold uppercase tracking-wider text-primary">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-[11px] font-semibold uppercase tracking-wider text-background">
           {clinic ? initialsOf(clinic.trade_name) : "—"}
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-tight">
+          <p className="truncate text-sm font-semibold leading-tight text-foreground">
             {clinic?.trade_name ?? "—"}
           </p>
-          <p className="truncate text-[11px] uppercase tracking-wider text-muted-foreground">
-            Plano {clinic?.plan ?? "—"} · CNPJ {clinic?.cnpj ?? "—"}
+          <p className="truncate text-[11px] text-muted-foreground">
+            Plano <span className="font-medium text-foreground/80">{clinic?.plan ?? "—"}</span> · CNPJ {clinic?.cnpj ?? "—"}
           </p>
         </div>
       </div>
 
-      {/* Search — visual scaffolding for next sprints */}
+      {/* Search */}
       <div className="relative ml-auto hidden flex-1 max-w-md md:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           data-testid="header-search"
           placeholder="Buscar paciente, orçamento ou consulta…"
-          className="pl-9"
-          disabled
+          className="pl-9 bg-secondary/60 border-transparent focus-visible:bg-card focus-visible:border-input"
         />
       </div>
 
       {/* User chip */}
       <div className="flex items-center gap-3">
         <div className="hidden text-right md:block">
-          <p className="text-sm font-medium leading-tight">
+          <p className="text-sm font-medium leading-tight text-foreground">
             {user?.full_name ?? "—"}
           </p>
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             {ROLE_LABEL[user?.role ?? ""] ?? user?.role}
           </p>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/20 text-[12px] font-semibold text-foreground ring-1 ring-accent/30">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-accent to-indigo-500 text-[12px] font-semibold text-white shadow-xs">
           {user ? initialsOf(user.full_name) : "?"}
         </div>
         <Button
