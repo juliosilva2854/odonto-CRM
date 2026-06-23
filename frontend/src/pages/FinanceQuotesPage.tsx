@@ -29,14 +29,18 @@ import {
 import { cn } from "@/lib/utils";
 import { patientsService } from "@/services/patients.service";
 import { quotesService } from "@/services/quotes.service";
-import type { Quote } from "@/types/api";
+import { useAuthStore } from "@/store/auth";
+import type { Quote, QuoteStatus } from "@/types/api";
 import {
   QuoteStatusBadge,
   formatBRL,
 } from "@/components/quotes/quote-status";
+import { QuoteStatusFilter } from "@/components/quotes/QuoteStatusFilter";
+import { WhatsAppQuoteButton } from "@/components/quotes/WhatsAppQuoteButton";
 
 export default function FinanceQuotesPage() {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<Set<QuoteStatus>>(new Set());
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["quotes", "global", { page: 1, page_size: 100 }],
@@ -48,17 +52,22 @@ export default function FinanceQuotesPage() {
   // ── Metric aggregation (computed in-memory across the page window) ──────
   const metrics = useMemo(() => computeMetrics(quotes), [quotes]);
 
-  // ── Client-side filtering (patient name resolved per row via React Query) ──
+  // ── Client-side filtering: status filter applies BEFORE search ──────────
+  const statusFiltered = useMemo(() => {
+    if (statusFilter.size === 0) return quotes;
+    return quotes.filter((q) => statusFilter.has(q.status));
+  }, [quotes, statusFilter]);
+
   const filteredQuotes = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return quotes;
-    return quotes.filter(
+    if (!term) return statusFiltered;
+    return statusFiltered.filter(
       (q) =>
         q.number.toLowerCase().includes(term) ||
         (q.notes ?? "").toLowerCase().includes(term),
     );
     // Patient name filter happens inside each row component (it has the data).
-  }, [quotes, search]);
+  }, [statusFiltered, search]);
 
   return (
     <div className="mx-auto max-w-7xl space-y-8" data-testid="finance-quotes-page">
@@ -113,21 +122,26 @@ export default function FinanceQuotesPage() {
         />
       </section>
 
-      {/* Search */}
+      {/* Search + Filters */}
       <section className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative max-w-md flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder='Buscar por número (ORC-2026-X) ou nome do paciente…'
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-            data-testid="quotes-search"
-          />
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative max-w-md flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder='Buscar por número (ORC-2026-X) ou nome do paciente…'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+              data-testid="quotes-search"
+            />
+          </div>
+          <QuoteStatusFilter value={statusFilter} onChange={setStatusFilter} />
         </div>
         <p className="text-xs text-muted-foreground">
-          {data ? `${data.total} orçamento(s) no total` : "—"}
+          {data
+            ? `${filteredQuotes.length} de ${data.total} orçamento(s)`
+            : "—"}
         </p>
       </section>
 
@@ -153,7 +167,7 @@ export default function FinanceQuotesPage() {
                 <TableHead>Itens</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-8" />
+                <TableHead className="w-[120px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -173,6 +187,7 @@ export default function FinanceQuotesPage() {
 // ────────────────────────────────────────────────────────────────────
 
 function QuoteRow({ quote, searchTerm }: { quote: Quote; searchTerm: string }) {
+  const clinic = useAuthStore((s) => s.clinic);
   const { data: patient, isLoading } = useQuery({
     queryKey: ["patient", quote.patient_id],
     queryFn: () => patientsService.get(quote.patient_id),
@@ -192,7 +207,7 @@ function QuoteRow({ quote, searchTerm }: { quote: Quote; searchTerm: string }) {
   return (
     <TableRow
       data-testid={`global-quote-row-${quote.id}`}
-      className="group cursor-pointer"
+      className="group"
     >
       <TableCell className="font-mono text-[12.5px] font-semibold text-foreground">
         <Link to={`/patients/${quote.patient_id}?tab=quotes&quote=${quote.id}`}>
@@ -227,12 +242,22 @@ function QuoteRow({ quote, searchTerm }: { quote: Quote; searchTerm: string }) {
         <QuoteStatusBadge status={quote.status} />
       </TableCell>
       <TableCell>
-        <Link
-          to={`/patients/${quote.patient_id}?tab=quotes&quote=${quote.id}`}
-          aria-label="Abrir orçamento"
-        >
-          <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-accent" />
-        </Link>
+        <div className="flex items-center justify-end gap-1.5">
+          <WhatsAppQuoteButton
+            patient={patient}
+            clinic={clinic}
+            quote={quote}
+            compact
+            disabled={!patient || !clinic}
+          />
+          <Link
+            to={`/patients/${quote.patient_id}?tab=quotes&quote=${quote.id}`}
+            aria-label="Abrir orçamento"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
+          >
+            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+          </Link>
+        </div>
       </TableCell>
     </TableRow>
   );

@@ -37,6 +37,9 @@ import {
   formatBRL,
 } from "./quote-status";
 import { QuotePdfDialog } from "./QuotePdfDialog";
+import { WhatsAppQuoteButton } from "./WhatsAppQuoteButton";
+import { patientsService } from "@/services/patients.service";
+import { useAuthStore } from "@/store/auth";
 
 interface QuoteDetailProps {
   quoteId: string;
@@ -58,6 +61,15 @@ export function QuoteDetail({
     queryFn: () => quotesService.get(quoteId),
     enabled: !!quoteId,
   });
+
+  // Patient + clinic data drive the WhatsApp message + PDF header.
+  const patientQuery = useQuery({
+    queryKey: ["patient", patientId],
+    queryFn: () => patientsService.get(patientId),
+    enabled: !!patientId,
+    staleTime: 60_000,
+  });
+  const clinic = useAuthStore((s) => s.clinic);
 
   // ── Mutations ────────────────────────────────────────────────────────────
   // After a per-item approval, the backend automatically flips the underlying
@@ -185,7 +197,12 @@ export function QuoteDetail({
                 {formatBRL(quote.discount_amount)}
               </span>
             )}
-            <div className="mt-2">
+            <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+              <WhatsAppQuoteButton
+                patient={patientQuery.data}
+                clinic={clinic}
+                quote={quote}
+              />
               <QuotePdfDialog quote={quote} />
             </div>
           </div>
