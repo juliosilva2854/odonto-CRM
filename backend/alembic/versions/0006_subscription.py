@@ -63,6 +63,13 @@ def upgrade() -> None:
         postgresql_where=sa.text("stripe_customer_id IS NOT NULL"),
     )
 
+    # Grandfather existing clinics: they become 'active' so they're not
+    # locked out when the subscription middleware lands.
+    op.execute(
+        "UPDATE clinics SET subscription_status = 'active' "
+        "WHERE subscription_status = 'trialing'"
+    )
+
 
 def downgrade() -> None:
     op.drop_index("uq_clinics_stripe_customer_id", table_name="clinics")
