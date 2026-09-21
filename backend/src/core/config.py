@@ -51,6 +51,22 @@ class Settings(BaseSettings):
     # ── Seed
     SEED_ON_STARTUP: bool = True
 
+    # ── Stripe (all optional — the app boots and runs without billing configured)
+    STRIPE_SECRET_KEY: str | None = None
+    STRIPE_WEBHOOK_SECRET: str | None = None
+    STRIPE_PRICE_ESSENCIAL: str | None = None
+    STRIPE_PRICE_PRO: str | None = None
+    STRIPE_PRICE_CLINICA: str | None = None
+    STRIPE_SUCCESS_URL: str = "http://localhost:5173/billing/success"
+    STRIPE_CANCEL_URL: str = "http://localhost:5173/billing/cancel"
+
+    @property
+    def stripe_configured(self) -> bool:
+        key = self.STRIPE_SECRET_KEY
+        # `PLACEHOLDER` guard: dev/test .env ships fake keys so the app must behave
+        # exactly as if Stripe were absent (no real API calls, clear 422).
+        return bool(key and key.startswith("sk_") and "PLACEHOLDER" not in key.upper())
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

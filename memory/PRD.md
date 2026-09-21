@@ -233,3 +233,25 @@ Ver `/app/memory/test_credentials.md`
 - Sprint S3: validar política de retenção de DataAccessLog (LGPD não exige TTL, mas pode crescer rápido — considerar particionamento mensal a partir de S15).
 - Decidir se queremos AuditLog (mutações) ainda como módulo separado ou integrado a S3.
 - Validar com cliente se queremos importação em massa de TUSS via CSV (S2 deixou estrutura pronta, mas endpoint de bulk-import não foi feito).
+
+---
+
+## S5.1 — Billing (Stripe) — fundação · 2026-06
+
+**Escopo entregue** (sem webhook — Prompt #3B):
+
+- **Dependência**: `stripe>=11.0.0` em `pyproject.toml` (instalado 14.4.1; usa variantes nativas `*_async` do SDK, sem threadpool).
+- **Config** (`src/core/config.py`): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_{ESSENCIAL,PRO,CLINICA}`, `STRIPE_SUCCESS_URL`, `STRIPE_CANCEL_URL` — todos opcionais + property `stripe_configured` (ignora valores `*PLACEHOLDER*`).
+- **`src/core/stripe_client.py`**: `_ensure_configured`, `get_price_id_for_plan`, `create_customer`, `create_checkout_session` → `(url, session_id)`, `create_portal_session`, `retrieve_subscription`. `stripe.StripeError` → `AppException(code="stripe_error", 502, details.stripe_code)`.
+- **`scripts/create_stripe_products.py`**: idempotente por `metadata.internal_key`; preços 29700/49700/79700 BRL/mês; imprime bloco pronto pro `.env`; **DRY RUN** se Stripe não configurado.
+- **Módulo `src/modules/billing/`**: `__init__` (docstring de domínio), `enums` (re-export `PlanTier` + `SubscriptionStatus`), `schemas`, `repository` (mutações atômicas em `clinics`: `set_stripe_customer`, `set_subscription`, `clear_subscription`, `mark_trial_active`), `service` (delegação a `TenancyService`), `router` (`/api/billing/status|checkout|portal`, admin-only).
+- **Sem migration nova** — reutiliza colunas de `0006_subscription`. Tabela `billing_events` fica para `0007` quando o webhook precisar de auditoria.
+- **Nenhum id do Stripe exposto em schema HTTP.**
+
+**Testes**: `tests/test_billing.py` (6) — status trialing, RBAC 403 em status e checkout, checkout 422 "Stripe not configured", checkout mockado (in-process ASGI + `AsyncMock`) retornando `checkout_url`, portal 422 sem customer. **Suite total: 47/47 verdes.**
+
+### Backlog
+- **P0** Prompt #3B: webhook `/api/billing/webhook` (assinatura `STRIPE_WEBHOOK_SECRET`, eventos `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.payment_failed`) + migration `0007_billing_events` para idempotência/auditoria.
+- **P1** Gating de features por `is_subscription_active` (bloquear rotas pagas em `past_due`/trial expirado).
+- **P1** Rodar `scripts.create_stripe_products` com chave real e preencher `STRIPE_PRICE_*`.
+- **P2** Frontend: telas `/billing`, `/billing/success`, `/billing/cancel`.

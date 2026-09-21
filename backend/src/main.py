@@ -21,6 +21,7 @@ from src.modules.audit import register_handlers as register_audit_handlers
 from src.modules.agenda.realtime import register_handlers as register_agenda_realtime
 from src.modules.agenda.router import router as agenda_router
 from src.modules.auth.router import router as auth_router
+from src.modules.billing.router import router as billing_router
 from src.modules.clinical.catalog.router import router as catalog_router
 from src.modules.clinical.odontogram.router import router as odontogram_router
 from src.modules.clinical.records.router import router as clinical_records_router
@@ -92,6 +93,7 @@ app.include_router(agenda_router)
 app.include_router(odontogram_router)
 app.include_router(clinical_records_router)
 app.include_router(quotes_router)
+app.include_router(billing_router)
 
 
 @app.get("/api", tags=["health"])

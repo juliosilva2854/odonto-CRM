@@ -21,6 +21,8 @@ dependencies = [
     "bcrypt==4.2.1",
     "python-jose[cryptography]==3.3.0",
     "python-multipart==0.0.20",
+    # Payments
+    "stripe>=11.0.0",
     # Utils
     "structlog==24.4.0",
     "python-dateutil==2.9.0.post0",
