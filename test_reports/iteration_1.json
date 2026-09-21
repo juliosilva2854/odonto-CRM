@@ -1,0 +1,34 @@
+{
+  "summary": "Backend-only verification of billing after removal of mark_failed() from BillingService.process_webhook_event exception path. Ran full pytest suite (52/52 passing incl. all 11 billing tests) and added a live HTTP smoke suite hitting the running uvicorn on 127.0.0.1:8765 (7/7 passing) covering every contract listed in the review request. Code inspection confirms: exception path only does log.exception('billing_webhook_processing_failed', ...) + raise (no mark_failed call), and mark_failed remains defined in BillingEventRepository.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "src/modules/billing/service.py::process_webhook_event", "issue": "Docstring is now stale: says 'Falhas marcam o evento como failed e propagam' but the new behavior only logs + raises (uow_scope rolls back the SAVEPOINT insert). Consider updating the docstring to reflect that the row is rolled back and only the structured log carries the failure trail."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_billing.py",
+    "/app/backend/tests/test_billing_live_http.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Optional: refresh the process_webhook_event docstring to describe the new rollback-via-uow-scope semantics (not a functional bug)."
+  ],
+  "critical_code_review_comments": [
+    "Correctness of the change is confirmed by inspection: try/except at service.py:150-164 calls log.exception + raise, no mark_failed reference — SAVEPOINT of try_insert_event is rolled back by uow_scope on the outer request, so Stripe retry re-processes cleanly.",
+    "mark_failed() remains defined (repository.py:119-127) as required; it is dead code now — main agent should decide whether to keep for future use (auditing) or remove.",
+    "Router webhook endpoint correctly distinguishes 400 invalid_signature (no retry) from 503 webhook_not_configured (with STRIPE_WEBHOOK_SECRET=whsec_PLACEHOLDER the secret is truthy so the signature-verification path is taken, giving 400 — as verified by the live tests).",
+    "get_status() response schema (BillingStatusOut) does not leak stripe_customer_id / stripe_subscription_id — verified live."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_billing_live_http.py (new — live HTTP regression covering /api/health, /api/billing/status, /api/billing/checkout, /api/billing/portal, /api/billing/webhook)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "n/a"},
+  "test_credentials": "admin@demo.odonto / Admin@123 · dentist@demo.odonto / Dentist@123 · reception@demo.odonto / Reception@123 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Live smoke tests create ad-hoc TEST clinics via POST /api/public/signup (random CNPJ + random admin email). Non-destructive; no cleanup performed (each run adds a handful of TEST_* rows).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Uvicorn runs manually on 127.0.0.1:8765 — no supervisor. Signup schema uses clinic_cnpj / clinic_trade_name / clinic_legal_name (NOT cnpj/trade_name/legal_name). Login returns access_token (not 'token'). STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are PLACEHOLDER strings — Stripe secret is truthy so the webhook path returns 400 invalid_signature (not 503) when a bad signature is supplied. Full suite: cd /app/backend && python -m pytest tests/ -v (59 tests total incl. the new live-http file). Note: test_billing.py::test_webhook_requires_secret_configured monkeypatches settings to simulate the empty-secret 503 path, so both branches are covered.",
+  "rca of the issue": "N/A — no regressions found. The change (drop mark_failed from exception path, log.exception + raise) is safe because: (a) BillingEventRepository.try_insert_event uses begin_nested() (SAVEPOINT), so when the outer uow_scope rolls the request back on the propagated exception, the billing_events row insert is also reverted; (b) Stripe retries on 5xx will re-run try_insert_event and succeed since the previous row was rolled back — no duplicate-key issue; (c) idempotency is preserved because a *successful* processing marks the row PROCESSED before commit, so a subsequent retry hits the IntegrityError path and is a no-op."
+}

@@ -271,3 +271,8 @@ Ver `/app/memory/test_credentials.md`
 - **P1** Registrar o endpoint no dashboard do Stripe + preencher `STRIPE_WEBHOOK_SECRET` e `STRIPE_PRICE_*` reais (`python -m scripts.create_stripe_products`).
 - **P1** Endpoint admin de reprocessamento de `billing_events` com `status='failed'`.
 - **P2** Frontend: `/settings/billing`, `/billing/success`, `/billing/cancel`.
+
+### S5.2b — Simplificação do caminho de falha do webhook · 2026-06
+- `process_webhook_event`: removida a chamada `mark_failed()` do `except` (era código morto — o `uow_scope` desfazia o UPDATE no rollback). Agora só `log.exception("billing_webhook_processing_failed", stripe_event_id, event_type, error, error_type)` + `raise`, com comentário explicando o rollback intencional. Docstring atualizada.
+- `BillingEventRepository.mark_failed()` mantido (não chamado) para persistência futura de falhas.
+- Verificado pelo testing_agent (`/app/test_reports/iteration_1.json`): 0 issues críticos, 100% backend. Suíte **59/59 verdes** (o agente adicionou `tests/test_billing_live_http.py` com 7 smoke tests HTTP contra o uvicorn).

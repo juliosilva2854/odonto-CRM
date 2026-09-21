@@ -117,8 +117,9 @@ class BillingService:
     async def process_webhook_event(self, event: Any) -> None:
         """Processa um evento JÁ VERIFICADO do Stripe, de forma idempotente.
 
-        Duplicatas (retry do Stripe) são no-op. Falhas marcam o evento como
-        ``failed`` e propagam — o router devolve 500 e o Stripe retenta.
+        Duplicatas (retry do Stripe) são no-op. Falhas apenas logam e propagam:
+        o `uow_scope` faz rollback do request inteiro (inclusive da linha em
+        `billing_events`), o router devolve 500 e o Stripe retenta do zero.
         """
         payload = _as_plain_dict(event)
         stripe_event_id = str(payload.get("id"))
