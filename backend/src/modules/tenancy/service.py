@@ -1,7 +1,8 @@
-"""Tenancy service: read/update clinic config and features."""
+"""Tenancy service: read/update clinic config, features and subscription state."""
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import select
@@ -9,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.errors import NotFoundError
 from src.core.feature_flags.service import FeatureFlagService
-from src.modules.tenancy.models import Clinic, ClinicFeature
+from src.modules.tenancy.models import Clinic, ClinicFeature, SubscriptionStatus
 
 
 class TenancyService:
@@ -21,6 +22,27 @@ class TenancyService:
         if not clinic:
             raise NotFoundError("Clinic not found")
         return clinic
+
+    async def is_subscription_active(self, clinic_id: uuid.UUID) -> bool:
+        """Return True when the clinic is allowed to use paid features.
+
+        Rules:
+        - ``active``   → always True
+        - ``trialing`` → True only while ``trial_ends_at`` is in the future
+          (a ``trialing`` clinic without ``trial_ends_at`` is treated as expired)
+        - ``past_due`` / ``canceled`` → False
+        """
+        clinic = await self.get_clinic(clinic_id)
+
+        if clinic.subscription_status == SubscriptionStatus.ACTIVE:
+            return True
+
+        if clinic.subscription_status == SubscriptionStatus.TRIALING:
+            if clinic.trial_ends_at is None:
+                return False
+            return clinic.trial_ends_at > datetime.now(timezone.utc)
+
+        return False
 
     async def list_features(self, clinic_id: uuid.UUID) -> list[ClinicFeature]:
         stmt = select(ClinicFeature).where(ClinicFeature.clinic_id == clinic_id).order_by(
