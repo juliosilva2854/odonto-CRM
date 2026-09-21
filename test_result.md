@@ -163,21 +163,105 @@ backend:
 
 frontend: []
 
+backend_seq3:
+  - task: "Onboarding — POST /api/public/signup (clinic + admin + defaults + tokens)"
+    implemented: true
+    working: true
+    file: "backend/src/modules/onboarding/{schemas,service,router,templates,enums}.py, backend/src/main.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: >
+            Public signup creates Clinic (trialing, trial_ends_at=now+14d, plan=<tier>), admin User, 15 ClinicFeatures
+            per plan, 1 Room, 3 Specialties, 15 Procedures in one transaction (get_db_session uow). Returns tokens +
+            UserOut + ClinicOut. 409 on duplicate CNPJ / globally-duplicate email; 422 on invalid CNPJ/password/plan/tz.
+            pytest tests/test_signup.py: 9 passed; curl 201 then 409.
+        - working: true
+          agent: "testing"
+          comment: >
+            ✓ VERIFIED ALL 11 REQUIREMENTS: (1) Happy path plan=pro → 201 with access/refresh tokens, token_type=Bearer,
+            expires_in; user.role=admin, is_active=true, email lowercased; clinic.subscription_status=trialing, plan=pro,
+            cnpj formatted XX.XXX.XXX/XXXX-XX, trial_ends_at ~14 days (13-14 days verified), NO stripe_customer_id/
+            stripe_subscription_id in response. (2) GET /api/auth/me with Bearer token → 200, same user.id/clinic.id,
+            features dict with 15 features; plan=pro: quotes.enabled=true, whatsapp=true, commission_split=true,
+            contracts=false; plan=essencial: quotes.enabled=false; plan=clinica: contracts/financial_core/
+            recurring_charges/dashboard_bi/email all true. (3) POST /api/auth/login with new admin credentials → 200
+            with tokens. (4) POST /api/auth/refresh with refresh_token → 200 with new access_token. (5) Duplicate CNPJ
+            (new email) → 409 code=conflict "A clinic with this CNPJ already exists". (6) Duplicate email (new CNPJ,
+            UPPERCASE email) → 409 code=conflict "This email is already registered", case-insensitivity verified.
+            (7) All 422 validation errors verified: invalid CNPJ check digit (11.222.333/0001-82), CNPJ repeating
+            (00.000.000/0000-00), password without digits, password <8 chars, invalid plan "enterprise", invalid
+            timezone "Mars/Olympus", missing admin_email — all return 422 code=validation_error. (8) Default data:
+            GET /api/procedures?page_size=50 → total=15 with all expected codes (PROF-01, REST-1F, REST-2F, REST-3F,
+            CAN-INC, CAN-PRE, CAN-MOL, EXO-SIM, EXO-CIR, FLUOR, SELANTE, COROA-MC, COROA-PORC, RASPA, RX-PERI);
+            GET /api/specialties → 3 items; GET /api/agenda/rooms → 1 room "Consultório 1"; GET /api/clinic-features
+            → 15 entries. (9) Tenant isolation: GET /api/patients with new clinic token → total=0, items=[], new
+            clinic does not see other clinics' data. (10) Atomicity: signup with duplicate CNPJ + new email → 409;
+            psql check SELECT count(*) FROM users WHERE email='<new_email>' → 0, no partial writes, transaction
+            rolled back correctly. (11) pytest: tests/test_validators.py 14 passed, tests/test_signup.py 9 passed,
+            total 23 passed in 1.54s. Backend remains running at http://127.0.0.1:8765. NO ISSUES FOUND.
+
+  - task: "CNPJ validator (src/shared/validators.py)"
+    implemented: true
+    working: true
+    file: "backend/src/shared/validators.py, backend/tests/test_validators.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "normalize_cnpj + validate_cnpj (official check-digit algorithm). pytest: 14 passed."
+        - working: true
+          agent: "testing"
+          comment: >
+            ✓ VERIFIED via comprehensive testing: normalize_cnpj strips mask and rejects repeating sequences
+            (00.000.000/0000-00) and wrong length; validate_cnpj accepts valid CNPJs with correct check digits
+            (00.000.000/0001-91, 33.000.167/0001-01, 60.701.190/0001-04, 27.865.757/0001-02, etc.) and rejects
+            invalid check digits (11.222.333/0001-82, 11.222.333/0001-71), wrong length, and repeating sequences.
+            Formatting works correctly (returns XX.XXX.XXX/XXXX-XX format). All 14 pytest tests passed. Validator
+            correctly integrated into signup endpoint (422 validation_error on invalid CNPJ). NO ISSUES FOUND.
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Migration 0006_subscription — upgrade/downgrade/backfill"
-    - "Clinic model / SubscriptionStatus enum / ClinicOut schema / is_subscription_active()"
+    - "Onboarding — POST /api/public/signup (clinic + admin + defaults + tokens)"
+    - "CNPJ validator (src/shared/validators.py)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+    - agent: "main"
+      message: >
+        SEQ 3 — Onboarding module. Backend is ALREADY RUNNING via uvicorn on http://127.0.0.1:8765
+        (do NOT start another server, do NOT use supervisor/port 8001, NO docker). Postgres 15 local,
+        DB dental_crm, alembic at 0006_subscription (head). New files: src/shared/validators.py,
+        src/modules/onboarding/{enums,templates,schemas,service,router}.py, tests/test_validators.py,
+        tests/test_signup.py; main.py registers onboarding_router. Main agent already ran:
+        pytest tests/test_validators.py (14 passed), pytest tests/test_signup.py (9 passed), manual curl 201/409.
+        Please verify independently: (1) POST /api/public/signup happy path (use a fresh VALID CNPJ + a
+        non-reserved email domain like @odonto-signup.com.br — `.test` TLD is rejected by EmailStr by design)
+        returns 201 with access/refresh tokens, user(role=admin), clinic(subscription_status=trialing,
+        trial_ends_at ~ now+14d, no stripe_* fields); (2) GET /api/auth/me with the access token returns
+        same user/clinic and features per plan (essencial: quotes=false; pro: quotes/whatsapp/commission_split=true;
+        clinica: additionally contracts/financial_core/recurring_charges/dashboard_bi/email=true);
+        (3) duplicate CNPJ -> 409 code=conflict; duplicate email (case-insensitive) -> 409;
+        (4) invalid CNPJ check digit -> 422; password without digit -> 422; password < 8 -> 422; invalid plan -> 422;
+        invalid timezone -> 422; (5) after signup: GET /api/procedures?page_size=50 total==15,
+        GET /api/specialties len==3, GET /api/agenda/rooms len==1 ("Consultório 1"), GET /api/clinic-features len==15;
+        (6) atomicity: verify in DB (psql) that a failed signup (duplicate CNPJ with a NEW email) did NOT create
+        a user with that new email; (7) /api/auth/login with the new admin credentials works.
+        Also run `cd /app/backend && python3 -m pytest tests/test_validators.py tests/test_signup.py -v`.
+        Do NOT modify project files. Leave the uvicorn process running.
     - agent: "main"
       message: >
         Backend-only validation, NO HTTP routes exist for this feature yet (do not test API endpoints).
@@ -198,3 +282,14 @@ agent_communication:
         Enum constraint enforced. ORM layer verified via real AsyncSession: TenancyService.is_subscription_active()
         implements correct business logic for all 6 subscription states. ClinicOut schema correctly exposes
         subscription fields and hides Stripe internal IDs. DB left at head (0006_subscription). No issues found.
+    - agent: "testing"
+      message: >
+        ✓ SEQ 3 COMPLETE: Onboarding module fully verified. All 11 requirements passed: (1) Happy path signup
+        with all 3 plans (essencial, pro, clinica) returns 201 with correct tokens, user, clinic data, trial
+        period, and NO stripe fields. (2) GET /api/auth/me returns correct user/clinic/features per plan.
+        (3) Login and (4) refresh token work. (5-6) Duplicate CNPJ/email return 409 conflict (case-insensitive).
+        (7) All 7 validation error cases return 422. (8) Default data created correctly (15 procedures with
+        expected codes, 3 specialties, 1 room, 15 features). (9) Tenant isolation verified. (10) Atomicity
+        verified via DB check (failed signup leaves no partial data). (11) pytest 23/23 passed. CNPJ validator
+        fully functional (check digits, normalization, formatting). Backend running at http://127.0.0.1:8765.
+        NO ISSUES FOUND. Ready for production.

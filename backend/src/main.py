@@ -26,6 +26,7 @@ from src.modules.clinical.odontogram.router import router as odontogram_router
 from src.modules.clinical.records.router import router as clinical_records_router
 from src.modules.finance.quotes.handlers import register_handlers as register_quotes_handlers
 from src.modules.finance.quotes.router import router as quotes_router
+from src.modules.onboarding.router import router as onboarding_router
 from src.modules.patients.router import router as patients_router
 from src.modules.tenancy.router import router as tenancy_router
 
@@ -82,6 +83,7 @@ async def health() -> dict[str, str]:
 
 
 # ── Routers
+app.include_router(onboarding_router)  # public — no auth
 app.include_router(auth_router)
 app.include_router(tenancy_router)
 app.include_router(patients_router)
