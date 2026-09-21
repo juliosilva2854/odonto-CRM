@@ -59,6 +59,7 @@ class Settings(BaseSettings):
     STRIPE_PRICE_CLINICA: str | None = None
     STRIPE_SUCCESS_URL: str = "http://localhost:5173/billing/success"
     STRIPE_CANCEL_URL: str = "http://localhost:5173/billing/cancel"
+    STRIPE_PORTAL_RETURN_URL: str = "http://localhost:5173/settings/billing"
 
     @property
     def stripe_configured(self) -> bool:

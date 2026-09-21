@@ -23,6 +23,7 @@ from src.modules.clinical.records import models as _records_models  # noqa: F401
 from src.modules.finance.quotes import models as _quotes_models  # noqa: F401
 from src.modules.audit import models as _audit_models  # noqa: F401
 from src.modules.agenda import models as _agenda_models  # noqa: F401
+from src.modules.billing import models as _billing_models  # noqa: F401
 
 config = context.config
 

@@ -255,3 +255,19 @@ Ver `/app/memory/test_credentials.md`
 - **P1** Gating de features por `is_subscription_active` (bloquear rotas pagas em `past_due`/trial expirado).
 - **P1** Rodar `scripts.create_stripe_products` com chave real e preencher `STRIPE_PRICE_*`.
 - **P2** Frontend: telas `/billing`, `/billing/success`, `/billing/cancel`.
+
+## S5.2 — Webhook Stripe + billing_events · 2026-06
+
+- **Config**: `+ STRIPE_PORTAL_RETURN_URL` (default `http://localhost:5173/settings/billing`); `create_portal` passou a usá-la em vez de `STRIPE_SUCCESS_URL`.
+- **Migration `0007_billing_events`** (head): tabela `billing_events` (`stripe_event_id` UNIQUE, `event_type`, `payload` JSONB, `clinic_id` FK ON DELETE SET NULL, `status` VARCHAR(20) + `ck_billing_events_status`, `error`, `processed_at`, TimestampMixin) + índices `ix_billing_events_status`, `ix_billing_events_clinic`, `ix_billing_events_type_time`. Downgrade testado (drop índices + drop table).
+- **`billing/models.py`**: `BillingEventStatus` (pending/processed/failed/ignored) + `BillingEvent` (SAEnum `native_enum=False, length=20, create_constraint=False`). Registrado em `alembic/env.py`.
+- **`BillingEventRepository`**: `try_insert_event` (INSERT em SAVEPOINT → `None` em unique violation = duplicata), `get_by_stripe_event_id`, `mark_processed`, `mark_failed`, `mark_ignored`. `BillingRepository.get_by_stripe_customer` novo.
+- **`BillingService.process_webhook_event`**: idempotente; dispatch de `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.paid`, `invoice.payment_failed`; tipos não mapeados → `ignored`; falha → `mark_failed` + re-raise (500 → Stripe retenta). Mapa `_STRIPE_STATUS_MAP` (active/trialing→active, past_due/incomplete→past_due, canceled/unpaid/incomplete_expired→canceled).
+- **`POST /api/billing/webhook`**: público, raw bytes (`await request.body()`), `stripe.Webhook.construct_event`; assinatura inválida/ausente → **400** `invalid_signature`; secret ausente → **503** `webhook_not_configured`.
+- **Testes**: +5 webhook (assinatura inválida, 503 sem secret, subscription.created aplica `active`+`current_period_end`+`sub_id`, idempotência com retry do mesmo `event_id`, evento desconhecido → `ignored`). **Suite total: 52/52 verdes.**
+
+### Backlog atualizado
+- **P0** Gating por assinatura: bloquear rotas pagas quando `is_subscription_active` = False (`past_due` / trial expirado).
+- **P1** Registrar o endpoint no dashboard do Stripe + preencher `STRIPE_WEBHOOK_SECRET` e `STRIPE_PRICE_*` reais (`python -m scripts.create_stripe_products`).
+- **P1** Endpoint admin de reprocessamento de `billing_events` com `status='failed'`.
+- **P2** Frontend: `/settings/billing`, `/billing/success`, `/billing/cancel`.
