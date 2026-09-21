@@ -17,6 +17,7 @@ from src.core.errors import (
 )
 from src.core.logging import configure_logging, get_logger
 from src.core.middleware import RequestContextMiddleware
+from src.core.subscription_middleware import SubscriptionGateMiddleware
 from src.modules.audit import register_handlers as register_audit_handlers
 from src.modules.agenda.realtime import register_handlers as register_agenda_realtime
 from src.modules.agenda.router import router as agenda_router
@@ -67,6 +68,11 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Request-ID"],
 )
+
+# ── Subscription gate (402 p/ clínica inadimplente).
+# Adicionado ANTES do RequestContextMiddleware de propósito: add_middleware é
+# LIFO, então este fica "por dentro" e roda DEPOIS do contexto estar populado.
+app.add_middleware(SubscriptionGateMiddleware)
 
 # ── Request context (auth claims → ContextVar)
 app.add_middleware(RequestContextMiddleware)

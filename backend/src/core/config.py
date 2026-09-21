@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     STRIPE_CANCEL_URL: str = "http://localhost:5173/billing/cancel"
     STRIPE_PORTAL_RETURN_URL: str = "http://localhost:5173/settings/billing"
 
+    # ── Enforcement de assinatura (402 para clínicas inadimplentes)
+    SUBSCRIPTION_GATE_ENABLED: bool = True
+
     @property
     def stripe_configured(self) -> bool:
         key = self.STRIPE_SECRET_KEY
