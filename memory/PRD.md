@@ -276,3 +276,20 @@ Ver `/app/memory/test_credentials.md`
 - `process_webhook_event`: removida a chamada `mark_failed()` do `except` (era código morto — o `uow_scope` desfazia o UPDATE no rollback). Agora só `log.exception("billing_webhook_processing_failed", stripe_event_id, event_type, error, error_type)` + `raise`, com comentário explicando o rollback intencional. Docstring atualizada.
 - `BillingEventRepository.mark_failed()` mantido (não chamado) para persistência futura de falhas.
 - Verificado pelo testing_agent (`/app/test_reports/iteration_1.json`): 0 issues críticos, 100% backend. Suíte **59/59 verdes** (o agente adicionou `tests/test_billing_live_http.py` com 7 smoke tests HTTP contra o uvicorn).
+
+## S5.3 — SubscriptionGateMiddleware (402 por inadimplência) · 2026-06
+- **`src/core/subscription_middleware.py`** (novo): `BaseHTTPMiddleware` que lê o claim `clinic_id` do Bearer (`decode_token`, defensivo), consulta `clinics` via `AsyncSessionLocal` e devolve `JSONResponse` **402** `subscription_inactive` quando a assinatura está inativa. Regras: `active` passa · `trialing` com `trial_ends_at` futuro passa · `trial_ends_at` NULL passa (trial sem prazo: clínicas pré-0006/seed) · `trialing` expirado, `past_due` e `canceled` bloqueiam.
+- **Allowlist** (`ALLOWLIST_PREFIXES`): `/api/auth`, `/api/billing` (inclui o webhook), `/api/public`, `/api/health`, `/api/docs`, `/api/redoc`, `/api/openapi.json`, `/docs`, `/redoc`. Paths fora de `/api` não são avaliados.
+- **Anônimo/token inválido → passa** (a rota devolve 401, nunca 402).
+- **`config.py`**: `SUBSCRIPTION_GATE_ENABLED: bool = True` (kill switch).
+- **`main.py`**: `add_middleware(SubscriptionGateMiddleware)` ANTES do `RequestContextMiddleware` (LIFO ⇒ contexto roda primeiro, gate por dentro).
+- **Testes**: `tests/test_subscription_gate.py` (10). Verificado pelo testing_agent (`/app/test_reports/iteration_2.json`): **0 issues**, 100% backend, +26 testes live-HTTP em `tests/test_subscription_gate_live_http.py`. **Suíte total: 95/95 verdes.**
+
+### Backlog atualizado
+- **P1** Frontend: `/settings/billing` (plano, trial restante, upgrade), `/billing/success`, `/billing/cancel`, e interceptor global que redireciona 402 → tela de billing.
+- **P1** Preencher `STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`/`STRIPE_PRICE_*` reais e registrar o endpoint de webhook no dashboard Stripe.
+- **P2** Banner de fim de trial (dias restantes) e e-mail de aviso.
+- **P2** Tela admin de `billing_events` (auditoria/reprocessamento).
+
+### Nota de ambiente (pod reset)
+O Postgres do sandbox é volátil. Para reerguer: `pg_ctlcluster 15 main start` → `CREATE USER dental ... SUPERUSER` + `CREATE DATABASE dental_crm OWNER dental` → `python -m alembic upgrade head` → `python -m scripts.seed_baseline`. Backend: `python -m uvicorn src.main:app --host 127.0.0.1 --port 8765` (sem supervisor). O CLI `alembic` não está no PATH: usar `python -m alembic`.

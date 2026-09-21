@@ -1,0 +1,32 @@
+{
+  "summary": "Independent backend-only verification of SubscriptionGateMiddleware. Ran full pytest suite (69/69 passing, incl. the 10 new tests/test_subscription_gate.py). Added tests/test_subscription_gate_live_http.py (26 tests) hitting the running uvicorn on 127.0.0.1:8765 to catch middleware-ordering / real-ASGI regressions the in-process suite could mask. Final result: 95/95 passing. Every claim in the spec verified: (a) 5 subscription rules honored (active, trialing-active, trialing-expired, past_due, canceled) — with details.subscription_status and details.trial_ends_at matching spec; (b) allowlist honored for /api/auth/*, /api/billing/* (incl. webhook), /api/health, /api/openapi.json, /api/docs; (c) webhook NEVER returns 402 (invalid signature -> 400, missing signature -> 400, blocked-clinic Bearer + bad signature -> 400); (d) anonymous / malformed / expired-signature tokens -> 401 (never 402); (e) Demo seed users (trial_ends_at NULL) NOT blocked; (f) 7 different business routes verified blocked (patients, agenda/appointments, finance/quotes, procedures, specialties, clinic-features, clinics/me).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_subscription_gate.py",
+    "/app/backend/tests/test_subscription_gate_live_http.py",
+    "/app/test_reports/pytest/iteration_2.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "src/core/subscription_middleware.py: implementation is clean and correct. Uses AsyncSessionLocal (no ContextVar), returns JSONResponse (no HTTPException), decodes JWT defensively (TokenError/KeyError/ValueError -> pass to route for 401), and correctly skips non-/api paths.",
+    "trial_ends_at NULL -> not blocked is documented in code (line 61-62) and confirmed live for the seed 'Demo Odonto' clinic (all 3 seed roles accessed /api/patients and /api/procedures with 200).",
+    "Middleware ordering in main.py is correct: SubscriptionGateMiddleware is added BEFORE RequestContextMiddleware, which under Starlette LIFO means Context runs first (outer) and Gate runs inside — so the DB session in Gate has request context available if needed.",
+    "Allowlist prefix matching uses str.startswith, so /api/billing/webhook is safely covered by '/api/billing'. Verified live: webhook returns 400 invalid_signature even when the request carries a Bearer token of a canceled clinic — critical for Stripe retries.",
+    "Error envelope matches spec exactly: {'error': {'code': 'subscription_inactive', 'message': 'Sua assinatura...', 'details': {'subscription_status': str, 'trial_ends_at': ISO8601Z|null}}}. trial_ends_at is serialized with a 'Z' suffix (UTC), consistent with the rest of the API.",
+    "No stripe_customer_id / stripe_subscription_id leaks: verified in /api/billing/status body for a past_due clinic."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_subscription_gate_live_http.py (NEW — 26 live-HTTP regression tests, independent of the in-process suite)"
+  ],
+  "success_rate": {"backend": "100% (95/95)", "frontend": "n/a"},
+  "test_credentials": "admin@demo.odonto/Admin@123, dentist@demo.odonto/Dentist@123, reception@demo.odonto/Reception@123 (from /app/memory/test_credentials.md). Signup fixture creates ad-hoc TEST clinics with random valid CNPJ + random admin email per test.",
+  "seed_data_creation": "Each parametrized/individual test creates its own throwaway clinic via POST /api/public/signup (random CNPJ + random email prefix 'gate2-'). Non-destructive; no cleanup performed (adds ~20 rows per run to clinics/users tables). Demo seed clinic is only read.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "SubscriptionGateMiddleware is fully verified — both in-process (tests/test_subscription_gate.py, 10 tests) and via live uvicorn (tests/test_subscription_gate_live_http.py, 26 tests). Full suite = 95 tests, all green. Uvicorn runs manually on 127.0.0.1:8765 (no supervisor, no --reload). Postgres: postgresql://dental:dental@localhost:5432/dental_crm (SUPERUSER). Signup schema: clinic_legal_name / clinic_trade_name / clinic_cnpj / admin_full_name / admin_email / admin_password / plan (returns access_token + clinic.id at 201). Login body key is 'access_token' (not 'token'). Business routes discovered from /api/openapi.json — the ones with GET-no-required-params suitable for gate testing: /api/patients, /api/finance/quotes, /api/procedures, /api/specialties, /api/clinic-features, /api/clinics/me. /api/agenda/appointments needs start&end query params (a 422 there still proves gate passed). Webhook endpoint: STRIPE_WEBHOOK_SECRET is 'whsec_PLACEHOLDER' (truthy), so bad signature -> 400 invalid_signature (NOT 503). The test_subscription_gate_live_http suite depends on psycopg2 (already installed).",
+  "rca of the issue": "N/A — no defects found. Spec-to-implementation mapping is 100%. The only test transient during my run was on my new test where I asserted /api/agenda/appointments would return 200 without required query params; corrected to accept 200 or 422 (both prove the gate did not block), which is the semantically correct assertion for a gate test anyway."
+}
