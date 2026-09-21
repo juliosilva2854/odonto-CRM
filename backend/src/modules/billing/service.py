@@ -150,12 +150,16 @@ class BillingService:
         try:
             clinic_id = await handlers[event_type](payload)
         except Exception as exc:
-            await self._repo_events.mark_failed(record.id, f"{type(exc).__name__}: {exc}")
-            log.error(
-                "billing_webhook_failed",
+            # Falha não é persistida de propósito: o uow_scope faz rollback do
+            # request inteiro (inclusive deste billing_event), mantendo a
+            # atomicidade — o retry do Stripe reprocessa do zero. O rastro da
+            # falha fica no log estruturado.
+            log.exception(
+                "billing_webhook_processing_failed",
                 stripe_event_id=stripe_event_id,
                 event_type=event_type,
                 error=str(exc),
+                error_type=type(exc).__name__,
             )
             raise
 
