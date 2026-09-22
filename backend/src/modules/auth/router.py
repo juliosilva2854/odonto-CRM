@@ -9,7 +9,15 @@ from src.core.database import get_db_session
 from src.core.feature_flags.service import FeatureFlagService
 from src.modules.auth.dependencies import get_current_user
 from src.modules.auth.models import User
-from src.modules.auth.schemas import LoginIn, MeOut, RefreshIn, TokenOut, UserOut
+from src.modules.auth.schemas import (
+    ForgotPasswordIn,
+    LoginIn,
+    MeOut,
+    RefreshIn,
+    ResetPasswordIn,
+    TokenOut,
+    UserOut,
+)
 from src.modules.auth.service import AuthService
 from src.modules.tenancy.schemas import ClinicOut
 from src.modules.tenancy.service import TenancyService
@@ -42,6 +50,33 @@ async def refresh(
         refresh_token=new_refresh,
         expires_in=_settings.JWT_EXPIRES_MIN * 60,
     )
+
+
+@router.post(
+    "/forgot-password",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Solicita reset de senha (sempre 202 — anti-enumeration)",
+)
+async def forgot_password(
+    payload: ForgotPasswordIn,
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, str]:
+    await AuthService(session).request_password_reset(payload.email)
+    # Resposta idêntica exista ou não o e-mail: não vaza quem tem conta.
+    return {"message": "If the email exists, a reset link has been sent."}
+
+
+@router.post(
+    "/reset-password",
+    status_code=status.HTTP_200_OK,
+    summary="Redefine a senha a partir de um token válido (uso único)",
+)
+async def reset_password(
+    payload: ResetPasswordIn,
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, str]:
+    await AuthService(session).reset_password(payload.token, payload.new_password)
+    return {"message": "Password updated successfully."}
 
 
 @router.get("/me", response_model=MeOut, status_code=status.HTTP_200_OK)

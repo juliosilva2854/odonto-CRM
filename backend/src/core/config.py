@@ -64,12 +64,25 @@ class Settings(BaseSettings):
     # ── Enforcement de assinatura (402 para clínicas inadimplentes)
     SUBSCRIPTION_GATE_ENABLED: bool = True
 
+    # ── Email (Resend) — opcional. Sem chave real, o app roda em modo dev
+    # (loga a URL/token no console em vez de enviar e-mail de verdade).
+    RESEND_API_KEY: str | None = None
+    EMAIL_FROM: str = "onboarding@resend.dev"
+    EMAIL_FROM_NAME: str = "Dental CRM"
+    FRONTEND_BASE_URL: str = "http://localhost:5173"
+
     @property
     def stripe_configured(self) -> bool:
         key = self.STRIPE_SECRET_KEY
         # `PLACEHOLDER` guard: dev/test .env ships fake keys so the app must behave
         # exactly as if Stripe were absent (no real API calls, clear 422).
         return bool(key and key.startswith("sk_") and "PLACEHOLDER" not in key.upper())
+
+    @property
+    def email_configured(self) -> bool:
+        key = self.RESEND_API_KEY
+        # Mesmo guard do Stripe: chaves PLACEHOLDER = comportar como não configurado.
+        return bool(key and key.startswith("re_") and "PLACEHOLDER" not in key.upper())
 
 
 @lru_cache(maxsize=1)

@@ -228,13 +228,13 @@ backend_seq3:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 3
+  test_sequence: 5
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Onboarding — POST /api/public/signup (clinic + admin + defaults + tokens)"
-    - "CNPJ validator (src/shared/validators.py)"
+    - "Password reset — forgot-password / reset-password + email_client (dev mode)"
+    - "Users CRUD — invite / list / update role / deactivate (admin-only)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -293,3 +293,112 @@ agent_communication:
         verified via DB check (failed signup leaves no partial data). (11) pytest 23/23 passed. CNPJ validator
         fully functional (check digits, normalization, formatting). Backend running at http://127.0.0.1:8765.
         NO ISSUES FOUND. Ready for production.
+
+
+backend_seq5_prompt5:
+  - task: "Password reset — forgot-password / reset-password + email_client (dev mode)"
+    implemented: true
+    working: true
+    file: "backend/src/modules/auth/{service,router,schemas,models}.py, backend/src/core/email_client.py, backend/src/core/config.py, backend/alembic/versions/0008_password_reset_tokens.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: >
+            Implemented migration 0008_password_reset_tokens (table password_reset_tokens: token_hash
+            String(64) UNIQUE, user_id/clinic_id FK CASCADE, purpose String(20) default 'reset',
+            expires_at, used_at, timestamps; indexes on user_id + expires_at). PasswordResetToken ORM model
+            in auth/models.py. AuthService.request_password_reset (anti-enumeration, always silent),
+            issue_reset_token (SHA-256 hash only, 1h TTL, sends via email_client), reset_password
+            (single-use via used_at, expiry check, activates invited users, sets new password_hash).
+            Routes: POST /api/auth/forgot-password (always 202), POST /api/auth/reset-password (200).
+            email_client.py: dev mode (RESEND_API_KEY absent/PLACEHOLDER) logs reset_url via logger.info;
+            prod mode (re_...) sends via Resend SDK (lazy import). config: RESEND_API_KEY/EMAIL_FROM/
+            EMAIL_FROM_NAME/FRONTEND_BASE_URL + email_configured property. Local pytest: 9/9 new tests pass
+            (tests/test_password_reset.py). Full suite 114/114 green. Server at http://127.0.0.1:8765.
+        - working: true
+          agent: "testing"
+          comment: >
+            ✓ VERIFIED ALL 8 PASSWORD RESET REQUIREMENTS: (A.1) forgot-password returns 202 for unknown
+            email with no email sent (anti-enumeration verified). (A.2) forgot-password returns 202 for
+            known email and sends email with is_invite=False. (A.3) reset-password with valid token returns
+            200 and allows login with new password. (A.4) old password rejected after reset (401). (A.5)
+            token is single-use: first use 200, second use 400 with error.code=invalid_token. (A.6) invalid/
+            garbage token returns 400 invalid_token. (A.7) expired token (forced via UPDATE expires_at to
+            past) returns 400 invalid_token. (A.8) weak password (<8 chars) returns 422 validation_error.
+            Email client in DEV MODE (RESEND_API_KEY=re_PLACEHOLDER): tokens captured via mocked
+            send_password_reset_email using httpx.ASGITransport pattern. Raw tokens NOT stored in DB (only
+            SHA-256 hash). All tests use fresh clinics via POST /api/public/signup for isolation. Backend
+            running at http://127.0.0.1:8765. NO ISSUES FOUND.
+
+  - task: "Users CRUD — invite / list / update role / deactivate (admin-only)"
+    implemented: true
+    working: true
+    file: "backend/src/modules/users/{__init__,schemas,repository,service,router}.py, backend/src/main.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: >
+            New module src/modules/users/ (reuses auth.User + UserRole, no new table). Routes all
+            require_role([ADMIN]): POST /api/users/invite (creates inactive user + issues invite token via
+            same reset flow, is_invite=True), GET /api/users (paginated Page[UserOut]), PUT /api/users/{id}/role,
+            DELETE /api/users/{id} (deactivate). Protections: cannot demote/deactivate the last active admin
+            (409 code=last_admin), cannot deactivate self (422 code=cannot_deactivate_self), duplicate email
+            (409 conflict). Registered users_router in main.py. Local pytest: 10/10 new tests pass
+            (tests/test_users_crud.py). Full suite 114/114 green.
+        - working: true
+          agent: "testing"
+          comment: >
+            ✓ VERIFIED ALL 10 USERS CRUD REQUIREMENTS: (B.1) POST /api/users/invite requires admin: reception
+            token returns 403 forbidden. (B.2) invite creates user with is_active=false and triggers invite
+            email with is_invite=True (201). (B.3) duplicate email invite returns 409 conflict. (B.4) invited
+            user can activate via /api/auth/reset-password using captured invite token, then login successfully.
+            (B.5) GET /api/users as admin lists users with pagination (200, total>=2). (B.6) GET /api/users
+            requires admin: reception token returns 403. (B.7) PUT /api/users/{id}/role changes role from
+            reception to dentist (200). (B.8) cannot demote last admin: PUT role on sole admin returns 409
+            error.code=last_admin. (B.9) cannot deactivate self: DELETE on own user_id returns 422
+            error.code=cannot_deactivate_self. (B.10) deactivating non-admin invited user returns 200 with
+            is_active=false. All tests use fresh clinics via signup for isolation. Seed credentials verified:
+            admin@demo.odonto/Admin@123, dentist@demo.odonto/Dentist@123, reception@demo.odonto/Reception@123.
+            NO ISSUES FOUND.
+
+agent_communication:
+    - agent: "main"
+      message: >
+        SEQ 5 (Prompt #5) — Password reset + Users CRUD. Backend runs at http://127.0.0.1:8765 (manual
+        uvicorn, NOT supervisor; supervisor's 'backend' is the unrelated template and is expected to be FATAL).
+        Local Postgres 15 (service postgresql), DB dental_crm, migrations at head (0008). Seed already applied
+        (admin@demo.odonto/Admin@123, dentist@demo.odonto/Dentist@123, reception@demo.odonto/Reception@123).
+        Email is in DEV MODE (RESEND_API_KEY=re_PLACEHOLDER) — no external calls; the reset token is only
+        emitted through email_client.send_password_reset_email, so to obtain a token for reset-password you
+        must patch/mock that function in-process (see tests/test_password_reset.py for the ASGI+AsyncMock
+        pattern) — you CANNOT read the raw token from the DB (only SHA-256 hash is stored).
+        Please verify: (A) Password reset — forgot-password always 202 for both known and unknown emails
+        (anti-enumeration, no email for unknown); reset with a valid token works and lets login with the new
+        password; old password rejected after reset; token is single-use (2nd use -> 400 invalid_token);
+        invalid/expired token -> 400 invalid_token; weak password (<8) -> 422. (B) Users CRUD — invite requires
+        admin (reception -> 403); invite creates is_active=false user and triggers invite email; duplicate email
+        -> 409; invited user activating via /api/auth/reset-password then logging in works; list requires admin;
+        update role works; cannot demote last admin -> 409 last_admin; cannot deactivate self -> 422
+        cannot_deactivate_self; deactivating a non-admin invited user -> 200 is_active=false.
+        Use fresh clinics via POST /api/public/signup (valid CNPJ + @odonto-*.com.br email) to isolate
+        last-admin tests. Also run `cd /app/backend && /root/.venv/bin/python -m pytest tests/ -v` (expect 114
+        passed). Do NOT modify project files. Leave the uvicorn process running and DB at head.
+    - agent: "testing"
+      message: >
+        ✓ SEQ 5 COMPLETE: Password reset + Users CRUD fully verified. All 18 requirements passed (8 password
+        reset + 10 users CRUD). Created comprehensive backend_test.py covering all scenarios. (A) Password reset:
+        forgot-password anti-enumeration works (202 for both known/unknown, no email for unknown), reset with
+        valid token successful, old password rejected, single-use tokens enforced, invalid/expired tokens rejected,
+        weak password validation works. (B) Users CRUD: invite requires admin (403 for reception), invite creates
+        inactive users with invite email, duplicate email rejected (409), invited users can activate and login,
+        list requires admin, role updates work, last-admin protection (409), self-deactivation blocked (422),
+        deactivation of invited users works. Full pytest suite: 114/114 passed. Backend running at
+        http://127.0.0.1:8765. Email in DEV MODE (tokens captured via mocked email_client). Seed credentials
+        verified. NO ISSUES FOUND. Ready for production.
+
