@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NewPatientSheet } from "@/components/patients/NewPatientSheet";
 import { cn, initialsOf } from "@/lib/utils";
 import { patientsService } from "@/services/patients.service";
 
 export default function PatientsListPage() {
   const [search, setSearch] = useState("");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["patients", { search }],
@@ -38,11 +40,17 @@ export default function PatientsListPage() {
             Selecione um paciente para abrir o prontuário e o odontograma.
           </p>
         </div>
-        <Button variant="accent" disabled>
+        <Button
+          variant="accent"
+          onClick={() => setSheetOpen(true)}
+          data-testid="new-patient-button"
+        >
           <UserPlus className="h-4 w-4" />
           Novo paciente
         </Button>
       </header>
+
+      <NewPatientSheet open={sheetOpen} onOpenChange={setSheetOpen} />
 
       <div className="relative max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

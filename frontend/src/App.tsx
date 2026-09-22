@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import {
   BrowserRouter,
+  Navigate,
   Route,
   Routes,
   useNavigate,
@@ -15,10 +16,18 @@ import DashboardPage from "@/pages/DashboardPage";
 import FinanceQuotesPage from "@/pages/FinanceQuotesPage";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import PatientRecordPage from "@/pages/PatientRecordPage";
 import PatientsListPage from "@/pages/PatientsListPage";
-import { setOnUnauthorized } from "@/lib/api";
+import BillingPage from "@/pages/settings/BillingPage";
+import UsersPage from "@/pages/settings/UsersPage";
+import RoomsPage from "@/pages/settings/RoomsPage";
+import ProceduresPage from "@/pages/settings/ProceduresPage";
+import ClinicPage from "@/pages/settings/ClinicPage";
+import { setOnSubscriptionInactive, setOnUnauthorized } from "@/lib/api";
 
 // FullCalendar is ~86 KB gzip; only load when the user actually opens the agenda.
 const AgendaPage = lazy(() => import("@/pages/AgendaPage"));
@@ -45,7 +54,13 @@ function AuthInterceptorBinding() {
   const navigate = useNavigate();
   useEffect(() => {
     setOnUnauthorized(() => navigate("/login", { replace: true }));
-    return () => setOnUnauthorized(() => {});
+    setOnSubscriptionInactive(() =>
+      navigate("/settings/billing?reason=blocked", { replace: false }),
+    );
+    return () => {
+      setOnUnauthorized(() => {});
+      setOnSubscriptionInactive(() => {});
+    };
   }, [navigate]);
   return null;
 }
@@ -57,6 +72,9 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route
           element={
@@ -86,7 +104,12 @@ function AppRoutes() {
           <Route path="/patients/:id" element={<PatientRecordPage />} />
           <Route path="/finance/quotes" element={<FinanceQuotesPage />} />
           <Route path="/finance" element={<Placeholder title="Financeiro" />} />
-          <Route path="/settings" element={<Placeholder title="Configurações" />} />
+          <Route path="/settings" element={<Navigate to="/settings/billing" replace />} />
+          <Route path="/settings/billing" element={<BillingPage />} />
+          <Route path="/settings/users" element={<UsersPage />} />
+          <Route path="/settings/rooms" element={<RoomsPage />} />
+          <Route path="/settings/procedures" element={<ProceduresPage />} />
+          <Route path="/settings/clinic" element={<ClinicPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

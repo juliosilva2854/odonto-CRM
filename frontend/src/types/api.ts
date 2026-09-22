@@ -388,3 +388,154 @@ export interface AppointmentCreatePayload {
   notes?: string | null;
   generate_checkin_codes?: boolean;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Onboarding (public signup)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type PlanTier = "essencial" | "pro" | "clinica";
+
+export type SubscriptionStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled";
+
+export interface SignupPayload {
+  clinic_legal_name: string;
+  clinic_trade_name: string;
+  clinic_cnpj: string;
+  clinic_timezone: string;
+  admin_full_name: string;
+  admin_email: string;
+  admin_password: string;
+  plan: PlanTier;
+}
+
+export interface SignupResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+  user: CurrentUser;
+  clinic: ClinicSummary;
+  trial_ends_at: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Billing
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface BillingStatus {
+  subscription_status: SubscriptionStatus;
+  plan: string;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  is_active: boolean;
+  is_trialing: boolean;
+}
+
+export interface CheckoutResponse {
+  checkout_url: string;
+  session_id: string;
+}
+
+export interface PortalResponse {
+  portal_url: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Users (admin)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface UserInvitePayload {
+  email: string;
+  full_name: string;
+  role: UserRole;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings — Rooms
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface RoomCreatePayload {
+  name: string;
+  description?: string | null;
+  color_hex: string;
+  is_active?: boolean;
+  equipments?: Record<string, unknown>;
+}
+
+export interface RoomUpdatePayload {
+  name?: string;
+  description?: string | null;
+  color_hex?: string;
+  is_active?: boolean;
+  equipments?: Record<string, unknown>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings — Procedures & Specialties
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ProcedureCreatePayload {
+  code: string;
+  tuss_code?: string | null;
+  name: string;
+  description?: string | null;
+  category: ProcedureCategory;
+  specialty_id?: string | null;
+  requires_tooth?: boolean;
+  requires_faces?: boolean;
+  default_color_hex?: string;
+  completed_color_hex?: string;
+  base_price: string;
+  default_duration_min?: number;
+  commission_pct_override?: string | null;
+  is_active?: boolean;
+}
+
+export type ProcedureUpdatePayload = Partial<ProcedureCreatePayload>;
+
+export interface Specialty {
+  id: string;
+  clinic_id: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface SpecialtyCreatePayload {
+  name: string;
+  description?: string | null;
+  is_active?: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Patients — create
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PatientCreatePayload {
+  full_name: string;
+  social_name?: string | null;
+  cpf?: string | null;
+  rg?: string | null;
+  birth_date?: string | null;
+  gender: Gender;
+  phone_e164: string;
+  secondary_phone_e164?: string | null;
+  email?: string | null;
+  address_street?: string | null;
+  address_number?: string | null;
+  address_complement?: string | null;
+  address_neighborhood?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_zipcode?: string | null;
+  is_minor?: boolean;
+  guardian_name?: string | null;
+  guardian_cpf?: string | null;
+  guardian_phone_e164?: string | null;
+  notes?: string | null;
+}

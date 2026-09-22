@@ -4,6 +4,8 @@ import type {
   AppointmentCreatePayload,
   AppointmentStatus,
   Room,
+  RoomCreatePayload,
+  RoomUpdatePayload,
 } from "@/types/api";
 
 export const agendaService = {
@@ -12,6 +14,23 @@ export const agendaService = {
       params: { include_inactive: includeInactive },
     });
     return data;
+  },
+
+  createRoom: async (payload: RoomCreatePayload): Promise<Room> => {
+    const { data } = await api.post<Room>("/api/agenda/rooms", payload);
+    return data;
+  },
+
+  updateRoom: async (
+    id: string,
+    payload: RoomUpdatePayload,
+  ): Promise<Room> => {
+    const { data } = await api.put<Room>(`/api/agenda/rooms/${id}`, payload);
+    return data;
+  },
+
+  deleteRoom: async (id: string): Promise<void> => {
+    await api.delete(`/api/agenda/rooms/${id}`);
   },
 
   listAppointments: async (params: {

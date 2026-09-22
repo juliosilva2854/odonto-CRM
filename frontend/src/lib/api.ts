@@ -33,13 +33,32 @@ export function setOnUnauthorized(handler: () => void): void {
   onUnauthorized = handler;
 }
 
+let onSubscriptionInactive: (() => void) | null = null;
+export function setOnSubscriptionInactive(handler: () => void): void {
+  onSubscriptionInactive = handler;
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
+  (error: AxiosError<BackendErrorEnvelope>) => {
+    const status = error.response?.status;
+
+    if (status === 401) {
       useAuthStore.getState().clear();
       onUnauthorized?.();
+      return Promise.reject(error);
     }
+
+    // 402 → assinatura inativa: middleware devolve o envelope padrão.
+    // Redireciona para a página de billing (fluxo distinto do 401).
+    if (
+      status === 402 &&
+      error.response?.data?.error?.code === "subscription_inactive"
+    ) {
+      onSubscriptionInactive?.();
+      return Promise.reject(error);
+    }
+
     return Promise.reject(error);
   },
 );

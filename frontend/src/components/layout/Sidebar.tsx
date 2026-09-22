@@ -1,11 +1,15 @@
 import { NavLink } from "react-router-dom";
 import {
+  Building2,
   Calendar,
+  CreditCard,
+  DoorOpen,
   LayoutDashboard,
+  ListTree,
   Receipt,
   ReceiptText,
-  Settings,
   Users,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,21 +20,40 @@ interface NavItem {
   to: string;
   label: string;
   Icon: LucideIcon;
+  end?: boolean;
 }
 
-const NAV_PRIMARY: NavItem[] = [
-  { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-  { to: "/agenda", label: "Agenda", Icon: Calendar },
-  { to: "/patients", label: "Pacientes", Icon: Users },
-];
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
 
-const NAV_FINANCE: NavItem[] = [
-  { to: "/finance/quotes", label: "Orçamentos", Icon: ReceiptText },
-  { to: "/finance", label: "Financeiro", Icon: Receipt },
-];
-
-const NAV_SECONDARY: NavItem[] = [
-  { to: "/settings", label: "Configurações", Icon: Settings },
+const SECTIONS: NavSection[] = [
+  {
+    title: "Clínica",
+    items: [
+      { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
+      { to: "/agenda", label: "Agenda", Icon: Calendar },
+      { to: "/patients", label: "Pacientes", Icon: Users },
+    ],
+  },
+  {
+    title: "Financeiro",
+    items: [
+      { to: "/finance/quotes", label: "Orçamentos", Icon: ReceiptText },
+      { to: "/finance", label: "Financeiro", Icon: Receipt },
+    ],
+  },
+  {
+    title: "Configurações",
+    items: [
+      { to: "/settings/billing", label: "Assinatura", Icon: CreditCard },
+      { to: "/settings/users", label: "Equipe", Icon: UsersRound },
+      { to: "/settings/rooms", label: "Salas", Icon: DoorOpen },
+      { to: "/settings/procedures", label: "Procedimentos", Icon: ListTree },
+      { to: "/settings/clinic", label: "Clínica", Icon: Building2 },
+    ],
+  },
 ];
 
 export function Sidebar() {
@@ -47,47 +70,34 @@ export function Sidebar() {
         <BrandMark size="md" withWordmark />
       </div>
 
-      {/* Primary nav */}
-      <nav className="flex-1 px-3 pb-4">
-        <p className="px-3 pb-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
-          Clínica
-        </p>
-        <ul className="space-y-0.5">
-          {NAV_PRIMARY.map((item) => (
-            <li key={item.to}>
-              <SidebarLink item={item} />
-            </li>
-          ))}
-        </ul>
-
-        <p className="mt-6 px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
-          Financeiro
-        </p>
-        <ul className="space-y-0.5">
-          {NAV_FINANCE.map((item) => (
-            <li key={item.to}>
-              <SidebarLink item={item} />
-            </li>
-          ))}
-        </ul>
-
-        <p className="mt-6 px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
-          Sistema
-        </p>
-        <ul className="space-y-0.5">
-          {NAV_SECONDARY.map((item) => (
-            <li key={item.to}>
-              <SidebarLink item={item} />
-            </li>
-          ))}
-        </ul>
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto px-3 pb-4">
+        {SECTIONS.map((section, i) => (
+          <div key={section.title}>
+            <p
+              className={cn(
+                "px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70",
+                i === 0 ? "pt-3" : "mt-6 pt-1",
+              )}
+            >
+              {section.title}
+            </p>
+            <ul className="space-y-0.5">
+              {section.items.map((item) => (
+                <li key={item.to}>
+                  <SidebarLink item={item} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       {/* Footer caption */}
       <div className="border-t border-border px-5 py-3 text-[11px] font-medium text-muted-foreground">
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-success" />
-          v0.5.2 · Modern Premium
+          v0.6.0 · Modern Premium
         </div>
       </div>
     </aside>
@@ -99,6 +109,7 @@ function SidebarLink({ item }: { item: NavItem }) {
   return (
     <NavLink
       to={item.to}
+      end={item.end}
       data-testid={`sidebar-link-${item.label.toLowerCase()}`}
       className={({ isActive }) =>
         cn(
@@ -114,7 +125,9 @@ function SidebarLink({ item }: { item: NavItem }) {
           <Icon
             className={cn(
               "h-4 w-4 shrink-0 transition-colors",
-              isActive ? "text-accent" : "text-muted-foreground group-hover:text-foreground",
+              isActive
+                ? "text-accent"
+                : "text-muted-foreground group-hover:text-foreground",
             )}
           />
           <span>{item.label}</span>

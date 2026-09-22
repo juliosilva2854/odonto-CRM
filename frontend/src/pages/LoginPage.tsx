@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
 import { Lock, Mail, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
 
 import { BrandMark } from "@/components/brand/BrandMark";
@@ -124,13 +124,13 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Senha</Label>
-                <button
-                  type="button"
+                <Link
+                  to="/forgot-password"
                   className="text-xs font-medium text-muted-foreground hover:text-foreground"
                   data-testid="login-forgot-link"
                 >
                   Esqueceu?
-                </button>
+                </Link>
               </div>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -177,6 +177,17 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            Não tem conta?{" "}
+            <Link
+              to="/signup"
+              className="font-medium text-accent hover:underline"
+              data-testid="login-signup-link"
+            >
+              Criar conta grátis
+            </Link>
+          </p>
 
           <p className="mt-10 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5" />

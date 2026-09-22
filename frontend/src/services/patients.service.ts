@@ -2,10 +2,16 @@ import { api } from "@/lib/api";
 import type {
   PaginatedResponse,
   Patient,
+  PatientCreatePayload,
   PatientSummary,
 } from "@/types/api";
 
 export const patientsService = {
+  create: async (payload: PatientCreatePayload): Promise<Patient> => {
+    const { data } = await api.post<Patient>("/api/patients", payload);
+    return data;
+  },
+
   list: async (params: {
     page?: number;
     page_size?: number;
