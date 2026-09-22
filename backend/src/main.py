@@ -7,8 +7,10 @@ from collections.abc import AsyncIterator
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from src.core.config import get_settings
+from src.core.database import AsyncSessionLocal
 from src.core.errors import (
     AppException,
     app_exception_handler,
@@ -88,6 +90,14 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 @app.get("/api/health", tags=["health"])
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": "dental-crm-backend"}
+
+
+@app.get("/api/health/ready", tags=["health"])
+async def health_ready() -> dict[str, str]:
+    """Readiness probe — confirma que o DB responde (SELECT 1)."""
+    async with AsyncSessionLocal() as session:
+        await session.execute(text("SELECT 1"))
+    return {"status": "ready"}
 
 
 # ── Routers

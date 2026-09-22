@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import {
   BrowserRouter,
-  Navigate,
   Route,
   Routes,
   useNavigate,
@@ -14,6 +13,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Toaster } from "@/components/ui/toaster";
 import DashboardPage from "@/pages/DashboardPage";
 import FinanceQuotesPage from "@/pages/FinanceQuotesPage";
+import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import PatientRecordPage from "@/pages/PatientRecordPage";
@@ -55,7 +55,7 @@ function AppRoutes() {
     <>
       <AuthInterceptorBinding />
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
 
         <Route

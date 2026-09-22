@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: odonto-crm-backend
+    runtime: docker
+    repo: https://github.com/YOUR_USER/odonto-CRM
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    # alembic sobe o schema antes do servidor; $PORT é injetado pela Render.
+    startCommand: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: SUBSCRIPTION_GATE_ENABLED
+        value: "true"
+      - key: EMAIL_FROM
+        value: onboarding@resend.dev
+      - key: EMAIL_FROM_NAME
+        value: Dental CRM
+      # ── Segredos / valores por ambiente: preencher no dashboard da Render ──
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_SYNC
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_ESSENCIAL
+        sync: false
+      - key: STRIPE_PRICE_PRO
+        sync: false
+      - key: STRIPE_PRICE_CLINICA
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
