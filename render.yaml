@@ -2,14 +2,12 @@ services:
   - type: web
     name: odonto-crm-backend
     runtime: docker
-    repo: https://github.com/YOUR_USER/odonto-CRM
+    repo: https://github.com/juliosilva2854/odonto-CRM
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
-    region: oregon
+    region: ohio
     healthCheckPath: /api/health
-    # alembic sobe o schema antes do servidor; $PORT é injetado pela Render.
-    startCommand: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: ENVIRONMENT
         value: production
