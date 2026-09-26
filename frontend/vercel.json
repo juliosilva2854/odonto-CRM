@@ -4,8 +4,12 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://odonto-crm-backend.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://odonto-crm-backend.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
