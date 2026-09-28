@@ -400,7 +400,132 @@ export interface Professional {
   cro_state: string;
   specialty: string | null;
   color_hex: string;
+  default_commission_pct: string;
+  is_active: boolean;
+  invite_pending: boolean;
 }
+
+export interface ProfessionalUpdatePayload {
+  cro_number: string;
+  cro_state: string;
+  specialty?: string | null;
+  color_hex: string;
+  default_commission_pct: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dashboard
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface DashboardAppointment {
+  id: string;
+  patient_name: string;
+  starts_at: string;
+  status: AppointmentStatus;
+}
+
+export interface DashboardTopProcedure {
+  procedure_name: string;
+  count: number;
+}
+
+export interface DashboardOverview {
+  greeting_name: string;
+  appointments_today_count: number;
+  appointments_today_list: DashboardAppointment[];
+  patients_total: number;
+  patients_new_this_month: number;
+  quotes_month_total: number;
+  quotes_month_approved: number;
+  quotes_month_amount: string;
+  checkins_today: number;
+  pending_quotes_count: number;
+  procedures_top_5: DashboardTopProcedure[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Anamnesis
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AnamnesisFieldType = "checkbox" | "text";
+
+export interface AnamnesisField {
+  type: AnamnesisFieldType;
+  options?: string[];
+  value: string[] | string | boolean;
+}
+
+export type AnamnesisQuestionnaire = Record<string, AnamnesisField>;
+
+export interface AnamnesisRecord {
+  id: string;
+  clinic_id: string;
+  patient_id: string;
+  questionnaire: AnamnesisQuestionnaire;
+  notes: string | null;
+  answered_by_user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AnamnesisCreatePayload {
+  questionnaire: AnamnesisQuestionnaire;
+  notes?: string | null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Finance — Cash (caixa diário)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type CashMovementType = "income" | "expense";
+
+export type CashPaymentMethod =
+  | "cash"
+  | "pix"
+  | "card_credit"
+  | "card_debit"
+  | "transfer"
+  | "other";
+
+export interface CashMovement {
+  id: string;
+  clinic_id: string;
+  type: CashMovementType;
+  category: string;
+  description: string;
+  amount: string;
+  payment_method: CashPaymentMethod;
+  quote_id: string | null;
+  appointment_id: string | null;
+  created_by_user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CashSummary {
+  total_income: string;
+  total_expense: string;
+  balance: string;
+  count: number;
+}
+
+export interface CashDay {
+  date: string;
+  movements: CashMovement[];
+  summary: CashSummary;
+}
+
+export interface CashMovementPayload {
+  type: CashMovementType;
+  category: string;
+  description: string;
+  amount: string;
+  payment_method: CashPaymentMethod;
+  quote_id?: string | null;
+  appointment_id?: string | null;
+}
+
+export type CashMovementUpdatePayload = Partial<CashMovementPayload>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Onboarding (public signup)

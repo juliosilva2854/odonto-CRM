@@ -28,9 +28,12 @@ from src.modules.billing.router import router as billing_router
 from src.modules.clinical.catalog.router import router as catalog_router
 from src.modules.clinical.odontogram.router import router as odontogram_router
 from src.modules.clinical.records.router import router as clinical_records_router
+from src.modules.dashboard.router import router as dashboard_router
+from src.modules.finance.cash.router import router as cash_router
 from src.modules.finance.quotes.handlers import register_handlers as register_quotes_handlers
 from src.modules.finance.quotes.router import router as quotes_router
 from src.modules.onboarding.router import router as onboarding_router
+from src.modules.patients.anamnesis.router import router as anamnesis_router
 from src.modules.patients.router import router as patients_router
 from src.modules.professionals.router import router as professionals_router
 from src.modules.tenancy.router import router as tenancy_router
@@ -106,14 +109,17 @@ app.include_router(onboarding_router)  # public — no auth
 app.include_router(auth_router)
 app.include_router(tenancy_router)
 app.include_router(patients_router)
+app.include_router(anamnesis_router)
 app.include_router(catalog_router)
 app.include_router(agenda_router)
 app.include_router(odontogram_router)
 app.include_router(clinical_records_router)
 app.include_router(quotes_router)
+app.include_router(cash_router)
 app.include_router(billing_router)
 app.include_router(users_router)
 app.include_router(professionals_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/api", tags=["health"])

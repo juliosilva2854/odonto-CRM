@@ -4,6 +4,7 @@ import axios from "axios";
 import {
   Loader2,
   MoreHorizontal,
+  Pencil,
   Send,
   ShieldCheck,
   Trash2,
@@ -51,9 +52,10 @@ import {
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/toaster";
 import { getErrorMessage } from "@/lib/api";
+import { professionalsService } from "@/services/professionals.service";
 import { usersService } from "@/services/users.service";
 import { useAuthStore } from "@/store/auth";
-import type { CurrentUser, UserRole } from "@/types/api";
+import type { CurrentUser, Professional, UserRole } from "@/types/api";
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "admin", label: "Administrador" },
@@ -78,6 +80,16 @@ function RoleBadge({ role }: { role: UserRole }) {
           ? "default"
           : "outline";
   return <Badge variant={variant}>{ROLE_LABEL[role]}</Badge>;
+}
+
+function StatusBadge({ user }: { user: CurrentUser }) {
+  if (!user.last_login_at) {
+    return <Badge variant="warning">Convite pendente</Badge>;
+  }
+  if (user.is_active) {
+    return <Badge variant="success">Ativo</Badge>;
+  }
+  return <Badge variant="default">Inativo</Badge>;
 }
 
 function handleMutationError(err: unknown) {
