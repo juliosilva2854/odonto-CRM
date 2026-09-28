@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
@@ -123,11 +123,23 @@ export default function UsersPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [roleTarget, setRoleTarget] = useState<CurrentUser | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CurrentUser | null>(null);
+  const [editProf, setEditProf] = useState<Professional | null>(null);
 
   const usersQuery = useQuery({
     queryKey: ["users"],
     queryFn: () => usersService.list(),
   });
+
+  const professionalsQuery = useQuery({
+    queryKey: ["professionals"],
+    queryFn: () => professionalsService.list(),
+  });
+
+  const professionalByUserId = useMemo(() => {
+    const map = new Map<string, Professional>();
+    (professionalsQuery.data ?? []).forEach((p) => map.set(p.user_id, p));
+    return map;
+  }, [professionalsQuery.data]);
 
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -216,11 +228,7 @@ export default function UsersPage() {
                     <RoleBadge role={u.role} />
                   </TableCell>
                   <TableCell>
-                    {u.is_active ? (
-                      <Badge variant="success">Ativo</Badge>
-                    ) : (
-                      <Badge variant="default">Inativo</Badge>
-                    )}
+                    <StatusBadge user={u} />
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -237,6 +245,16 @@ export default function UsersPage() {
                         <DropdownMenuItem onSelect={() => setRoleTarget(u)}>
                           <ShieldCheck className="h-4 w-4" /> Alterar papel
                         </DropdownMenuItem>
+                        {professionalByUserId.get(u.id) && (
+                          <DropdownMenuItem
+                            onSelect={() =>
+                              setEditProf(professionalByUserId.get(u.id)!)
+                            }
+                            data-testid={`edit-professional-${u.id}`}
+                          >
+                            <Pencil className="h-4 w-4" /> Editar profissional
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                           disabled={!!u.last_login_at || resendInvite.isPending}
                           onSelect={() => resendInvite.mutate(u.id)}
@@ -281,6 +299,13 @@ export default function UsersPage() {
         user={deleteTarget}
         onOpenChange={(v) => !v && setDeleteTarget(null)}
         onSaved={invalidate}
+      />
+      <EditProfessionalSheet
+        professional={editProf}
+        onOpenChange={(v) => !v && setEditProf(null)}
+        onSaved={() =>
+          queryClient.invalidateQueries({ queryKey: ["professionals"] })
+        }
       />
     </div>
   );
@@ -598,5 +623,193 @@ function HardDeleteDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EditProfessionalSheet({
+  professional,
+  onOpenChange,
+  onSaved,
+}: {
+  professional: Professional | null;
+  onOpenChange: (v: boolean) => void;
+  onSaved: () => void;
+}) {
+  const [croNumber, setCroNumber] = useState("");
+  const [croState, setCroState] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [colorHex, setColorHex] = useState("#10B981");
+  const [commission, setCommission] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (professional) {
+      setCroNumber(professional.cro_number);
+      setCroState(professional.cro_state);
+      setSpecialty(professional.specialty ?? "");
+      setColorHex(professional.color_hex);
+      setCommission(professional.default_commission_pct);
+      setError(null);
+    }
+  }, [professional]);
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      professionalsService.update(professional!.id, {
+        cro_number: croNumber.trim(),
+        cro_state: croState.trim().toUpperCase(),
+        specialty: specialty.trim() || null,
+        color_hex: colorHex,
+        default_commission_pct: commission.trim(),
+      }),
+    onSuccess: () => {
+      toast({ variant: "success", title: "Profissional atualizado" });
+      onSaved();
+      onOpenChange(false);
+    },
+    onError: (err) =>
+      setError(getErrorMessage(err, "Não foi possível salvar as alterações.")),
+  });
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (croNumber.trim().length < 1) return setError("Informe o número do CRO.");
+    if (croState.trim().length !== 2) return setError("UF do CRO deve ter 2 letras.");
+    const pct = Number(commission);
+    if (Number.isNaN(pct) || pct < 0 || pct > 100)
+      return setError("Comissão deve ser um valor entre 0 e 100.");
+    mutation.mutate();
+  }
+
+  return (
+    <Sheet open={!!professional} onOpenChange={onOpenChange}>
+      <SheetContent className="flex w-full flex-col p-0 sm:max-w-md">
+        <SheetHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
+              <Pencil className="h-5 w-5" />
+            </div>
+            <div>
+              <SheetTitle>Editar profissional</SheetTitle>
+              {professional && (
+                <p className="text-sm text-muted-foreground">
+                  {professional.full_name}
+                  {professional.invite_pending && (
+                    <Badge variant="warning" className="ml-2">
+                      Convite pendente
+                    </Badge>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+        </SheetHeader>
+
+        <form
+          onSubmit={onSubmit}
+          className="flex-1 overflow-y-auto px-6 py-5"
+          data-testid="edit-professional-form"
+        >
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="p-cro">Número do CRO</Label>
+                <Input
+                  id="p-cro"
+                  value={croNumber}
+                  onChange={(e) => setCroNumber(e.target.value)}
+                  placeholder="12345"
+                  data-testid="prof-cro-number"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="p-uf">UF</Label>
+                <Input
+                  id="p-uf"
+                  value={croState}
+                  onChange={(e) => setCroState(e.target.value)}
+                  maxLength={2}
+                  placeholder="SP"
+                  data-testid="prof-cro-state"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="p-spec">Especialidade</Label>
+              <Input
+                id="p-spec"
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value)}
+                placeholder="Clínica Geral"
+                data-testid="prof-specialty"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="p-color">Cor na agenda</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="p-color"
+                    type="color"
+                    value={colorHex}
+                    onChange={(e) => setColorHex(e.target.value)}
+                    className="h-10 w-14 cursor-pointer rounded-lg border border-input bg-card"
+                    data-testid="prof-color"
+                  />
+                  <span className="text-sm text-muted-foreground">{colorHex}</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="p-comm">Comissão (%)</Label>
+                <Input
+                  id="p-comm"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  value={commission}
+                  onChange={(e) => setCommission(e.target.value)}
+                  placeholder="40.00"
+                  data-testid="prof-commission"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </form>
+
+        <SheetFooter>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            variant="accent"
+            disabled={mutation.isPending}
+            onClick={() => {
+              const form = document.querySelector(
+                "[data-testid='edit-professional-form']",
+              ) as HTMLFormElement | null;
+              form?.requestSubmit();
+            }}
+            data-testid="prof-submit"
+          >
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Salvando…
+              </>
+            ) : (
+              "Salvar alterações"
+            )}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

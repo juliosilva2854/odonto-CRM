@@ -10,6 +10,7 @@ import {
   ReceiptText,
   Users,
   UsersRound,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,6 +42,7 @@ const SECTIONS: NavSection[] = [
     title: "Financeiro",
     items: [
       { to: "/finance/quotes", label: "Orçamentos", Icon: ReceiptText },
+      { to: "/finance/cash", label: "Caixa", Icon: Wallet },
       { to: "/finance", label: "Financeiro", Icon: Receipt },
     ],
   },

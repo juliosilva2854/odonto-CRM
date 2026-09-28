@@ -14,6 +14,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Toaster } from "@/components/ui/toaster";
 import DashboardPage from "@/pages/DashboardPage";
 import FinanceQuotesPage from "@/pages/FinanceQuotesPage";
+import FinanceCashPage from "@/pages/FinanceCashPage";
 import LandingPage from "@/pages/LandingPage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
@@ -103,6 +104,7 @@ function AppRoutes() {
           <Route path="/patients" element={<PatientsListPage />} />
           <Route path="/patients/:id" element={<PatientRecordPage />} />
           <Route path="/finance/quotes" element={<FinanceQuotesPage />} />
+          <Route path="/finance/cash" element={<FinanceCashPage />} />
           <Route path="/finance" element={<Placeholder title="Financeiro" />} />
           <Route path="/settings" element={<Navigate to="/settings/billing" replace />} />
           <Route path="/settings/billing" element={<BillingPage />} />

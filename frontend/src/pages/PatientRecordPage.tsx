@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   CalendarDays,
+  ClipboardList,
   IdCard,
   Lock,
   LockOpen,
@@ -24,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClinicalEvolutionTab } from "@/components/clinical/ClinicalEvolutionTab";
+import { AnamnesisTab } from "@/components/patients/AnamnesisTab";
 import { OdontogramChart } from "@/components/odontogram/OdontogramChart";
 import { ToothDetailSheet } from "@/components/odontogram/ToothDetailSheet";
 import { groupByTooth } from "@/components/odontogram/fdi";
@@ -188,6 +190,10 @@ export default function PatientRecordPage() {
             <Sparkles className="h-3.5 w-3.5" />
             Odontograma
           </TabsTrigger>
+          <TabsTrigger value="anamnesis" data-testid="tab-anamnesis">
+            <ClipboardList className="h-3.5 w-3.5" />
+            Anamnese
+          </TabsTrigger>
           <TabsTrigger value="evolution" data-testid="tab-evolution">
             <Stethoscope className="h-3.5 w-3.5" />
             Evolução Clínica
@@ -207,14 +213,16 @@ export default function PatientRecordPage() {
           />
         </TabsContent>
 
+        <TabsContent value="anamnesis">
+          <AnamnesisTab patientId={patientId} patientReadOnly={isAnonymized} />
+        </TabsContent>
+
         <TabsContent value="evolution">
           <ClinicalEvolutionTab
             patientId={patientId}
             patientReadOnly={isAnonymized}
           />
-        </TabsContent>
-
-        <TabsContent value="quotes">
+        </TabsContent>        <TabsContent value="quotes">
           <QuotesTab patientId={patientId} patientReadOnly={isAnonymized} />
         </TabsContent>
       </Tabs>

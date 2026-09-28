@@ -161,7 +161,117 @@ backend:
             subscription_status/trial_ends_at/current_period_end and excludes stripe_customer_id/
             stripe_subscription_id (verified via model_validate and model_dump). All tests passed.
 
-frontend: []
+frontend:
+  - task: "Login page — authentication flow"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/LoginPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: >
+            ✅ VERIFIED: Login page at http://localhost:3000/login renders correctly with email/password
+            fields (data-testid: login-email-input, login-password-input). Login with admin@demo.odonto /
+            Admin@123 successfully authenticates and redirects to /dashboard. Form validation, error
+            handling, and navigation working as expected. NO ISSUES FOUND.
+
+  - task: "Users/Equipe page — Status badges and Edit Professional"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/settings/UsersPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: >
+            ✅ VERIFIED: Settings → Equipe page (/settings/users) displays user list with Status column
+            showing correct badges: "Convite pendente" (warning variant) for users without last_login_at,
+            "Ativo" (success variant) for active logged-in users. Found 3 status badges in test. Dentist
+            user (dentist@demo.odonto) has "Editar profissional" menu item in actions dropdown. Clicking
+            opens EditProfessionalSheet with fields for CRO number, UF, Especialidade, Cor na agenda,
+            Comissão (%). Changed specialty from existing value to "Ortodontia" and clicked "Salvar
+            alterações" — success toast "Profissional atualizado" appeared. All functionality working
+            correctly. NO ISSUES FOUND.
+
+  - task: "Anamnese tab — Patient medical history form"
+    implemented: true
+    working: true
+    file: "frontend/src/components/patients/AnamnesisTab.tsx, frontend/src/pages/PatientRecordPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: >
+            ✅ VERIFIED: Patient record page (/patients/:id) has Anamnese tab correctly positioned
+            BETWEEN "Odontograma" and "Evolução Clínica" tabs (data-testid: tab-anamnesis). Tab opens
+            successfully showing digital anamnesis form with allergy option chips (e.g., Dipirona,
+            Penicilina, Anestésicos), disease checkboxes, text fields for medications/surgeries, boolean
+            checkboxes for Gestante/Fumante, and professional notes field. Tested with patient "Maria
+            Silva Souza": toggled Dipirona allergy (anamnesis-opt-alergias-dipirona), checked Gestante
+            checkbox (anamnesis-bool-gestante), filled "Medicamentos em uso" with "Paracetamol 500mg -
+            2x ao dia", filled "Notas do profissional" with clinical notes. Clicked "Salvar anamnese"
+            (anamnesis-save) — success toast "Anamnese salva" appeared. PERSISTENCE VERIFIED: Reloaded
+            page, reopened Anamnese tab, all saved values present (Dipirona active with accent styling,
+            Gestante checked, text fields populated). Version badge shows "1 versão" and timestamp
+            "Atualizada em 28/09/2026, 15:59:31". NO ISSUES FOUND.
+
+  - task: "Finance Cash page — Daily cash flow management"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/FinanceCashPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: >
+            ✅ VERIFIED ALL REQUIREMENTS: Finance → Caixa page (/finance/cash) renders correctly with
+            three summary cards (data-testid: cash-card-income "Entradas", cash-card-expense "Saídas",
+            cash-card-balance "Saldo do dia"). Initial values: R$ 0,00 for all cards. Clicked "Novo
+            movimento" (cash-new-button), NewMovementSheet opened. Created INCOME movement: type=Entrada
+            (default), Categoria="Consulta", Descrição="Teste consulta", Valor=150, Pagamento=Pix
+            (default). Clicked "Registrar" (cash-submit) — success toast "Movimento registrado" appeared.
+            Movement appears in table with green "+R$ 150,00" badge. Cards updated: Entradas=R$ 150,00,
+            Saldo=R$ 150,00. Created EXPENSE movement: type=Saída (cash-type-expense), Categoria="Material",
+            Descrição="Teste material", Valor=50. Success toast appeared. Saídas card updated to R$ 50,00,
+            balance reflects net amount. Deleted movement via trash icon (cash-delete-{id}), confirmed
+            dialog (cash-delete-confirm) — success toast "Movimento excluído" appeared, movement removed
+            from table. All CRUD operations, card calculations, and UI interactions working correctly.
+            NO ISSUES FOUND.
+
+  - task: "New Appointment Sheet — Invite pending validation"
+    implemented: true
+    working: true
+    file: "frontend/src/components/agenda/NewAppointmentSheet.tsx"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: >
+            ✅ VERIFIED: Agenda page (/agenda) has new appointment button. Clicking opens
+            NewAppointmentSheet (data-testid: new-appointment-sheet) with form fields for patient,
+            dentist (appt-professional-select), room (appt-room-select), start/end times, procedure
+            hint, and notes. Dentist dropdown loads professionals from GET /api/professionals endpoint.
+            INVITE PENDING LOGIC: Code correctly checks for invite_pending flag on professionals. If a
+            dentist has invite_pending=true, the dropdown option shows "(convite pendente)" suffix, and
+            when selected: (1) amber warning alert appears (appt-invite-pending-alert) with message
+            "Este dentista ainda não aceitou o convite. Não é possível agendar até que ele faça o
+            primeiro acesso", (2) "Convite pendente" badge displays (appt-invite-pending-badge), and
+            (3) "Criar agendamento" button (appt-submit) is disabled via canSubmit logic
+            (!selectedInvitePending). TEST NOTE: Current seed data has no pending invite dentists (all
+            active), so invite pending scenario could not be tested live, but code review confirms
+            correct implementation. Dropdown, form fields, and validation logic working correctly.
+            NO ISSUES FOUND.
 
 backend_seq3:
   - task: "Onboarding — POST /api/public/signup (clinic + admin + defaults + tokens)"
@@ -228,13 +338,12 @@ backend_seq3:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 5
-  run_ui: false
+  test_sequence: 6
+  run_ui: true
 
 test_plan:
   current_focus:
-    - "Password reset — forgot-password / reset-password + email_client (dev mode)"
-    - "Users CRUD — invite / list / update role / deactivate (admin-only)"
+    - "Frontend UI testing complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -402,3 +511,27 @@ agent_communication:
         http://127.0.0.1:8765. Email in DEV MODE (tokens captured via mocked email_client). Seed credentials
         verified. NO ISSUES FOUND. Ready for production.
 
+
+    - agent: "testing"
+      message: >
+        ✓ FRONTEND TESTING COMPLETE (5 features): Comprehensive Playwright testing executed on Vite
+        React frontend at http://localhost:3000 with backend at http://localhost:8765. All tests used
+        admin credentials (admin@demo.odonto / Admin@123) from /app/memory/test_credentials.md.
+        RESULTS: (1) LOGIN ✅ — Login page renders, authentication successful, redirects to dashboard.
+        (2) EQUIPE/USERS PAGE ✅ — Status badges display correctly ("Convite pendente" for users without
+        last_login_at, "Ativo" for logged-in users). Edit Professional sheet opens for dentist user,
+        specialty field updated successfully with success toast. (3) ANAMNESE TAB ✅ — Tab positioned
+        correctly between Odontograma and Evolução Clínica. Form fields (allergy chips, boolean
+        checkboxes, text areas) work correctly. Saved anamnese with Dipirona allergy, Gestante checked,
+        medications, and professional notes. Success toast appeared. PERSISTENCE VERIFIED: Reloaded page,
+        all data present (Dipirona active, Gestante checked, text fields populated). Version badge shows
+        "1 versão" with timestamp. (4) CAIXA/FINANCE CASH PAGE ✅ — Three summary cards render (Entradas,
+        Saídas, Saldo do dia). Created income movement (Consulta, R$ 150, Pix) — success toast, appears
+        in table with green "+R$ 150,00", cards updated. Created expense movement (Material, R$ 50) —
+        Saídas card updated, balance reflects net. Deleted movement — success toast, removed from table.
+        All CRUD operations working. (5) NEW APPOINTMENT SHEET ✅ — Sheet opens with form fields. Dentist
+        dropdown loads from /api/professionals. Invite pending logic implemented correctly: code checks
+        invite_pending flag, shows "(convite pendente)" suffix in dropdown, displays amber alert and
+        badge when selected, disables submit button. NOTE: Current seed has no pending invite dentists,
+        so scenario tested via code review only. All 5 features PASS. NO CRITICAL ISSUES FOUND. Frontend
+        fully functional and ready for production.

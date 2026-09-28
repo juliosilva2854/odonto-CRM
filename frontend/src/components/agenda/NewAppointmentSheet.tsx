@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { CalendarPlus, Loader2 } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,6 +91,10 @@ export function NewAppointmentSheet({
   const professionals = professionalsQuery.data ?? [];
   const hasNoProfessionals =
     !professionalsQuery.isLoading && professionals.length === 0;
+  const selectedProfessional = professionals.find(
+    (p) => p.id === professionalId,
+  );
+  const selectedInvitePending = !!selectedProfessional?.invite_pending;
 
   // ── Submit ──────────────────────────────────────────────────
   const mutation = useMutation({
@@ -128,6 +133,7 @@ export function NewAppointmentSheet({
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!patientId || !professionalId || !roomId || !startsAt || !endsAt) return;
+    if (selectedInvitePending) return;
 
     mutation.mutate({
       patient_id: patientId,
@@ -147,6 +153,7 @@ export function NewAppointmentSheet({
     !!startsAt &&
     !!endsAt &&
     new Date(endsAt) > new Date(startsAt) &&
+    !selectedInvitePending &&
     !mutation.isPending;
 
   return (
@@ -185,7 +192,14 @@ export function NewAppointmentSheet({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="appt-prof">Dentista</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="appt-prof">Dentista</Label>
+                  {selectedInvitePending && (
+                    <Badge variant="warning" data-testid="appt-invite-pending-badge">
+                      Convite pendente
+                    </Badge>
+                  )}
+                </div>
                 <SelectNative
                   id="appt-prof"
                   value={professionalId}
@@ -203,6 +217,7 @@ export function NewAppointmentSheet({
                   {professionals.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.full_name}
+                      {p.invite_pending ? " (convite pendente)" : ""}
                     </option>
                   ))}
                 </SelectNative>
@@ -237,6 +252,19 @@ export function NewAppointmentSheet({
               <Alert variant="default" className="border-amber-200 bg-amber-50 text-amber-800">
                 <AlertDescription className="text-xs">
                   Nenhum dentista cadastrado. Convide em Configurações → Equipe.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {selectedInvitePending && (
+              <Alert
+                variant="default"
+                className="border-amber-200 bg-amber-50 text-amber-800"
+                data-testid="appt-invite-pending-alert"
+              >
+                <AlertDescription className="text-xs">
+                  Este dentista ainda não aceitou o convite. Não é possível
+                  agendar até que ele faça o primeiro acesso.
                 </AlertDescription>
               </Alert>
             )}
