@@ -32,6 +32,7 @@ from src.modules.finance.quotes.handlers import register_handlers as register_qu
 from src.modules.finance.quotes.router import router as quotes_router
 from src.modules.onboarding.router import router as onboarding_router
 from src.modules.patients.router import router as patients_router
+from src.modules.professionals.router import router as professionals_router
 from src.modules.tenancy.router import router as tenancy_router
 from src.modules.users.router import router as users_router
 
@@ -112,6 +113,7 @@ app.include_router(clinical_records_router)
 app.include_router(quotes_router)
 app.include_router(billing_router)
 app.include_router(users_router)
+app.include_router(professionals_router)
 
 
 @app.get("/api", tags=["health"])

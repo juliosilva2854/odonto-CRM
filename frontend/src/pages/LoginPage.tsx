@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
-import { Lock, Mail, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
+import axios from "axios";
+import { Lock, Mail, Loader2, ArrowRight, ShieldCheck, AlertTriangle } from "lucide-react";
 
 import { BrandMark } from "@/components/brand/BrandMark";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLogin } from "@/hooks/useAuth";
-import { getErrorMessage } from "@/lib/api";
+import { getErrorMessage, type BackendErrorEnvelope } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 
 interface LocationState {
@@ -23,6 +24,11 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const errorCode = axios.isAxiosError<BackendErrorEnvelope>(error)
+    ? error.response?.data?.error?.code
+    : undefined;
+  const isDeactivated = errorCode === "account_deactivated";
 
   if (isAuthed) {
     const target = (location.state as LocationState)?.from?.pathname ?? "/dashboard";
@@ -149,11 +155,23 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <Alert variant="destructive" data-testid="login-error">
-                <AlertDescription>
-                  {getErrorMessage(error, "Falha ao autenticar")}
-                </AlertDescription>
-              </Alert>
+              isDeactivated ? (
+                <Alert
+                  className="border-amber-300 bg-amber-50 text-amber-800"
+                  data-testid="login-error-deactivated"
+                >
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription>
+                    Sua conta foi desativada. Entre em contato com o admin.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Alert variant="destructive" data-testid="login-error">
+                  <AlertDescription>
+                    {getErrorMessage(error, "Falha ao autenticar")}
+                  </AlertDescription>
+                </Alert>
+              )
             )}
 
             <Button

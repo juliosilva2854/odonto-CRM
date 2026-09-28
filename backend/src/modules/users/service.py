@@ -13,12 +13,13 @@ from __future__ import annotations
 import secrets
 import uuid
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.errors import ConflictError, NotFoundError, ValidationError
 from src.core.security import hash_password
 from src.modules.auth.enums import UserRole
-from src.modules.auth.models import User
+from src.modules.auth.models import Professional, User
 from src.modules.auth.service import AuthService
 from src.modules.users.repository import UserRepository
 from src.modules.users.schemas import UserInviteIn
@@ -31,7 +32,7 @@ class UsersService:
 
     async def invite(
         self, clinic_id: uuid.UUID, actor: User, data: UserInviteIn
-    ) -> User:
+    ) -> tuple[User, Professional | None]:
         email = data.email.lower()
         if await self._repo.get_by_email_global(email) is not None:
             raise ConflictError("This email is already registered")
@@ -48,9 +49,25 @@ class UsersService:
         self._repo.add(user)
         await self._session.flush()
 
+        # Dentista precisa de um Professional para aparecer na agenda. Criamos
+        # com placeholders (admin edita CRO/especialidade depois) na MESMA transação.
+        professional: Professional | None = None
+        if data.role == UserRole.DENTIST:
+            professional = Professional(
+                user_id=user.id,
+                clinic_id=clinic_id,
+                cro_number="00000",
+                cro_state="SP",
+                specialty="Clínica Geral",
+                color_hex="#3B82F6",
+                default_commission_pct=40.00,
+            )
+            self._session.add(professional)
+            await self._session.flush()
+
         # Reaproveita o fluxo de token do reset (mesmo token, mesma rota).
         await AuthService(self._session).issue_reset_token(user, is_invite=True)
-        return user
+        return user, professional
 
     async def list(
         self, clinic_id: uuid.UUID, *, page: int, page_size: int
@@ -108,3 +125,66 @@ class UsersService:
         user.is_active = False
         await self._session.flush()
         return user
+
+    async def hard_delete(
+        self, clinic_id: uuid.UUID, actor: User, user_id: uuid.UUID
+    ) -> None:
+        """Remoção definitiva (irreversível). Protege último admin e o próprio.
+
+        A checagem de "último admin" vem ANTES da de auto-remoção: se você é o
+        único admin ativo, remover a própria conta deixaria a clínica órfã →
+        409 last_admin. Havendo outro admin ativo, a auto-remoção cai em 422.
+        """
+        user = await self._repo.get(clinic_id, user_id)
+        if user is None:
+            raise NotFoundError("User not found")
+
+        if (
+            user.role == UserRole.ADMIN
+            and user.is_active
+            and await self._repo.count_active_admins(clinic_id) <= 1
+        ):
+            raise ConflictError(
+                "Cannot delete the last active admin", code="last_admin"
+            )
+
+        if user_id == actor.id:
+            raise ValidationError(
+                "You cannot delete your own account",
+                code="cannot_delete_self",
+            )
+
+        # Vínculos de autoria (agenda/prontuário) exigem manter o histórico.
+        if await self._repo.count_linked_records(clinic_id, user_id) > 0:
+            raise ConflictError(
+                "User has linked records; deactivate instead of deleting",
+                code="has_linked_records",
+            )
+
+        try:
+            await self._repo.hard_delete(clinic_id, user_id)
+        except IntegrityError as exc:
+            # Ex.: appointments.professional_id (RESTRICT) referenciando o dentista.
+            raise ConflictError(
+                "User has linked records; deactivate instead of deleting",
+                code="has_linked_records",
+            ) from exc
+
+    async def resend_invite(
+        self, clinic_id: uuid.UUID, actor: User, user_id: uuid.UUID
+    ) -> str:
+        """Reenvia o convite (novo token) para um usuário que nunca acessou."""
+        user = await self._repo.get(clinic_id, user_id)
+        if user is None:
+            raise NotFoundError("User not found")
+
+        if user.last_login_at is not None:
+            raise ConflictError(
+                "User has already logged in; cannot resend invite",
+                code="already_active",
+            )
+
+        # Invalida convites/resets antigos antes de emitir um novo.
+        await self._repo.invalidate_active_reset_tokens(user_id)
+        await AuthService(self._session).issue_reset_token(user, is_invite=True)
+        return user.email

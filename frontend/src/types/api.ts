@@ -9,6 +9,7 @@ export interface CurrentUser {
   full_name: string;
   role: UserRole;
   is_active: boolean;
+  last_login_at?: string | null;
 }
 
 export interface ClinicSummary {
@@ -389,6 +390,18 @@ export interface AppointmentCreatePayload {
   generate_checkin_codes?: boolean;
 }
 
+/** Dentist profile joined with its User — used to populate agenda dropdowns. */
+export interface Professional {
+  id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  cro_number: string;
+  cro_state: string;
+  specialty: string | null;
+  color_hex: string;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Onboarding (public signup)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -452,6 +465,16 @@ export interface UserInvitePayload {
   email: string;
   full_name: string;
   role: UserRole;
+}
+
+/** Invite response — includes the auto-created Professional id for dentists. */
+export interface InvitedUser extends CurrentUser {
+  professional_id: string | null;
+}
+
+export interface ResendInviteResponse {
+  sent: boolean;
+  email: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

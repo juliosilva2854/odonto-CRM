@@ -1,7 +1,9 @@
 import { api } from "@/lib/api";
 import type {
   CurrentUser,
+  InvitedUser,
   PaginatedResponse,
+  ResendInviteResponse,
   UserInvitePayload,
   UserRole,
 } from "@/types/api";
@@ -15,8 +17,8 @@ export const usersService = {
     return data;
   },
 
-  invite: async (payload: UserInvitePayload): Promise<CurrentUser> => {
-    const { data } = await api.post<CurrentUser>("/api/users/invite", payload);
+  invite: async (payload: UserInvitePayload): Promise<InvitedUser> => {
+    const { data } = await api.post<InvitedUser>("/api/users/invite", payload);
     return data;
   },
 
@@ -29,6 +31,17 @@ export const usersService = {
 
   deactivate: async (id: string): Promise<CurrentUser> => {
     const { data } = await api.delete<CurrentUser>(`/api/users/${id}`);
+    return data;
+  },
+
+  hardDelete: async (id: string): Promise<void> => {
+    await api.delete(`/api/users/${id}/hard`);
+  },
+
+  resendInvite: async (id: string): Promise<ResendInviteResponse> => {
+    const { data } = await api.post<ResendInviteResponse>(
+      `/api/users/${id}/resend-invite`,
+    );
     return data;
   },
 };

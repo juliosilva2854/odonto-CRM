@@ -39,12 +39,24 @@ class AuthService:
         self._session = session
 
     async def login(self, email: str, password: str) -> tuple[User, str, str]:
-        stmt = select(User).where(User.email == email.lower(), User.is_active.is_(True))
+        # Busca sem filtrar is_active para conseguirmos distinguir "conta
+        # desativada" de "credenciais inválidas" — sem quebrar anti-enumeration.
+        stmt = select(User).where(User.email == email.lower())
         user = (await self._session.execute(stmt)).scalar_one_or_none()
 
         # Avoid user enumeration: same error for wrong email / wrong password.
         if user is None or not verify_password(password, user.password_hash):
             raise UnauthorizedError("Invalid credentials")
+
+        # Só depois de validar a senha revelamos que a conta está desativada.
+        if not user.is_active:
+            raise UnauthorizedError(
+                "Sua conta foi desativada. Fale com o administrador da clínica.",
+                code="account_deactivated",
+            )
+
+        user.last_login_at = datetime.now(timezone.utc)
+        await self._session.flush()
 
         access = create_access_token(subject=user.id, clinic_id=user.clinic_id, role=user.role.value)
         refresh = create_refresh_token(subject=user.id, clinic_id=user.clinic_id)

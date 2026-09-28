@@ -1,6 +1,8 @@
 """Users Pydantic schemas."""
 from __future__ import annotations
 
+import uuid
+
 from pydantic import BaseModel, EmailStr, Field
 
 # Reutiliza o UserOut do módulo auth (mesma projeção) para não duplicar contrato.
@@ -16,3 +18,14 @@ class UserInviteIn(BaseModel):
 
 class UserRoleUpdateIn(BaseModel):
     role: UserRole
+
+
+class InvitedUserOut(UserOut):
+    """UserOut + id do Professional criado quando o convite é para dentista."""
+
+    professional_id: uuid.UUID | None = None
+
+
+class ResendInviteOut(BaseModel):
+    sent: bool
+    email: EmailStr

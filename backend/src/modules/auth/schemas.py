@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -43,6 +44,7 @@ class UserOut(BaseModel):
     full_name: str
     role: UserRole
     is_active: bool
+    last_login_at: datetime | None = None
 
 
 class MeOut(BaseModel):

@@ -3,12 +3,18 @@ import type {
   AppointmentBoardItem,
   AppointmentCreatePayload,
   AppointmentStatus,
+  Professional,
   Room,
   RoomCreatePayload,
   RoomUpdatePayload,
 } from "@/types/api";
 
 export const agendaService = {
+  listProfessionals: async (): Promise<Professional[]> => {
+    const { data } = await api.get<Professional[]>("/api/professionals");
+    return data;
+  },
+
   listRooms: async (includeInactive = false): Promise<Room[]> => {
     const { data } = await api.get<Room[]>("/api/agenda/rooms", {
       params: { include_inactive: includeInactive },

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { format } from "date-fns";
@@ -33,9 +33,9 @@ interface NewAppointmentSheetProps {
   onOpenChange: (open: boolean) => void;
   defaultStart?: Date | null;
   defaultEnd?: Date | null;
-  /** Existing appointments (for the current viewport) used to populate the
-   *  dentist dropdown when no dedicated endpoint exists. */
-  knownAppointments: AppointmentBoardItem[];
+  /** @deprecated Kept for backward compatibility with callers. Professionals
+   *  are now fetched from GET /api/professionals, not derived from these. */
+  knownAppointments?: AppointmentBoardItem[];
 }
 
 export function NewAppointmentSheet({
@@ -43,7 +43,6 @@ export function NewAppointmentSheet({
   onOpenChange,
   defaultStart,
   defaultEnd,
-  knownAppointments,
 }: NewAppointmentSheetProps) {
   const queryClient = useQueryClient();
 
@@ -81,16 +80,16 @@ export function NewAppointmentSheet({
     staleTime: 5 * 60 * 1000,
   });
 
-  // ── Professionals (derived from existing appointments) ────────────────────
-  const professionals = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const a of knownAppointments) {
-      if (!map.has(a.professional_id)) {
-        map.set(a.professional_id, a.professional_name);
-      }
-    }
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [knownAppointments]);
+  // ── Professionals (dedicated endpoint) ────────────────────────────────
+  const professionalsQuery = useQuery({
+    queryKey: ["professionals"],
+    queryFn: () => agendaService.listProfessionals(),
+    enabled: open,
+    staleTime: 5 * 60 * 1000,
+  });
+  const professionals = professionalsQuery.data ?? [];
+  const hasNoProfessionals =
+    !professionalsQuery.isLoading && professionals.length === 0;
 
   // ── Submit ──────────────────────────────────────────────────
   const mutation = useMutation({
@@ -191,17 +190,19 @@ export function NewAppointmentSheet({
                   id="appt-prof"
                   value={professionalId}
                   onChange={(v) => setProfessionalId(v)}
-                  disabled={professionals.length === 0}
+                  disabled={professionalsQuery.isLoading || professionals.length === 0}
                   data-testid="appt-professional-select"
                 >
                   <option value="">
-                    {professionals.length === 0
-                      ? "— cadastre primeiro—"
-                      : "Selecione…"}
+                    {professionalsQuery.isLoading
+                      ? "Carregando…"
+                      : professionals.length === 0
+                        ? "Nenhum dentista"
+                        : "Selecione…"}
                   </option>
                   {professionals.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name}
+                      {p.full_name}
                     </option>
                   ))}
                 </SelectNative>
@@ -232,10 +233,18 @@ export function NewAppointmentSheet({
               </div>
             </div>
 
-            {professionals.length === 0 && (
+            {hasNoProfessionals && (
               <Alert variant="default" className="border-amber-200 bg-amber-50 text-amber-800">
                 <AlertDescription className="text-xs">
-                  Nenhum dentista listado ainda. Peça ao admin para cadastrar profissionais ou crie um agendamento via API uma única vez para popular esta lista.
+                  Nenhum dentista cadastrado. Convide em Configurações → Equipe.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {!roomsQuery.isLoading && (roomsQuery.data?.length ?? 0) === 0 && (
+              <Alert variant="default" className="border-amber-200 bg-amber-50 text-amber-800">
+                <AlertDescription className="text-xs">
+                  Nenhuma sala cadastrada. Crie em Configurações → Salas.
                 </AlertDescription>
               </Alert>
             )}

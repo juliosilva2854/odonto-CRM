@@ -4,7 +4,9 @@ import axios from "axios";
 import {
   Loader2,
   MoreHorizontal,
+  Send,
   ShieldCheck,
+  Trash2,
   UserMinus,
   UserPlus,
   UsersRound,
@@ -108,6 +110,7 @@ export default function UsersPage() {
   const currentUser = useAuthStore((s) => s.user);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [roleTarget, setRoleTarget] = useState<CurrentUser | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CurrentUser | null>(null);
 
   const usersQuery = useQuery({
     queryKey: ["users"],
@@ -122,6 +125,18 @@ export default function UsersPage() {
     onSuccess: () => {
       toast({ variant: "success", title: "Usuário desativado" });
       invalidate();
+    },
+    onError: handleMutationError,
+  });
+
+  const resendInvite = useMutation({
+    mutationFn: (id: string) => usersService.resendInvite(id),
+    onSuccess: (res) => {
+      toast({
+        variant: "success",
+        title: "Convite reenviado",
+        description: `Enviado para ${res.email}.`,
+      });
     },
     onError: handleMutationError,
   });
@@ -211,11 +226,24 @@ export default function UsersPage() {
                           <ShieldCheck className="h-4 w-4" /> Alterar papel
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          disabled={!!u.last_login_at || resendInvite.isPending}
+                          onSelect={() => resendInvite.mutate(u.id)}
+                        >
+                          <Send className="h-4 w-4" /> Reenviar convite
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           disabled={!u.is_active}
                           onSelect={() => deactivate.mutate(u.id)}
                         >
                           <UserMinus className="h-4 w-4" /> Desativar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          disabled={currentUser?.id === u.id}
+                          onSelect={() => setDeleteTarget(u)}
+                        >
+                          <Trash2 className="h-4 w-4" /> Excluir definitivamente
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -235,6 +263,11 @@ export default function UsersPage() {
       <RoleDialog
         user={roleTarget}
         onOpenChange={(v) => !v && setRoleTarget(null)}
+        onSaved={invalidate}
+      />
+      <HardDeleteDialog
+        user={deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
         onSaved={invalidate}
       />
     </div>
@@ -449,6 +482,105 @@ function RoleDialog({
               </>
             ) : (
               "Salvar"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function HardDeleteDialog({
+  user,
+  onOpenChange,
+  onSaved,
+}: {
+  user: CurrentUser | null;
+  onOpenChange: (v: boolean) => void;
+  onSaved: () => void;
+}) {
+  const [confirmEmail, setConfirmEmail] = useState("");
+
+  useEffect(() => {
+    setConfirmEmail("");
+  }, [user]);
+
+  const mutation = useMutation({
+    mutationFn: () => usersService.hardDelete(user!.id),
+    onSuccess: () => {
+      toast({ variant: "success", title: "Usuário excluído definitivamente" });
+      onSaved();
+      onOpenChange(false);
+    },
+    onError: (err) => {
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+      if (status === 409) {
+        toast({
+          variant: "destructive",
+          title: "Não foi possível excluir",
+          description:
+            "Este usuário tem registros vinculados. Use 'Desativar' em vez de excluir.",
+          duration: 6000,
+        });
+        return;
+      }
+      toast({
+        variant: "destructive",
+        title: "Não foi possível excluir",
+        description: getErrorMessage(err, "Tente novamente."),
+      });
+    },
+  });
+
+  const canDelete =
+    !!user &&
+    confirmEmail.trim().toLowerCase() === user.email.toLowerCase() &&
+    !mutation.isPending;
+
+  return (
+    <Dialog open={!!user} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-destructive">
+            Excluir definitivamente
+          </DialogTitle>
+          <DialogDescription>
+            Esta ação é irreversível. Digite o e-mail do usuário para confirmar:
+          </DialogDescription>
+        </DialogHeader>
+        <div className="px-6 py-2">
+          <Label htmlFor="hd-email">
+            E-mail de {user?.full_name ?? "usuário"}
+          </Label>
+          <div className="mt-2">
+            <Input
+              id="hd-email"
+              value={confirmEmail}
+              onChange={(e) => setConfirmEmail(e.target.value)}
+              placeholder={user?.email ?? ""}
+              autoComplete="off"
+              data-testid="hard-delete-email-input"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={!canDelete}
+            onClick={() => mutation.mutate()}
+            data-testid="hard-delete-submit"
+          >
+            {mutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Excluindo…
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4" /> Excluir
+              </>
             )}
           </Button>
         </DialogFooter>
