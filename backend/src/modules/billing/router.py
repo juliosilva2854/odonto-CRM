@@ -65,6 +65,25 @@ async def create_portal(
 
 
 @router.post(
+    "/setup-products",
+    status_code=status.HTTP_200_OK,
+    summary="Cria/atualiza os produtos e preços dos planos no Stripe (idempotente)",
+)
+async def setup_products_endpoint(
+    user: User = Depends(require_role([UserRole.ADMIN])),
+) -> dict[str, list[dict]]:
+    from starlette.concurrency import run_in_threadpool
+
+    from scripts.create_stripe_products import setup_products
+
+    try:
+        products = await run_in_threadpool(setup_products)
+    except RuntimeError as exc:
+        raise ValidationError(str(exc), code="stripe_not_configured") from exc
+    return {"products": products}
+
+
+@router.post(
     "/webhook",
     status_code=status.HTTP_200_OK,
     summary="Webhook do Stripe (público — autenticado pela assinatura HMAC)",

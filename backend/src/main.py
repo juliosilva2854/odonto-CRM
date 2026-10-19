@@ -36,6 +36,7 @@ from src.modules.onboarding.router import router as onboarding_router
 from src.modules.patients.anamnesis.router import router as anamnesis_router
 from src.modules.patients.router import router as patients_router
 from src.modules.professionals.router import router as professionals_router
+from src.modules.superadmin.router import router as superadmin_router
 from src.modules.tenancy.router import router as tenancy_router
 from src.modules.users.router import router as users_router
 
@@ -119,6 +120,7 @@ app.include_router(cash_router)
 app.include_router(billing_router)
 app.include_router(users_router)
 app.include_router(professionals_router)
+app.include_router(superadmin_router)
 app.include_router(dashboard_router)
 
 

@@ -17,10 +17,10 @@ class User(Base, TimestampMixin):
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = uuid_pk()
-    clinic_id: Mapped[uuid.UUID] = mapped_column(
+    clinic_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("clinics.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
     email: Mapped[str] = mapped_column(String(180), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -30,6 +30,9 @@ class User(Base, TimestampMixin):
         nullable=False,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_super_admin: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
     last_login_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

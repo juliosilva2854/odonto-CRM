@@ -31,16 +31,19 @@ class TokenError(Exception):
 def create_access_token(
     *,
     subject: uuid.UUID,
-    clinic_id: uuid.UUID,
+    clinic_id: uuid.UUID | None,
     role: str,
     extra: dict[str, Any] | None = None,
 ) -> str:
-    """Subject = user_id. Carrega clinic_id e role no claim p/ multi-tenant rápido."""
+    """Subject = user_id. Carrega clinic_id e role no claim p/ multi-tenant rápido.
+
+    ``clinic_id`` é opcional: super admins da plataforma não pertencem a uma clínica.
+    """
     now = datetime.now(timezone.utc)
     expires = now + timedelta(minutes=_settings.JWT_EXPIRES_MIN)
     payload: dict[str, Any] = {
         "sub": str(subject),
-        "clinic_id": str(clinic_id),
+        "clinic_id": str(clinic_id) if clinic_id else None,
         "role": role,
         "iat": int(now.timestamp()),
         "exp": int(expires.timestamp()),
@@ -51,12 +54,12 @@ def create_access_token(
     return jwt.encode(payload, _settings.JWT_SECRET, algorithm=_settings.JWT_ALGORITHM)
 
 
-def create_refresh_token(*, subject: uuid.UUID, clinic_id: uuid.UUID) -> str:
+def create_refresh_token(*, subject: uuid.UUID, clinic_id: uuid.UUID | None) -> str:
     now = datetime.now(timezone.utc)
     expires = now + timedelta(days=_settings.JWT_REFRESH_EXPIRES_DAYS)
     payload = {
         "sub": str(subject),
-        "clinic_id": str(clinic_id),
+        "clinic_id": str(clinic_id) if clinic_id else None,
         "iat": int(now.timestamp()),
         "exp": int(expires.timestamp()),
         "type": "refresh",

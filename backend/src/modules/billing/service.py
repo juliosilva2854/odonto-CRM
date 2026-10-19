@@ -79,6 +79,30 @@ class BillingService:
             ),
         }
 
+    async def _ensure_stripe_customer(
+        self,
+        clinic_id: uuid.UUID,
+        *,
+        email: str | None = None,
+        name: str | None = None,
+    ) -> str:
+        """Garante que a clínica tem um Stripe Customer e devolve o id.
+
+        Se ``clinic.stripe_customer_id`` já existe, retorna direto. Caso
+        contrário cria o Customer no Stripe e persiste de forma idempotente.
+        """
+        clinic = await self._tenancy.get_clinic(clinic_id)
+        if clinic.stripe_customer_id:
+            return clinic.stripe_customer_id
+
+        customer_id = await stripe_client.create_customer(
+            clinic_id=clinic_id,
+            email=email or f"clinic-{clinic_id}@no-reply.local",
+            name=name or clinic.trade_name,
+        )
+        await self._repo.set_stripe_customer(clinic_id, customer_id)
+        return customer_id
+
     async def create_checkout(
         self, clinic_id: uuid.UUID, actor: User, data: CheckoutIn
     ) -> tuple[str, str]:
@@ -87,14 +111,9 @@ class BillingService:
         price_id = stripe_client.get_price_id_for_plan(data.plan)
         email = str(data.customer_email) if data.customer_email else actor.email
 
-        customer_id = clinic.stripe_customer_id
-        if not customer_id:
-            customer_id = await stripe_client.create_customer(
-                clinic_id=clinic_id,
-                email=email,
-                name=clinic.trade_name,
-            )
-            await self._repo.set_stripe_customer(clinic_id, customer_id)
+        customer_id = await self._ensure_stripe_customer(
+            clinic_id, email=email, name=clinic.trade_name
+        )
 
         return await stripe_client.create_checkout_session(
             customer_id=customer_id,

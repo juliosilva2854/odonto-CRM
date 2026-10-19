@@ -39,6 +39,7 @@ _settings = get_settings()
 ALLOWLIST_PREFIXES: list[str] = [
     "/api/auth",
     "/api/billing",
+    "/api/admin",
     "/api/public",
     "/api/health",
     "/api/docs",
@@ -107,7 +108,11 @@ class SubscriptionGateMiddleware(BaseHTTPMiddleware):
             claims = decode_token(auth_header.removeprefix("Bearer ").strip())
             if claims.get("type") != "access":
                 return await call_next(request)
-            clinic_id = uuid.UUID(claims["clinic_id"])
+            cid = claims.get("clinic_id")
+            if not cid:
+                # Super admin (sem clínica) ou token sem tenant: a rota decide.
+                return await call_next(request)
+            clinic_id = uuid.UUID(cid)
         except (TokenError, KeyError, ValueError):
             return await call_next(request)  # defensivo: a rota devolve 401
 

@@ -35,3 +35,13 @@ def require_role(allowed: Iterable[UserRole]):
         return user
 
     return _checker
+
+
+async def require_super_admin(user: User = Depends(get_current_user)) -> User:
+    """Guard de plataforma: só passa usuários marcados como super admin."""
+    if not user.is_super_admin:
+        raise ForbiddenError(
+            "Super admin privileges required",
+            details={"required": "super_admin", "actual": user.role.value},
+        )
+    return user

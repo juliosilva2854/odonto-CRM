@@ -39,11 +39,12 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    clinic_id: uuid.UUID
+    clinic_id: uuid.UUID | None = None
     email: EmailStr
     full_name: str
     role: UserRole
     is_active: bool
+    is_super_admin: bool = False
     last_login_at: datetime | None = None
 
 

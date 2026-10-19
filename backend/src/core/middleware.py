@@ -31,8 +31,9 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                 claims = decode_token(token)
                 if claims.get("type") == "access":
                     user_id = uuid.UUID(claims["sub"])
-                    clinic_id = uuid.UUID(claims["clinic_id"])
                     role = claims["role"]
+                    cid = claims.get("clinic_id")
+                    clinic_id = uuid.UUID(cid) if cid else None
             except (TokenError, KeyError, ValueError):
                 pass  # invalid token → context stays empty; route deps decide
 

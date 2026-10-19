@@ -74,13 +74,17 @@ def _dry_run() -> None:
     print("\nConfigure STRIPE_SECRET_KEY no .env e rode novamente para criar de verdade.")
 
 
-def main() -> int:
+def setup_products() -> list[dict]:
+    """Cria/atualiza produtos e preços no Stripe (idempotente). Devolve a lista.
+
+    Lança ``RuntimeError`` se o Stripe não estiver configurado — o endpoint
+    HTTP traduz isso para 422.
+    """
     if not settings.stripe_configured:
-        _dry_run()
-        return 0
+        raise RuntimeError("Stripe not configured (STRIPE_SECRET_KEY missing or placeholder)")
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
-    results: dict[str, str] = {}
+    products: list[dict] = []
 
     for plan in PLANS:
         internal_key = str(plan["internal_key"])
@@ -90,10 +94,6 @@ def main() -> int:
                 name=str(plan["name"]),
                 metadata={"internal_key": internal_key},
             )
-            print(f"[stripe] Product criado: {product.id} ({plan['name']})")
-        else:
-            print(f"[stripe] Product reutilizado: {product.id} ({plan['name']})")
-
         price = _find_price(product.id, int(plan["unit_amount"]))
         if price is None:
             price = stripe.Price.create(
@@ -103,16 +103,33 @@ def main() -> int:
                 recurring={"interval": INTERVAL},
                 metadata={"internal_key": internal_key},
             )
-            print(f"[stripe] Price criado: {price.id}")
-        else:
-            print(f"[stripe] Price reutilizado: {price.id}")
+        products.append(
+            {
+                "internal_key": internal_key,
+                "env_var": str(plan["env_var"]),
+                "name": str(plan["name"]),
+                "product_id": product.id,
+                "price_id": price.id,
+                "unit_amount": int(plan["unit_amount"]),
+                "currency": CURRENCY,
+            }
+        )
+    return products
 
-        results[str(plan["env_var"])] = price.id
+
+def main() -> int:
+    if not settings.stripe_configured:
+        _dry_run()
+        return 0
+
+    results = setup_products()
+    for item in results:
+        print(f"[stripe] {item['name']}: product={item['product_id']} price={item['price_id']}")
 
     print("\n" + "═" * 63)
     print("Cole isso no seu .env:\n")
-    for env_var, price_id in results.items():
-        print(f"{env_var}={price_id}")
+    for item in results:
+        print(f"{item['env_var']}={item['price_id']}")
     print("═" * 63)
     return 0
 

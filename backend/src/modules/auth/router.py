@@ -85,6 +85,13 @@ async def me(
     session: AsyncSession = Depends(get_db_session),
 ) -> MeOut:
     """Devolve user + clinic + features ativos. Frontend usa para gating de menus."""
+    # Super admin de plataforma não pertence a uma clínica.
+    if user.clinic_id is None:
+        return MeOut(
+            user=UserOut.model_validate(user),
+            clinic={},
+            features={},
+        )
     clinic = await TenancyService(session).get_clinic(user.clinic_id)
     features = await FeatureFlagService(session).get_all(user.clinic_id)
     return MeOut(
