@@ -152,7 +152,10 @@ export function QuoteDetail({
     quote.status === "approved";
 
   return (
-    <div data-testid={`quote-detail-${quote.id}`} className="space-y-5">
+    <div
+      data-testid={`quote-detail-${quote.id}`}
+      className="space-y-5 print:block quote-print-area"
+    >
       <BackButton onBack={onBack} />
 
       {/* Header card */}
@@ -197,7 +200,7 @@ export function QuoteDetail({
                 {formatBRL(quote.discount_amount)}
               </span>
             )}
-            <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+            <div className="mt-2 flex flex-wrap items-center justify-end gap-2 print:hidden">
               <WhatsAppQuoteButton
                 patient={patientQuery.data}
                 clinic={clinic}
@@ -218,7 +221,7 @@ export function QuoteDetail({
               <TableHead>Dente / Faces</TableHead>
               <TableHead className="text-right">Valor</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[180px] text-right">Decisão</TableHead>
+              <TableHead className="w-[180px] text-right print:hidden">Decisão</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -274,7 +277,7 @@ export function QuoteDetail({
                       </p>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right print:hidden">
                     {isPending && !disabled ? (
                       <div className="inline-flex items-center gap-1.5">
                         <Button
@@ -362,7 +365,7 @@ export function QuoteDetail({
 
       {/* Bulk actions */}
       {!isQuoteTerminal && !disabled && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-border bg-secondary/30 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-border bg-secondary/30 px-4 py-3 print:hidden">
           <p className="text-xs text-muted-foreground">
             <ShieldCheck className="mr-1 inline h-3.5 w-3.5 text-success" />
             Itens aprovados aqui passam automaticamente para{" "}
@@ -415,7 +418,7 @@ function BackButton({ onBack }: { onBack: () => void }) {
       type="button"
       onClick={onBack}
       data-testid="back-to-quotes-list"
-      className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+      className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground print:hidden"
     >
       <ArrowLeft className="h-3.5 w-3.5" />
       Voltar para orçamentos

@@ -27,8 +27,18 @@ import {
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/toaster";
 import { getErrorMessage } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { agendaService } from "@/services/agenda.service";
 import type { Room, RoomCreatePayload } from "@/types/api";
+
+const COLOR_PRESETS: { name: string; hex: string }[] = [
+  { name: "Azul", hex: "#3B82F6" },
+  { name: "Verde", hex: "#10B981" },
+  { name: "Laranja", hex: "#F59E0B" },
+  { name: "Roxo", hex: "#8B5CF6" },
+  { name: "Rosa", hex: "#EC4899" },
+  { name: "Cinza", hex: "#64748B" },
+];
 
 export default function RoomsPage() {
   const queryClient = useQueryClient();
@@ -252,14 +262,38 @@ function RoomSheet({
                   type="color"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  className="h-10 w-14 cursor-pointer rounded-lg border border-input bg-card"
+                  className="h-10 w-10 cursor-pointer rounded border border-input bg-card p-0.5"
                   data-testid="room-color"
                 />
-                <Input
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="max-w-[140px]"
-                />
+                <span
+                  className="rounded-md border border-input bg-secondary/40 px-3 py-1.5 font-mono text-sm uppercase tracking-wide text-foreground"
+                  data-testid="room-color-hex"
+                >
+                  {color.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {COLOR_PRESETS.map((preset) => {
+                  const isSelected =
+                    color.toUpperCase() === preset.hex.toUpperCase();
+                  return (
+                    <button
+                      key={preset.hex}
+                      type="button"
+                      onClick={() => setColor(preset.hex)}
+                      title={preset.name}
+                      aria-label={preset.name}
+                      data-testid={`room-color-preset-${preset.name.toLowerCase()}`}
+                      className={cn(
+                        "h-7 w-7 rounded-full border transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                        isSelected
+                          ? "border-foreground ring-2 ring-offset-1 ring-foreground/30"
+                          : "border-border",
+                      )}
+                      style={{ backgroundColor: preset.hex }}
+                    />
+                  );
+                })}
               </div>
             </div>
             <label className="flex items-center gap-2.5 text-sm font-medium text-foreground">

@@ -124,6 +124,7 @@ export default function DashboardPage() {
           Icon={CalendarClock}
           label="Consultas hoje"
           value={overviewQuery.isLoading ? null : String(data?.appointments_today_count ?? 0)}
+          to="/agenda"
           testId="kpi-appointments-today"
         />
         <KpiCard
@@ -133,6 +134,7 @@ export default function DashboardPage() {
           hint={
             data ? `+${data.patients_new_this_month} este mês` : undefined
           }
+          to="/patients"
           testId="kpi-patients-total"
         />
         <KpiCard
@@ -146,12 +148,14 @@ export default function DashboardPage() {
           hint={
             data ? `${data.quotes_month_approved} orçamentos aprovados` : undefined
           }
+          to="/finance/quotes"
           testId="kpi-month-amount"
         />
         <KpiCard
           Icon={ReceiptText}
           label="Orçamentos pendentes"
           value={overviewQuery.isLoading ? null : String(data?.pending_quotes_count ?? 0)}
+          to="/finance/quotes"
           testId="kpi-pending-quotes"
         />
       </section>
@@ -290,16 +294,25 @@ function KpiCard({
   label,
   value,
   hint,
+  to,
   testId,
 }: {
   Icon: typeof Users;
   label: string;
   value: string | null;
   hint?: string;
+  to?: string;
   testId?: string;
 }) {
-  return (
-    <Card data-testid={testId}>
+  const card = (
+    <Card
+      data-testid={testId}
+      className={
+        to
+          ? "h-full cursor-pointer transition-colors hover:border-accent/40 hover:bg-slate-50"
+          : "h-full"
+      }
+    >
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -320,4 +333,17 @@ function KpiCard({
       </CardContent>
     </Card>
   );
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        aria-label={label}
+      >
+        {card}
+      </Link>
+    );
+  }
+  return card;
 }

@@ -65,6 +65,7 @@ export function Sidebar() {
       className={cn(
         "sticky top-0 z-30 flex h-screen w-60 flex-col",
         "border-r border-border bg-card",
+        "print:hidden",
       )}
     >
       {/* Brand */}

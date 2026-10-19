@@ -4,7 +4,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -16,16 +15,10 @@ import type {
   Quote,
 } from "@/types/api";
 
-// Use Inter for a Modern Premium look that matches the web UI.
-Font.register({
-  family: "Inter",
-  fonts: [
-    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50ojIa1ZL7.woff", fontWeight: 400 },
-    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50ojIa1ZL7.woff", fontWeight: 500 },
-    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50ojIa1ZL7.woff", fontWeight: 600 },
-    { src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50ojIa1ZL7.woff", fontWeight: 700 },
-  ],
-});
+// NOTE: @react-pdf/renderer only embeds TTF/OTF fonts. Registering a .woff
+// (as we did before with Inter via Google Fonts) throws "Unknown font format"
+// at render/download time and silently breaks "Baixar PDF". We rely on the
+// built-in Helvetica family instead, which guarantees the PDF always downloads.
 
 // ── Design tokens mirrored from the web design system ─────────────────────────────
 const COLORS = {
@@ -48,7 +41,7 @@ const styles = StyleSheet.create({
   page: {
     backgroundColor: COLORS.background,
     padding: 0,
-    fontFamily: "Inter",
+    fontFamily: "Helvetica",
     fontSize: 9.5,
     color: COLORS.foreground,
   },

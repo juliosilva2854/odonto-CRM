@@ -56,46 +56,68 @@ function ToothImpl({ fdi, procedures, onSelect, selected }: ToothProps) {
         height="36"
         viewBox="0 0 40 40"
         xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0"
+        className="shrink-0 drop-shadow-sm"
       >
-        {/* Top — V or L */}
+        <defs>
+          {/* Rounded tooth silhouette — clips the 5 faces into an anatomical shape */}
+          <clipPath id={`tooth-clip-${fdi}`}>
+            <path d="M 20 1.5 C 29 1.5 38.5 5 38.5 15 C 38.5 24 38.5 30 34 36 C 30.5 40.5 9.5 40.5 6 36 C 1.5 30 1.5 24 1.5 15 C 1.5 5 11 1.5 20 1.5 Z" />
+          </clipPath>
+        </defs>
+
+        <g clipPath={`url(#tooth-clip-${fdi})`}>
+          {/* Top — V or L */}
+          <path
+            d="M 0 0 L 40 0 L 27 14 L 13 14 Z"
+            fill={top.fill}
+            stroke={top.stroke}
+            strokeWidth="0.75"
+            strokeLinejoin="round"
+          />
+          {/* Right — M or D */}
+          <path
+            d="M 40 0 L 40 40 L 26 26 L 27 14 Z"
+            fill={right.fill}
+            stroke={right.stroke}
+            strokeWidth="0.75"
+            strokeLinejoin="round"
+          />
+          {/* Bottom — L or V */}
+          <path
+            d="M 0 40 L 40 40 L 26 26 L 14 26 Z"
+            fill={bottom.fill}
+            stroke={bottom.stroke}
+            strokeWidth="0.75"
+            strokeLinejoin="round"
+          />
+          {/* Left — M or D */}
+          <path
+            d="M 0 0 L 0 40 L 14 26 L 13 14 Z"
+            fill={left.fill}
+            stroke={left.stroke}
+            strokeWidth="0.75"
+            strokeLinejoin="round"
+          />
+          {/* Center — O or I (occlusal / incisal surface) */}
+          <rect
+            x="13"
+            y="14"
+            width="14"
+            height="12"
+            rx="3"
+            fill={center.fill}
+            stroke={center.stroke}
+            strokeWidth="0.75"
+            strokeLinejoin="round"
+          />
+        </g>
+
+        {/* Clean anatomical outline on top of the faces */}
         <path
-          d="M 1 1 L 39 1 L 28 12 L 12 12 Z"
-          fill={top.fill}
-          stroke={top.stroke}
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-        {/* Right — M or D */}
-        <path
-          d="M 39 1 L 39 39 L 28 28 L 28 12 Z"
-          fill={right.fill}
-          stroke={right.stroke}
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-        {/* Bottom — L or V */}
-        <path
-          d="M 1 39 L 39 39 L 28 28 L 12 28 Z"
-          fill={bottom.fill}
-          stroke={bottom.stroke}
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-        {/* Left — M or D */}
-        <path
-          d="M 1 1 L 1 39 L 12 28 L 12 12 Z"
-          fill={left.fill}
-          stroke={left.stroke}
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-        {/* Center — O or I */}
-        <path
-          d="M 12 12 L 28 12 L 28 28 L 12 28 Z"
-          fill={center.fill}
-          stroke={center.stroke}
-          strokeWidth="1"
+          d="M 20 1.5 C 29 1.5 38.5 5 38.5 15 C 38.5 24 38.5 30 34 36 C 30.5 40.5 9.5 40.5 6 36 C 1.5 30 1.5 24 1.5 15 C 1.5 5 11 1.5 20 1.5 Z"
+          fill="none"
+          stroke="#94A3B8"
+          strokeWidth="1.25"
           strokeLinejoin="round"
         />
       </svg>

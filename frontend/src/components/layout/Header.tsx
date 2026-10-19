@@ -21,7 +21,7 @@ export function Header() {
   return (
     <header
       data-testid="app-header"
-      className="sticky top-0 z-20 flex h-16 items-center gap-6 border-b border-border glass px-8"
+      className="sticky top-0 z-20 flex h-16 items-center gap-6 border-b border-border glass px-8 print:hidden"
     >
       {/* Clinic context */}
       <div className="flex min-w-0 items-center gap-3">
