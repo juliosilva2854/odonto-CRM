@@ -13,7 +13,7 @@ interface AuthSession {
 interface AuthState extends AuthSession {
   isAuthenticated: () => boolean;
   setTokens: (access: string, refresh: string) => void;
-  setIdentity: (user: CurrentUser, clinic: ClinicSummary) => void;
+  setIdentity: (user: CurrentUser, clinic: ClinicSummary | null) => void;
   clear: () => void;
 }
 

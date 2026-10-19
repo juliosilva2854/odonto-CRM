@@ -1,14 +1,15 @@
 /** Shared API contracts mirroring the FastAPI Pydantic schemas. */
 
-export type UserRole = "admin" | "dentist" | "reception" | "assistant";
+export type UserRole = "admin" | "dentist" | "reception" | "assistant" | "super_admin";
 
 export interface CurrentUser {
   id: string;
-  clinic_id: string;
+  clinic_id: string | null;
   email: string;
   full_name: string;
   role: UserRole;
   is_active: boolean;
+  is_super_admin?: boolean;
   last_login_at?: string | null;
 }
 
@@ -686,4 +687,60 @@ export interface PatientCreatePayload {
   guardian_cpf?: string | null;
   guardian_phone_e164?: string | null;
   notes?: string | null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Super Admin (platform / cross-tenant)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface AdminClinicSummary {
+  id: string;
+  legal_name: string;
+  trade_name: string;
+  cnpj: string;
+  plan: string;
+  subscription_status: SubscriptionStatus;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  created_at: string;
+  users_count: number;
+}
+
+export interface AdminClinicDetail extends AdminClinicSummary {
+  admin_email: string | null;
+  patients_count: number;
+  stripe_customer_linked: boolean;
+}
+
+export interface AdminMetrics {
+  total_clinics: number;
+  active_clinics: number;
+  trialing_clinics: number;
+  past_due_clinics: number;
+  canceled_clinics: number;
+  mrr_cents: number;
+  mrr_brl: number;
+  trials_expiring_count: number;
+  trials_expiring: AdminClinicSummary[];
+}
+
+export interface AdminImpersonateResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  clinic_id: string;
+  user_id: string;
+  email: string;
+}
+
+export type BillingEventStatus = "pending" | "processed" | "failed" | "ignored";
+
+export interface AdminBillingEvent {
+  id: string;
+  stripe_event_id: string;
+  event_type: string;
+  status: BillingEventStatus;
+  error: string | null;
+  processed_at: string | null;
+  created_at: string;
 }

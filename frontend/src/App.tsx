@@ -10,8 +10,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { SuperAdminRoute } from "@/components/auth/SuperAdminRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Toaster } from "@/components/ui/toaster";
+import { useAuthStore } from "@/store/auth";
 import DashboardPage from "@/pages/DashboardPage";
 import FinanceQuotesPage from "@/pages/FinanceQuotesPage";
 import FinanceCashPage from "@/pages/FinanceCashPage";
@@ -28,6 +31,9 @@ import UsersPage from "@/pages/settings/UsersPage";
 import RoomsPage from "@/pages/settings/RoomsPage";
 import ProceduresPage from "@/pages/settings/ProceduresPage";
 import ClinicPage from "@/pages/settings/ClinicPage";
+import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
+import AdminClinicsPage from "@/pages/admin/AdminClinicsPage";
+import AdminClinicDetailPage from "@/pages/admin/AdminClinicDetailPage";
 import { setOnSubscriptionInactive, setOnUnauthorized } from "@/lib/api";
 
 // FullCalendar is ~86 KB gzip; only load when the user actually opens the agenda.
@@ -66,6 +72,15 @@ function AuthInterceptorBinding() {
   return null;
 }
 
+function DashboardEntry() {
+  const user = useAuthStore((s) => s.user);
+  const isSuper = Boolean(user?.is_super_admin || user?.role === "super_admin");
+  if (isSuper) {
+    return <Navigate to="/admin" replace />;
+  }
+  return <DashboardPage />;
+}
+
 function AppRoutes() {
   return (
     <>
@@ -77,6 +92,19 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+        {/* Plataforma — Super Admin (cross-tenant) */}
+        <Route
+          element={
+            <SuperAdminRoute>
+              <AdminLayout />
+            </SuperAdminRoute>
+          }
+        >
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/clinics" element={<AdminClinicsPage />} />
+          <Route path="/admin/clinics/:id" element={<AdminClinicDetailPage />} />
+        </Route>
+
         <Route
           element={
             <ProtectedRoute>
@@ -84,7 +112,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardEntry />} />
           <Route
             path="/agenda"
             element={

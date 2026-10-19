@@ -174,6 +174,24 @@ class SuperAdminService:
             "stripe_customer_linked": clinic.stripe_customer_id is not None,
         }
 
+    async def list_billing_events(
+        self, clinic_id: uuid.UUID, limit: int = 20
+    ) -> list[Any]:
+        from src.modules.billing.models import BillingEvent
+
+        clinic = await self._session.get(Clinic, clinic_id)
+        if clinic is None:
+            raise NotFoundError("Clinic not found")
+        rows = (
+            await self._session.execute(
+                select(BillingEvent)
+                .where(BillingEvent.clinic_id == clinic_id)
+                .order_by(BillingEvent.created_at.desc())
+                .limit(limit)
+            )
+        ).scalars().all()
+        return list(rows)
+
     # ── Ações ────────────────────────────────────────────────
     async def impersonate(
         self, clinic_id: uuid.UUID, actor_id: uuid.UUID

@@ -68,6 +68,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
   dentist: "Dentista",
   reception: "Recepção",
   assistant: "Auxiliar",
+  super_admin: "Super Admin",
 };
 
 function RoleBadge({ role }: { role: UserRole }) {

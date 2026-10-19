@@ -25,21 +25,33 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const storedUser = useAuthStore((s) => s.user);
+
   const errorCode = axios.isAxiosError<BackendErrorEnvelope>(error)
     ? error.response?.data?.error?.code
     : undefined;
   const isDeactivated = errorCode === "account_deactivated";
 
   if (isAuthed) {
-    const target = (location.state as LocationState)?.from?.pathname ?? "/dashboard";
+    const isSuper = Boolean(
+      storedUser?.is_super_admin || storedUser?.role === "super_admin",
+    );
+    const target = isSuper
+      ? "/admin"
+      : ((location.state as LocationState)?.from?.pathname ?? "/dashboard");
     return <Navigate to={target} replace />;
   }
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      await mutateAsync({ email: email.trim(), password });
-      const target = (location.state as LocationState)?.from?.pathname ?? "/dashboard";
+      const me = await mutateAsync({ email: email.trim(), password });
+      const isSuper = Boolean(
+        me.user.is_super_admin || me.user.role === "super_admin",
+      );
+      const target = isSuper
+        ? "/admin"
+        : ((location.state as LocationState)?.from?.pathname ?? "/dashboard");
       navigate(target, { replace: true });
     } catch {
       /* error surfaced via the alert below */

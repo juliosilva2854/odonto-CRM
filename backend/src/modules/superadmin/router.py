@@ -10,6 +10,7 @@ from src.core.database import get_db_session
 from src.modules.auth.dependencies import require_super_admin
 from src.modules.auth.models import User
 from src.modules.superadmin.schemas import (
+    BillingEventOut,
     ClinicDetailOut,
     ClinicSummaryOut,
     ExtendTrialIn,
@@ -60,6 +61,20 @@ async def get_clinic_detail(
 ) -> ClinicDetailOut:
     data = await SuperAdminService(session).get_clinic_detail(clinic_id)
     return ClinicDetailOut.model_validate(data)
+
+
+@router.get(
+    "/clinics/{clinic_id}/billing-events",
+    response_model=list[BillingEventOut],
+)
+async def list_billing_events(
+    clinic_id: uuid.UUID,
+    limit: int = Query(20, ge=1, le=100),
+    session: AsyncSession = Depends(get_db_session),
+    _: User = Depends(require_super_admin),
+) -> list[BillingEventOut]:
+    rows = await SuperAdminService(session).list_billing_events(clinic_id, limit=limit)
+    return [BillingEventOut.model_validate(r) for r in rows]
 
 
 @router.post(

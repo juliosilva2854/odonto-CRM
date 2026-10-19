@@ -53,3 +53,15 @@ class ImpersonateOut(BaseModel):
 
 class ExtendTrialIn(BaseModel):
     days: int = Field(default=7, ge=1, le=365)
+
+
+class BillingEventOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    stripe_event_id: str
+    event_type: str
+    status: str
+    error: str | None = None
+    processed_at: datetime | None = None
+    created_at: datetime
