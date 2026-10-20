@@ -380,6 +380,18 @@ export interface AppointmentBoardItem {
   confirmed_at: string | null;
 }
 
+export type WhatsAppTemplate = "confirmation" | "reminder" | "checkin";
+
+export interface SendWhatsAppResponse {
+  appointment_id: string;
+  template: WhatsAppTemplate;
+  template_label: string;
+  patient_name: string;
+  phone_e164: string;
+  message: string;
+  whatsapp_url: string;
+}
+
 export interface AppointmentCreatePayload {
   patient_id: string;
   professional_id: string;

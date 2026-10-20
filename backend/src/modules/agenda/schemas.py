@@ -9,6 +9,7 @@ from typing import Annotated, Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from src.modules.agenda.enums import AppointmentStatus, CheckInMethod
+from src.modules.agenda.whatsapp_templates import WhatsAppTemplate
 
 _HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 HexColor = Annotated[str, Field(min_length=7, max_length=7)]
@@ -183,3 +184,22 @@ class CheckInPublicResult(BaseModel):
     room_name: str | None = None
     starts_at: datetime | None = None
     message: str
+
+
+# ── WhatsApp (Click-to-Chat) ─────────────────────────────────
+
+
+class SendWhatsAppIn(BaseModel):
+    template: WhatsAppTemplate = WhatsAppTemplate.CONFIRMATION
+
+
+class SendWhatsAppOut(BaseModel):
+    """Mensagem renderizada + deep-link wa.me para a recepção abrir."""
+
+    appointment_id: uuid.UUID
+    template: WhatsAppTemplate
+    template_label: str
+    patient_name: str
+    phone_e164: str
+    message: str
+    whatsapp_url: str

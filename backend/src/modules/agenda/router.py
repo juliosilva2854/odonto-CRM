@@ -25,7 +25,11 @@ from src.modules.agenda.schemas import (
     RoomCreateIn,
     RoomOut,
     RoomUpdateIn,
+    SendWhatsAppIn,
+    SendWhatsAppOut,
 )
+from src.modules.audit.enums import DataAccessPurpose
+from src.modules.audit.service import log_data_access
 from src.modules.agenda.service import (
     AppointmentService,
     CheckInService,
@@ -263,6 +267,36 @@ async def regenerate_codes(
         user.clinic_id, appointment_id
     )
     return AppointmentOut.model_validate(appointment)
+
+
+@router.post(
+    "/appointments/{appointment_id}/send-whatsapp",
+    response_model=SendWhatsAppOut,
+    dependencies=[Depends(require_feature("agenda"))],
+    summary="Gera mensagem pt-BR + link WhatsApp (Click-to-Chat) para o paciente",
+)
+async def send_whatsapp(
+    appointment_id: uuid.UUID,
+    payload: SendWhatsAppIn | None = None,
+    session: AsyncSession = Depends(get_db_session),
+    user: User = Depends(require_role([UserRole.ADMIN, UserRole.RECEPTION, UserRole.DENTIST])),
+) -> SendWhatsAppOut:
+    template = (payload or SendWhatsAppIn()).template
+    data = await AppointmentService(session).build_whatsapp_message(
+        user.clinic_id, appointment_id, template
+    )
+    # LGPD: uso do telefone do paciente para comunicação fica auditado.
+    ctx = get_context()
+    await log_data_access(
+        clinic_id=user.clinic_id,
+        actor_user_id=user.id,
+        patient_id=data["patient_id"],
+        resource_type="appointment_whatsapp",
+        resource_id=appointment_id,
+        purpose=DataAccessPurpose.SCHEDULING.value,
+        actor_ip=ctx.ip,
+    )
+    return SendWhatsAppOut.model_validate(data)
 
 
 # ── Check-in ─────────────────────────────────────────────────

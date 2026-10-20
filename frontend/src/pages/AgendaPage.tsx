@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppointmentDetailDialog } from "@/components/agenda/AppointmentDetailDialog";
 import { NewAppointmentSheet } from "@/components/agenda/NewAppointmentSheet";
 import { APPOINTMENT_STATUS_VISUAL } from "@/components/agenda/appointment-status";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,8 @@ export default function AgendaPage() {
   const [defaultEnd, setDefaultEnd] = useState<Date | null>(null);
   const [currentTitle, setCurrentTitle] = useState<string>("");
   const [viewRange, setViewRange] = useState<{ start: Date; end: Date } | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   // ── Fetch appointments for the current viewport ───────────────────────────
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -48,6 +51,9 @@ export default function AgendaPage() {
   });
 
   const appointments: AppointmentBoardItem[] = data ?? [];
+  // Derive from the live list so WS/refetch updates reflect in the open modal.
+  const selectedAppointment =
+    appointments.find((a) => a.id === selectedId) ?? null;
 
   // ── Convert to FullCalendar events ────────────────────────────────────────
   const events = useMemo(
@@ -76,9 +82,13 @@ export default function AgendaPage() {
     arg.view.calendar.unselect();
   }
 
-  function handleEventClick(_arg: EventClickArg) {
-    // Future S6.1: open a detail drawer with status transitions / check-in.
-    // For now keep noop \u2014 user requested a "basic" interaction layer.
+  function handleEventClick(arg: EventClickArg) {
+    const appointment = arg.event.extendedProps.appointment as
+      | AppointmentBoardItem
+      | undefined;
+    if (!appointment) return;
+    setSelectedId(appointment.id);
+    setDetailOpen(true);
   }
 
   return (
@@ -219,6 +229,13 @@ export default function AgendaPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Appointment detail (WhatsApp confirmation) */}
+      <AppointmentDetailDialog
+        appointment={selectedAppointment}
+        open={detailOpen && !!selectedAppointment}
+        onOpenChange={setDetailOpen}
+      />
 
       {/* New appointment sheet */}
       <NewAppointmentSheet

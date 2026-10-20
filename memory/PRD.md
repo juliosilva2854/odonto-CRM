@@ -293,3 +293,12 @@ Ver `/app/memory/test_credentials.md`
 
 ### Nota de ambiente (pod reset)
 O Postgres do sandbox é volátil. Para reerguer: `pg_ctlcluster 15 main start` → `CREATE USER dental ... SUPERUSER` + `CREATE DATABASE dental_crm OWNER dental` → `python -m alembic upgrade head` → `python -m scripts.seed_baseline`. Backend: `python -m uvicorn src.main:app --host 127.0.0.1 --port 8765` (sem supervisor). O CLI `alembic` não está no PATH: usar `python -m alembic`.
+
+## P3 — Fechamento (Super Admin tests · Checkout com desconto · WhatsApp agenda) · 2026-10
+- **Custom Pricing (frontend)**: card "Acordo Comercial" em `AdminClinicDetailPage` + Dialog (preço R$ / cupom Stripe) → `PUT /api/admin/clinics/{id}/custom-pricing`.
+- **Testes Super Admin** `tests/test_superadmin.py` (6): listagem/filtros, 403 p/ admin/dentista, impersonate (token funcional em `/api/auth/me`), extend-trial, métricas (contagens + MRR), custom pricing. Clínicas descartáveis via signup (Demo Odonto intocada).
+- **Checkout × desconto** `tests/test_billing_custom_pricing.py` (3): `_ensure_stripe_customer` antes da sessão, `custom_price_amount` → `create_recurring_price`, `stripe_coupon_id` → `discounts`, customer existente reaproveitado.
+- **WhatsApp agenda (Click-to-Chat, sem API externa)**: `agenda/whatsapp_templates.py` (templates pt-BR `confirmation` / `reminder` / `checkin`, fuso da clínica) + `POST /api/agenda/appointments/{id}/send-whatsapp` `{template}` → `{message, whatsapp_url (wa.me), ...}`; só `scheduled`/`confirmed` (senão 422 `appointment_not_messageable`); auditado em `data_access_logs` (LGPD, purpose `scheduling`). Gate: feature `agenda` (a flag `whatsapp` fica reservada p/ envio automático futuro).
+- **Frontend**: `AppointmentDetailDialog` (abre ao clicar no evento da agenda) + `WhatsAppAppointmentButton` (visual do `WhatsAppQuoteButton`, aba aberta de forma síncrona → à prova de popup blocker).
+- Testes `tests/test_agenda_whatsapp.py` (7). **Suíte: 161 verdes** (145 → 161).
+- Ambiente: além da nota acima, recriar `backend/.env` (DATABASE_URL/_SYNC, JWT_SECRET, STRIPE_*=PLACEHOLDER), `pip install` das deps do pyproject e `scripts.create_super_admin`. Frontend Vite (:3000) faz proxy `/api` → :8765; o host do preview externo é bloqueado pelo `allowedHosts` do Vite → testar UI via `http://localhost:3000`.

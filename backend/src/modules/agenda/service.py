@@ -9,6 +9,7 @@ import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,11 +34,25 @@ from src.modules.agenda.schemas import (
     RoomCreateIn,
     RoomUpdateIn,
 )
+from src.modules.agenda.whatsapp_templates import (
+    TEMPLATE_LABELS,
+    AppointmentMessageContext,
+    WhatsAppTemplate,
+    build_whatsapp_url,
+    render_message,
+)
 from src.modules.auth.models import Professional, User
 from src.modules.patients.models import Patient
+from src.modules.tenancy.models import Clinic
 
 
 # ─────────────────────────────────────────────────────────────
+
+
+# WhatsApp só faz sentido antes do paciente chegar.
+WHATSAPP_ALLOWED_STATUSES: frozenset[AppointmentStatus] = frozenset(
+    {AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED}
+)
 
 
 def _generate_pin() -> str:
@@ -318,6 +333,79 @@ class AppointmentService:
         appointment.qr_token = _generate_qr_token()
         await self._session.flush()
         return appointment
+
+    async def build_whatsapp_message(
+        self,
+        clinic_id: uuid.UUID,
+        appointment_id: uuid.UUID,
+        template: WhatsAppTemplate,
+    ) -> dict:
+        """Renderiza o template pt-BR e devolve o deep-link wa.me (Click-to-Chat)."""
+        appointment = await self.get(clinic_id, appointment_id)
+
+        if appointment.status not in WHATSAPP_ALLOWED_STATUSES:
+            raise ValidationError(
+                "Só é possível enviar WhatsApp para agendamentos agendados ou confirmados",
+                code="appointment_not_messageable",
+                details={"status": appointment.status.value},
+            )
+
+        patient = await self._session.get(Patient, appointment.patient_id)
+        if patient is None or patient.clinic_id != clinic_id:
+            raise NotFoundError("Paciente não encontrado")
+
+        phone = (patient.phone_e164 or "").strip()
+        if not phone:
+            raise ValidationError(
+                "Paciente sem telefone cadastrado",
+                code="patient_phone_missing",
+            )
+
+        if template is WhatsAppTemplate.CHECKIN and not appointment.pin_code:
+            raise ValidationError(
+                "Agendamento sem PIN de check-in. Gere os códigos antes de enviar.",
+                code="checkin_pin_missing",
+            )
+
+        clinic = await self._session.get(Clinic, clinic_id)
+        professional_name = (
+            await self._session.execute(
+                select(User.full_name)
+                .join(Professional, Professional.user_id == User.id)
+                .where(Professional.id == appointment.professional_id)
+            )
+        ).scalar_one_or_none()
+        room = await self._session.get(Room, appointment.room_id)
+
+        treatment_name = (patient.social_name or "").strip() or patient.full_name.strip()
+        ctx = AppointmentMessageContext(
+            patient_name=treatment_name,
+            clinic_name=clinic.trade_name if clinic else "",
+            starts_at=appointment.starts_at,
+            timezone=clinic.timezone if clinic else "America/Sao_Paulo",
+            professional_name=professional_name,
+            room_name=room.name if room else None,
+            procedure_hint=appointment.procedure_hint,
+            pin_code=appointment.pin_code,
+        )
+        message = render_message(template, ctx)
+        url = build_whatsapp_url(phone, message)
+        if url is None:
+            raise ValidationError(
+                "Telefone do paciente inválido para WhatsApp",
+                code="patient_phone_invalid",
+            )
+
+        return {
+            "appointment_id": appointment.id,
+            "template": template,
+            "template_label": TEMPLATE_LABELS[template],
+            "patient_name": patient.full_name,
+            "patient_id": patient.id,
+            "phone_e164": phone,
+            "message": message,
+            "whatsapp_url": url,
+        }
 
 
 # ─────────────────────────────────────────────────────────────

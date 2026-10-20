@@ -7,6 +7,8 @@ import type {
   Room,
   RoomCreatePayload,
   RoomUpdatePayload,
+  SendWhatsAppResponse,
+  WhatsAppTemplate,
 } from "@/types/api";
 
 export const agendaService = {
@@ -63,6 +65,18 @@ export const agendaService = {
     const { data } = await api.post<AppointmentBoardItem>(
       "/api/agenda/appointments",
       payload,
+    );
+    return data;
+  },
+
+  /** Renderiza a mensagem pt-BR no backend e devolve o link wa.me (Click-to-Chat). */
+  sendWhatsapp: async (
+    appointmentId: string,
+    template: WhatsAppTemplate = "confirmation",
+  ): Promise<SendWhatsAppResponse> => {
+    const { data } = await api.post<SendWhatsAppResponse>(
+      `/api/agenda/appointments/${appointmentId}/send-whatsapp`,
+      { template },
     );
     return data;
   },
