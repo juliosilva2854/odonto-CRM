@@ -8,8 +8,10 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
+  Handshake,
   Loader2,
   LogIn,
+  Tag,
 } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,6 +26,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -42,7 +46,9 @@ import {
   formatDateTime,
   useImpersonate,
 } from "@/pages/admin/shared";
-import type { BillingEventStatus } from "@/types/api";
+import type { AdminClinicDetail, BillingEventStatus } from "@/types/api";
+
+const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -71,6 +77,10 @@ export default function AdminClinicDetailPage() {
   const navigate = useNavigate();
   const impersonate = useImpersonate();
   const [confirmImpersonate, setConfirmImpersonate] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
+  const [priceInput, setPriceInput] = useState("");
+  const [couponInput, setCouponInput] = useState("");
+  const [pricingError, setPricingError] = useState<string | null>(null);
 
   const clinicQuery = useQuery({
     queryKey: ["admin", "clinic", id],
@@ -119,7 +129,53 @@ export default function AdminClinicDetailPage() {
     onError,
   });
 
+  const savePricing = useMutation({
+    mutationFn: (payload: {
+      custom_price_amount: number | null;
+      stripe_coupon_id: string | null;
+    }) => adminService.updateCustomPricing(id, payload),
+    onSuccess: (data: AdminClinicDetail) => {
+      qc.setQueryData(["admin", "clinic", id], data);
+      toast({ variant: "success", title: "Acordo comercial atualizado" });
+      setPricingOpen(false);
+      invalidate();
+    },
+    onError,
+  });
+
   const c = clinicQuery.data;
+  const hasCustomPricing = Boolean(
+    c && (c.custom_price_amount != null || c.stripe_coupon_id),
+  );
+
+  const openPricingDialog = () => {
+    setPriceInput(
+      c?.custom_price_amount != null ? c.custom_price_amount.toFixed(2) : "",
+    );
+    setCouponInput(c?.stripe_coupon_id ?? "");
+    setPricingError(null);
+    setPricingOpen(true);
+  };
+
+  const submitPricing = (e: React.FormEvent) => {
+    e.preventDefault();
+    const raw = priceInput.trim().replace(/\s/g, "").replace(",", ".");
+    let amount: number | null = null;
+    if (raw !== "") {
+      amount = Number(raw);
+      if (!Number.isFinite(amount) || amount < 0) {
+        setPricingError("Informe um preço válido (ex: 199.00).");
+        return;
+      }
+      amount = Math.round(amount * 100) / 100;
+    }
+    const coupon = couponInput.trim();
+    setPricingError(null);
+    savePricing.mutate({
+      custom_price_amount: amount,
+      stripe_coupon_id: coupon === "" ? null : coupon,
+    });
+  };
 
   return (
     <div className="space-y-6" data-testid="admin-clinic-detail">
@@ -204,6 +260,62 @@ export default function AdminClinicDetailPage() {
           </header>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="space-y-6">
+            <Card className="p-5" data-testid="commercial-agreement-card">
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Handshake className="h-4 w-4 text-muted-foreground" />
+                  <h2 className="text-sm font-semibold text-foreground">
+                    Acordo Comercial
+                  </h2>
+                </div>
+                {hasCustomPricing ? (
+                  <Badge variant="success" data-testid="pricing-status-badge">
+                    Preço Especial Ativo
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" data-testid="pricing-status-badge">
+                    Preço Padrão
+                  </Badge>
+                )}
+              </div>
+              <InfoRow
+                label="Preço customizado"
+                value={
+                  <span data-testid="pricing-amount">
+                    {c.custom_price_amount != null
+                      ? `${BRL.format(c.custom_price_amount)}/mês`
+                      : "—"}
+                  </span>
+                }
+              />
+              <InfoRow
+                label="Cupom Stripe"
+                value={
+                  c.stripe_coupon_id ? (
+                    <span
+                      className="inline-flex items-center gap-1 font-mono text-xs"
+                      data-testid="pricing-coupon"
+                    >
+                      <Tag className="h-3.5 w-3.5" /> {c.stripe_coupon_id}
+                    </span>
+                  ) : (
+                    <span data-testid="pricing-coupon">—</span>
+                  )
+                }
+              />
+              <div className="mt-4 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openPricingDialog}
+                  data-testid="pricing-open-dialog"
+                >
+                  <Tag className="h-4 w-4" /> Definir Desconto
+                </Button>
+              </div>
+            </Card>
+
             <Card className="p-5">
               <h2 className="mb-2 text-sm font-semibold text-foreground">
                 Dados da clínica
@@ -227,6 +339,7 @@ export default function AdminClinicDetailPage() {
                 }
               />
             </Card>
+            </div>
 
             <Card className="overflow-hidden">
               <div className="flex items-center gap-2 border-b border-border px-5 py-4">
@@ -304,6 +417,72 @@ export default function AdminClinicDetailPage() {
               <LogIn className="h-4 w-4" /> Continuar
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={pricingOpen} onOpenChange={setPricingOpen}>
+        <DialogContent className="max-w-md" data-testid="pricing-dialog">
+          <form onSubmit={submitPricing} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Handshake className="h-5 w-5 text-accent" /> Acordo Comercial
+              </DialogTitle>
+              <DialogDescription>
+                Defina um preço mensal especial e/ou um cupom do Stripe para esta
+                clínica. Deixe os campos em branco para voltar ao preço padrão.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-2">
+              <Label htmlFor="custom-price">Preço customizado (R$)</Label>
+              <Input
+                id="custom-price"
+                inputMode="decimal"
+                placeholder="199.00"
+                value={priceInput}
+                onChange={(e) => setPriceInput(e.target.value)}
+                data-testid="pricing-price-input"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="coupon-id">Cupom Stripe (ID)</Label>
+              <Input
+                id="coupon-id"
+                placeholder="FOUNDER50"
+                maxLength={100}
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value)}
+                className="font-mono"
+                data-testid="pricing-coupon-input"
+              />
+            </div>
+            {pricingError && (
+              <p className="text-sm text-destructive" data-testid="pricing-error">
+                {pricingError}
+              </p>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPricingOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                variant="accent"
+                disabled={savePricing.isPending}
+                data-testid="pricing-save"
+              >
+                {savePricing.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+                Salvar
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

@@ -710,6 +710,13 @@ export interface AdminClinicDetail extends AdminClinicSummary {
   admin_email: string | null;
   patients_count: number;
   stripe_customer_linked: boolean;
+  custom_price_amount?: number | null;
+  stripe_coupon_id?: string | null;
+}
+
+export interface AdminCustomPricingPayload {
+  custom_price_amount: number | null;
+  stripe_coupon_id: string | null;
 }
 
 export interface AdminMetrics {

@@ -3,6 +3,7 @@ import type {
   AdminBillingEvent,
   AdminClinicDetail,
   AdminClinicSummary,
+  AdminCustomPricingPayload,
   AdminImpersonateResponse,
   AdminMetrics,
   PaginatedResponse,
@@ -76,6 +77,17 @@ export const adminService = {
     const { data } = await api.post<AdminClinicSummary>(
       `/api/admin/clinics/${id}/reactivate`,
       {},
+    );
+    return data;
+  },
+
+  updateCustomPricing: async (
+    id: string,
+    payload: AdminCustomPricingPayload,
+  ): Promise<AdminClinicDetail> => {
+    const { data } = await api.put<AdminClinicDetail>(
+      `/api/admin/clinics/${id}/custom-pricing`,
+      payload,
     );
     return data;
   },
