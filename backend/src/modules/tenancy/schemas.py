@@ -26,6 +26,10 @@ class ClinicOut(BaseModel):
     trial_ends_at: datetime | None = None
     current_period_end: datetime | None = None
 
+    # Acordo comercial (exposto para a clínica saber se tem preço especial)
+    custom_price_amount: float | None = None
+    stripe_coupon_id: str | None = None
+
 
 class FeatureOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)

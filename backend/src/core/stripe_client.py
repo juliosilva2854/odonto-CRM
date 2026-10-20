@@ -14,6 +14,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
+from decimal import Decimal
 
 import stripe
 
@@ -81,11 +82,32 @@ async def create_customer(clinic_id: uuid.UUID, email: str, name: str) -> str:
     return customer.id
 
 
+async def create_recurring_price(amount_brl: Decimal, plan: str) -> str:
+    """Cria um Price recorrente (mensal) dinâmico em BRL e devolve o id (``price_...``).
+
+    Usado para acordos comerciais: quando a clínica tem ``custom_price_amount``,
+    geramos um Price na hora com este valor em vez do price_id padrão do plano.
+    """
+    _ensure_configured()
+    unit_amount = int((Decimal(str(amount_brl)) * 100).to_integral_value())
+    if unit_amount <= 0:
+        raise ValidationError("Custom price must be greater than zero")
+    with _stripe_errors():
+        price = await stripe.Price.create_async(
+            unit_amount=unit_amount,
+            currency="brl",
+            recurring={"interval": "month"},
+            product_data={"name": f"Dental CRM — {plan} (Preço especial)"},
+        )
+    return price.id
+
+
 async def create_checkout_session(
     customer_id: str,
     price_id: str,
     clinic_id: uuid.UUID,
     customer_email: str | None = None,
+    coupon_id: str | None = None,
 ) -> tuple[str, str]:
     """Cria uma Checkout Session (``mode=subscription``) e devolve (url, session_id)."""
     _ensure_configured()
@@ -99,6 +121,8 @@ async def create_checkout_session(
         "metadata": {"clinic_id": str(clinic_id)},
         "subscription_data": {"metadata": {"clinic_id": str(clinic_id)}},
     }
+    if coupon_id:
+        params["discounts"] = [{"coupon": coupon_id}]
     if customer_email:
         params["customer_update"] = {"address": "auto"}
 

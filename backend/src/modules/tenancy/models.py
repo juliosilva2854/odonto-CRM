@@ -4,9 +4,10 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Numeric, String, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -49,6 +50,15 @@ class Clinic(Base, TimestampMixin):
     current_period_end: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+    # ── Custom pricing (acordos comerciais / descontos) ──────
+    # Se ``custom_price_amount`` estiver preenchido, o checkout cria um Price
+    # dinâmico com este valor (R$) em vez do price_id do plano. Se
+    # ``stripe_coupon_id`` estiver preenchido, o cupom é aplicado no checkout.
+    custom_price_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2), nullable=True
+    )
+    stripe_coupon_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     __table_args__ = (
         Index("ix_clinics_subscription_status", "subscription_status"),

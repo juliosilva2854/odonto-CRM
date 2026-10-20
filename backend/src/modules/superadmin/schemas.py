@@ -28,6 +28,8 @@ class ClinicDetailOut(ClinicSummaryOut):
     admin_email: str | None = None
     patients_count: int = 0
     stripe_customer_linked: bool = False
+    custom_price_amount: float | None = None
+    stripe_coupon_id: str | None = None
 
 
 class SuperAdminMetricsOut(BaseModel):
@@ -53,6 +55,13 @@ class ImpersonateOut(BaseModel):
 
 class ExtendTrialIn(BaseModel):
     days: int = Field(default=7, ge=1, le=365)
+
+
+class CustomPricingIn(BaseModel):
+    """Acordo comercial — ambos opcionais; `null` limpa o valor."""
+
+    custom_price_amount: float | None = Field(default=None, ge=0, le=1_000_000)
+    stripe_coupon_id: str | None = Field(default=None, max_length=100)
 
 
 class BillingEventOut(BaseModel):

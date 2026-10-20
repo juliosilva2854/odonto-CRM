@@ -108,18 +108,26 @@ class BillingService:
     ) -> tuple[str, str]:
         """Devolve (checkout_url, session_id). Cria o Customer na primeira vez."""
         clinic = await self._tenancy.get_clinic(clinic_id)
-        price_id = stripe_client.get_price_id_for_plan(data.plan)
         email = str(data.customer_email) if data.customer_email else actor.email
 
         customer_id = await self._ensure_stripe_customer(
             clinic_id, email=email, name=clinic.trade_name
         )
 
+        # Acordo comercial: preço fixo customizado tem precedência sobre o plano.
+        if clinic.custom_price_amount is not None:
+            price_id = await stripe_client.create_recurring_price(
+                clinic.custom_price_amount, data.plan.value
+            )
+        else:
+            price_id = stripe_client.get_price_id_for_plan(data.plan)
+
         return await stripe_client.create_checkout_session(
             customer_id=customer_id,
             price_id=price_id,
             clinic_id=clinic_id,
             customer_email=email,
+            coupon_id=clinic.stripe_coupon_id or None,
         )
 
     async def create_portal(self, clinic_id: uuid.UUID, return_url: str) -> str:

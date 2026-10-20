@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import func, or_, select
@@ -172,6 +173,12 @@ class SuperAdminService:
             "patients_count": int(patients_count),
             "admin_email": admin_email,
             "stripe_customer_linked": clinic.stripe_customer_id is not None,
+            "custom_price_amount": (
+                float(clinic.custom_price_amount)
+                if clinic.custom_price_amount is not None
+                else None
+            ),
+            "stripe_coupon_id": clinic.stripe_coupon_id,
         }
 
     async def list_billing_events(
@@ -260,6 +267,27 @@ class SuperAdminService:
         clinic.subscription_status = SubscriptionStatus.ACTIVE
         await self._session.flush()
         return await self._to_summary(clinic)
+
+    async def set_custom_pricing(
+        self,
+        clinic_id: uuid.UUID,
+        custom_price_amount: float | None,
+        stripe_coupon_id: str | None,
+    ) -> dict[str, Any]:
+        """Define/limpa o acordo comercial da clínica (preço fixo e/ou cupom)."""
+        clinic = await self._session.get(Clinic, clinic_id)
+        if clinic is None:
+            raise NotFoundError("Clinic not found")
+
+        clinic.custom_price_amount = (
+            Decimal(str(custom_price_amount))
+            if custom_price_amount is not None
+            else None
+        )
+        coupon = (stripe_coupon_id or "").strip()
+        clinic.stripe_coupon_id = coupon or None
+        await self._session.flush()
+        return await self.get_clinic_detail(clinic_id)
 
     # ── helpers ──────────────────────────────────────────────
     async def _to_summary(self, clinic: Clinic) -> dict[str, Any]:

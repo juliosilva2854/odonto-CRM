@@ -13,6 +13,7 @@ from src.modules.superadmin.schemas import (
     BillingEventOut,
     ClinicDetailOut,
     ClinicSummaryOut,
+    CustomPricingIn,
     ExtendTrialIn,
     ImpersonateOut,
     SuperAdminMetricsOut,
@@ -121,3 +122,18 @@ async def reactivate(
 ) -> ClinicSummaryOut:
     data = await SuperAdminService(session).reactivate(clinic_id)
     return ClinicSummaryOut.model_validate(data)
+
+
+@router.put("/clinics/{clinic_id}/custom-pricing", response_model=ClinicDetailOut)
+async def set_custom_pricing(
+    clinic_id: uuid.UUID,
+    payload: CustomPricingIn,
+    session: AsyncSession = Depends(get_db_session),
+    _: User = Depends(require_super_admin),
+) -> ClinicDetailOut:
+    data = await SuperAdminService(session).set_custom_pricing(
+        clinic_id,
+        custom_price_amount=payload.custom_price_amount,
+        stripe_coupon_id=payload.stripe_coupon_id,
+    )
+    return ClinicDetailOut.model_validate(data)
