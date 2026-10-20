@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AppointmentDetailDialog } from "@/components/agenda/AppointmentDetailDialog";
 import { NewAppointmentSheet } from "@/components/agenda/NewAppointmentSheet";
 import { APPOINTMENT_STATUS_VISUAL } from "@/components/agenda/appointment-status";
+import { useIsMobile } from "@/hooks/useWindowSize";
 import { cn } from "@/lib/utils";
 import { agendaService } from "@/services/agenda.service";
 import type { AppointmentBoardItem } from "@/types/api";
@@ -33,6 +34,27 @@ export default function AgendaPage() {
   const [viewRange, setViewRange] = useState<{ start: Date; end: Date } | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Initial view is chosen at mount; when the viewport crosses the md
+  // breakpoint afterwards, switch views so the toolbar never breaks
+  // (mobile → Day, back to desktop → Week).
+  const prevIsMobile = useRef(isMobile);
+  useEffect(() => {
+    if (prevIsMobile.current === isMobile) return;
+    prevIsMobile.current = isMobile;
+    // Defer: FullCalendar uses flushSync internally.
+    const t = window.setTimeout(() => {
+      const api = calendarRef.current?.getApi();
+      if (!api) return;
+      if (isMobile && api.view.type !== "timeGridDay") {
+        api.changeView("timeGridDay");
+      } else if (!isMobile && api.view.type === "timeGridDay") {
+        api.changeView("timeGridWeek");
+      }
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [isMobile]);
 
   // ── Fetch appointments for the current viewport ───────────────────────────
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
@@ -100,7 +122,7 @@ export default function AgendaPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
             Operação
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Agenda
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
@@ -180,12 +202,20 @@ export default function AgendaPage() {
               <FullCalendar
                 ref={calendarRef}
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                initialView="timeGridWeek"
-                headerToolbar={{
-                  left: "prev,next today",
-                  center: "title",
-                  right: "timeGridDay,timeGridWeek,dayGridMonth",
-                }}
+                initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
+                headerToolbar={
+                  isMobile
+                    ? {
+                        left: "prev,next",
+                        center: "title",
+                        right: "today,timeGridDay",
+                      }
+                    : {
+                        left: "prev,next today",
+                        center: "title",
+                        right: "timeGridDay,timeGridWeek,dayGridMonth",
+                      }
+                }
                 buttonText={{
                   today: "Hoje",
                   month: "Mês",
@@ -227,6 +257,11 @@ export default function AgendaPage() {
                 }}
                 views={{
                   dayGridMonth: { dayHeaderFormat: { weekday: "short" } },
+                  ...(isMobile && {
+                    timeGridDay: {
+                      titleFormat: { weekday: "short", day: "2-digit", month: "short" },
+                    },
+                  }),
                 }}
               />
             </div>

@@ -15,6 +15,12 @@ import {
 } from "lucide-react";
 
 import { BrandMark } from "@/components/brand/BrandMark";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -58,16 +64,49 @@ const SECTIONS: NavSection[] = [
   },
 ];
 
+/** Desktop sidebar — fixed column, visible from `md` up. */
 export function Sidebar() {
   return (
     <aside
       data-testid="app-sidebar"
       className={cn(
-        "sticky top-0 z-30 flex h-screen w-60 flex-col",
+        "sticky top-0 z-30 hidden h-screen w-60 shrink-0 flex-col md:flex",
         "border-r border-border bg-card",
         "print:hidden",
       )}
     >
+      <SidebarContent />
+    </aside>
+  );
+}
+
+interface MobileSidebarProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+/** Mobile sidebar — same navigation inside a left slide-over Sheet. */
+export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="left"
+        className="flex w-72 max-w-[85vw] flex-col p-0 sm:max-w-[85vw] md:hidden"
+        data-testid="mobile-sidebar"
+      >
+        <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
+        <SheetDescription className="sr-only">
+          Navegue entre as áreas do sistema
+        </SheetDescription>
+        <SidebarContent onNavigate={() => onOpenChange(false)} />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <>
       {/* Brand */}
       <div className="px-5 py-5">
         <BrandMark size="md" withWordmark />
@@ -88,7 +127,7 @@ export function Sidebar() {
             <ul className="space-y-0.5">
               {section.items.map((item) => (
                 <li key={item.to}>
-                  <SidebarLink item={item} />
+                  <SidebarLink item={item} onNavigate={onNavigate} />
                 </li>
               ))}
             </ul>
@@ -103,16 +142,23 @@ export function Sidebar() {
           v0.6.0 · Modern Premium
         </div>
       </div>
-    </aside>
+    </>
   );
 }
 
-function SidebarLink({ item }: { item: NavItem }) {
+function SidebarLink({
+  item,
+  onNavigate,
+}: {
+  item: NavItem;
+  onNavigate?: () => void;
+}) {
   const { Icon } = item;
   return (
     <NavLink
       to={item.to}
       end={item.end}
+      onClick={onNavigate}
       data-testid={`sidebar-link-${item.label.toLowerCase()}`}
       className={({ isActive }) =>
         cn(

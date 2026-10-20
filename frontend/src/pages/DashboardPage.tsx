@@ -110,7 +110,7 @@ export default function DashboardPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
           {clinic?.trade_name ?? "Clínica"}
         </p>
-        <h1 className="text-3xl font-semibold leading-tight tracking-tight">
+        <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
           {greetingPrefix()}, {firstName}.
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -314,18 +314,18 @@ function KpiCard({
       }
     >
       <CardContent className="p-5">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <div className="flex items-center justify-between gap-2">
+          <p className="min-w-0 truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {label}
           </p>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
             <Icon className="h-4 w-4" />
           </div>
         </div>
         {value === null ? (
           <Skeleton className="mt-3 h-8 w-24" />
         ) : (
-          <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+          <p className="mt-2 break-words text-2xl font-semibold tracking-tight text-foreground">
             {value}
           </p>
         )}

@@ -113,10 +113,16 @@ export function AppointmentDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[92vh] max-w-lg grid-rows-[auto_minmax(0,1fr)_auto]"
+        className={cn(
+          "grid-rows-[auto_minmax(0,1fr)_auto]",
+          // Mobile: full-screen sheet
+          "h-full w-full max-w-none rounded-none border-0",
+          // ≥ sm: centered card
+          "sm:h-auto sm:max-h-[92vh] sm:max-w-lg sm:rounded-2xl sm:border",
+        )}
         data-testid="appointment-detail-dialog"
       >
-        <DialogHeader>
+        <DialogHeader className="pr-12">
           <div className="flex flex-wrap items-center gap-2">
             <DialogTitle data-testid="appointment-detail-patient">
               {appointment.patient_name}
