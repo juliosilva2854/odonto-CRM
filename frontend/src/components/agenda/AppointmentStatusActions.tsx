@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Ban, Loader2, LogIn, UserX } from "lucide-react";
+import { Ban, CheckCircle2, Loader2, LogIn, PlayCircle, UserX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toaster";
@@ -9,19 +9,52 @@ import { cn } from "@/lib/utils";
 import { agendaService } from "@/services/agenda.service";
 import type { AppointmentBoardItem, AppointmentStatus } from "@/types/api";
 
-type QuickAction = "checkin" | "cancelled" | "no_show";
+type QuickAction = "checkin" | "cancelled" | "no_show" | "in_progress" | "completed";
 
 /** Mirrors backend ALLOWED_TRANSITIONS (agenda/enums.py) for the quick actions. */
 const ACTION_ALLOWED_FROM: Record<QuickAction, AppointmentStatus[]> = {
   checkin: ["scheduled", "confirmed"],
   no_show: ["scheduled", "confirmed"],
   cancelled: ["scheduled", "confirmed", "waiting_room", "in_progress"],
+  in_progress: ["waiting_room"],
+  completed: ["in_progress"],
 };
 
 const SUCCESS_TITLE: Record<QuickAction, string> = {
   checkin: "Check-in realizado",
   cancelled: "Agendamento cancelado",
   no_show: "Marcado como não compareceu",
+  in_progress: "Atendimento iniciado",
+  completed: "Atendimento concluído",
+};
+
+/** Primary "next step" of the care flow, shown as a prominent button. */
+const PRIMARY_ACTION: Partial<
+  Record<
+    AppointmentStatus,
+    {
+      action: "in_progress" | "completed";
+      label: string;
+      Icon: typeof PlayCircle;
+      className: string;
+      testId: string;
+    }
+  >
+> = {
+  waiting_room: {
+    action: "in_progress",
+    label: "Iniciar Atendimento",
+    Icon: PlayCircle,
+    className: "bg-sky-600 text-white hover:bg-sky-700 focus-visible:ring-sky-300",
+    testId: "status-action-start",
+  },
+  in_progress: {
+    action: "completed",
+    label: "Concluir Atendimento",
+    Icon: CheckCircle2,
+    className: "bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-300",
+    testId: "status-action-complete",
+  },
 };
 
 const TERMINAL: AppointmentStatus[] = ["completed", "cancelled", "no_show"];
@@ -40,7 +73,7 @@ export function AppointmentStatusActions({
   onChanged,
 }: AppointmentStatusActionsProps) {
   // Terminal actions (cancel / no-show) need an explicit second click.
-  const [confirming, setConfirming] = useState<Exclude<QuickAction, "checkin"> | null>(null);
+  const [confirming, setConfirming] = useState<"cancelled" | "no_show" | null>(null);
 
   useEffect(() => {
     setConfirming(null);
@@ -94,9 +127,30 @@ export function AppointmentStatusActions({
   const spinnerOr = (action: QuickAction, icon: React.ReactNode) =>
     runningAction === action ? <Loader2 className="h-4 w-4 animate-spin" /> : icon;
 
+  const primary = PRIMARY_ACTION[appointment.status];
+
   return (
     <section aria-label="Ações rápidas" className="space-y-2">
       <p className="text-sm font-medium text-foreground">Ações rápidas</p>
+
+      {primary && (
+        <Button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            setConfirming(null);
+            mutation.mutate(primary.action);
+          }}
+          data-testid={primary.testId}
+          className={cn(
+            "w-full shadow-xs transition-all active:scale-[0.98]",
+            primary.className,
+          )}
+        >
+          {spinnerOr(primary.action, <primary.Icon className="h-4 w-4" />)}
+          {primary.label}
+        </Button>
+      )}
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <Button

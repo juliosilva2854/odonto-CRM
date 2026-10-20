@@ -98,9 +98,7 @@ def test_teleconsultation_endpoint_returns_jitsi_room(
     _status(http_client, admin_token, appt["id"], "confirmed")
     assert http_client.get(url, headers=_h(admin_token)).status_code == 200
     _status(http_client, admin_token, appt["id"], "waiting_room")
-    r = http_client.get(url, headers=_h(admin_token))
-    assert r.status_code == 422
-    assert r.json()["error"]["code"] == "appointment_not_teleconsultable"
+    assert http_client.get(url, headers=_h(admin_token)).status_code == 200
     _status(http_client, admin_token, appt["id"], "in_progress")
     assert http_client.get(url, headers=_h(admin_token)).status_code == 200
     _status(http_client, admin_token, appt["id"], "completed")

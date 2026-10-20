@@ -59,9 +59,14 @@ WHATSAPP_ALLOWED_STATUSES: frozenset[AppointmentStatus] = frozenset(
     {AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED}
 )
 
-# Teleconsulta: antes do atendimento ou durante (reentrar na sala).
+# Teleconsulta: antes do atendimento, na sala de espera ou durante (reentrar).
 TELECONSULTATION_ALLOWED_STATUSES: frozenset[AppointmentStatus] = frozenset(
-    {AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED, AppointmentStatus.IN_PROGRESS}
+    {
+        AppointmentStatus.SCHEDULED,
+        AppointmentStatus.CONFIRMED,
+        AppointmentStatus.WAITING_ROOM,
+        AppointmentStatus.IN_PROGRESS,
+    }
 )
 
 
@@ -351,8 +356,8 @@ class AppointmentService:
         appointment = await self.get(clinic_id, appointment_id)
         if appointment.status not in TELECONSULTATION_ALLOWED_STATUSES:
             raise ValidationError(
-                "Teleconsulta disponível apenas para agendamentos agendados, "
-                "confirmados ou em atendimento",
+                "Teleconsulta indisponível para agendamentos "
+                "concluídos, cancelados ou não comparecidos",
                 code="appointment_not_teleconsultable",
                 details={"status": appointment.status.value},
             )

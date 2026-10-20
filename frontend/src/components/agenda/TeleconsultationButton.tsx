@@ -12,6 +12,7 @@ import type { AppointmentStatus, TeleconsultationResponse } from "@/types/api";
 export const TELECONSULTATION_STATUSES: AppointmentStatus[] = [
   "scheduled",
   "confirmed",
+  "waiting_room",
   "in_progress",
 ];
 
