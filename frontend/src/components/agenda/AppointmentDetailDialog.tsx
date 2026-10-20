@@ -48,6 +48,9 @@ function capitalizeFirst(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+const DISABLED_REASON =
+  "Disponível apenas para agendamentos agendados ou confirmados.";
+
 const MESSAGEABLE: AppointmentStatus[] = ["scheduled", "confirmed"];
 
 interface AppointmentDetailDialogProps {
@@ -187,7 +190,7 @@ export function AppointmentDetailDialog({
                 className="text-xs text-muted-foreground"
                 data-testid="whatsapp-disabled-reason"
               >
-                Disponível apenas para agendamentos agendados ou confirmados.
+                {DISABLED_REASON}
               </p>
             )}
             {lastSent && (
@@ -211,7 +214,7 @@ export function AppointmentDetailDialog({
             disabledReason={
               canMessage
                 ? null
-                : "Agendamento já finalizado, cancelado ou em atendimento"
+                : DISABLED_REASON
             }
             onSent={setLastSent}
           />

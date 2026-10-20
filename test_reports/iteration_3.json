@@ -1,0 +1,21 @@
+{
+  "summary": "Tested all 3 P3 items. Backend: the full pytest suite passes (169 = 161 existing + 8 new extended WhatsApp tests in tests/test_agenda_whatsapp_extended.py). They cover the reception role, the clinic-timezone (America/Sao_Paulo) message check, confirmed allowed with status unchanged, no_show/waiting_room/in_progress/completed -> 422 appointment_not_messageable, invalid UUID -> 422, empty body defaulting to confirmation, and super admin being blocked. I read billing create_checkout: _ensure_stripe_customer is called before checkout, custom_price_amount goes through create_recurring_price, and stripe_coupon_id is passed as coupon_id (Stripe mocked in test_billing_custom_pricing.py). Frontend (localhost:3000): the agenda event click opens appointment-detail-dialog with patient, status, when, professional, room and procedure. The template radios work, and the default is reminder for confirmed appointments and confirmation for others. State resets between appointments. Enviar WhatsApp opens a new tab that redirects to api.whatsapp.com/send with phone and pt-BR text, the 'WhatsApp aberto' toast appears and whatsapp-last-message shows the preview with the PIN for checkin. For a cancelled appointment the buttons are disabled and whatsapp-disabled-reason is shown. Super admin regression: Acordo Comercial on a non-demo clinic saves the price and coupon, and the badge changes to 'Preço Especial Ativo'. yarn tsc -b and yarn build pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Agenda week view", "issues": ["Short (30-40 min) events are too cramped: patient name is hidden or overlaps the status label (e.g. 12:00-12:30, 15:00-15:50 events)"]},
+      {"screen": "Appointment detail dialog", "issues": ["Success toast renders under the dialog backdrop (dimmed/blurred). Toaster z-index should be above dialog z-50", "Two different disabled-reason texts: tooltip says 'Agendamento já finalizado, cancelado ou em atendimento', inline text says 'Disponível apenas para agendamentos agendados ou confirmados.' (cosmetic)"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_agenda_whatsapp_extended.py", "/app/backend/tests/test_agenda_whatsapp.py", "/app/backend/tests/test_superadmin.py", "/app/backend/tests/test_billing_custom_pricing.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": ["(Optional) Raise Toaster z-index above Dialog so the success toast is not dimmed", "(Optional) Improve compact rendering of short agenda events"],
+  "critical_code_review_comments": ["build_whatsapp_message returns patient_name = full_name, but the message greets with social_name when it is set. This is intentional, but the toast then shows the legal name", "AppointmentDetailDialog default template is computed in a useEffect, so the first render briefly uses the previous state. Harmless."],
+  "updated_files": ["/app/backend/tests/test_agenda_whatsapp_extended.py", "/app/tests/seed_ui_appts.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "Created 2 Demo Odonto appointments on 2026-10-20 with procedure_hint TEST_UI_ok (scheduled, 20:00Z) and TEST_UI_cancel (cancelled, 12:00Z). The extended pytest creates far-future (2028-2029) appointments. I set custom pricing 179.90 / TEST_UI10 on non-demo clinic 'SuperAdmin f1528f2e'. The Demo clinic subscription was not touched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend runs at 127.0.0.1:8765 (manual uvicorn) and the frontend at localhost:3000 (Vite proxies /api). The browser is in UTC, so the modal shows UTC times while the WhatsApp text uses Sao Paulo time (UTC-3). That is expected. Events after about 20:00 browser time are outside the visible calendar slots."
+}
