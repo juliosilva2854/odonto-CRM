@@ -1,6 +1,8 @@
 import { api } from "@/lib/api";
 import type {
   AppointmentBoardItem,
+  AppointmentCheckIn,
+  AppointmentDetail,
   AppointmentCreatePayload,
   AppointmentStatus,
   Professional,
@@ -77,6 +79,28 @@ export const agendaService = {
     const { data } = await api.post<SendWhatsAppResponse>(
       `/api/agenda/appointments/${appointmentId}/send-whatsapp`,
       { template },
+    );
+    return data;
+  },
+
+  /** Transição de status (o backend valida a máquina de estados). */
+  changeStatus: async (
+    appointmentId: string,
+    newStatus: AppointmentStatus,
+    reason?: string | null,
+  ): Promise<AppointmentDetail> => {
+    const { data } = await api.post<AppointmentDetail>(
+      `/api/agenda/appointments/${appointmentId}/status`,
+      { new_status: newStatus, reason: reason || null },
+    );
+    return data;
+  },
+
+  /** Check-in MANUAL pela recepção (registra o CheckIn e move para sala de espera). */
+  checkinManual: async (appointmentId: string): Promise<AppointmentCheckIn> => {
+    const { data } = await api.post<AppointmentCheckIn>(
+      `/api/agenda/appointments/${appointmentId}/checkin`,
+      {},
     );
     return data;
   },

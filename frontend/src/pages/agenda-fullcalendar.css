@@ -210,6 +210,56 @@
   opacity: 0.55;
 }
 
+/* ── Density variants (short events) ─────────────────────────────
+   30-min slot ≈ 26px tall: keep the patient name always readable. */
+.agenda-event {
+  overflow: hidden;
+  min-width: 0;
+}
+.agenda-event--compact {
+  padding: 2px 6px;
+  gap: 0;
+}
+.agenda-event--compact .agenda-event-time {
+  font-size: 9.5px;
+  line-height: 1.15;
+}
+.agenda-event--compact .agenda-event-name {
+  font-size: 11.5px;
+  line-height: 1.2;
+}
+.agenda-event--xs {
+  padding: 1px 6px;
+  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+.agenda-event--xs .agenda-event-time {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  line-height: 1.1;
+}
+.agenda-event--xs .agenda-event-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11.5px;
+  line-height: 1.15;
+}
+/* Narrow columns (many overlapping events): drop the time, keep the name. */
+@container (max-width: 90px) {
+  .agenda-event--xs .agenda-event-time {
+    display: none;
+  }
+}
+.agenda-card .fc .fc-timegrid-event .fc-event-main {
+  container-type: inline-size;
+}
+/* FullCalendar adds an extra class for very short events — never hide our content. */
+.agenda-card .fc .fc-timegrid-event-short .fc-event-main {
+  padding: 0;
+}
+
 /* Month view */
 .agenda-card .fc .fc-daygrid-day-frame {
   padding: 4px;
@@ -242,4 +292,16 @@
 .agenda-card .fc .fc-scrollgrid > tbody > tr > td,
 .agenda-card .fc .fc-scrollgrid > thead > tr > th {
   border-color: hsl(var(--border));
+}
+
+/* Medium (≈ 1h): full info, tighter rhythm, no absolute status label. */
+.agenda-event--medium {
+  padding: 3px 6px;
+  gap: 0;
+}
+.agenda-event--medium .agenda-event-name {
+  line-height: 1.2;
+}
+.agenda-event--medium .agenda-event-meta {
+  line-height: 1.2;
 }

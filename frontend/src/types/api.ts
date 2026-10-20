@@ -380,6 +380,32 @@ export interface AppointmentBoardItem {
   confirmed_at: string | null;
 }
 
+export interface AppointmentDetail {
+  id: string;
+  clinic_id: string;
+  patient_id: string;
+  professional_id: string;
+  room_id: string;
+  starts_at: string;
+  ends_at: string;
+  status: AppointmentStatus;
+  procedure_hint: string | null;
+  notes: string | null;
+  pin_code: string | null;
+  qr_token: string | null;
+  confirmed_at: string | null;
+  created_by_user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AppointmentCheckIn {
+  id: string;
+  appointment_id: string;
+  method: "qr_code" | "pin" | "manual";
+  checked_in_at: string;
+}
+
 export type WhatsAppTemplate = "confirmation" | "reminder" | "checkin";
 
 export interface SendWhatsAppResponse {

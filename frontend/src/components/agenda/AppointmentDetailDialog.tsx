@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarClock, DoorOpen, Stethoscope, User } from "lucide-react";
 
+import { AppointmentStatusActions } from "@/components/agenda/AppointmentStatusActions";
 import { WhatsAppAppointmentButton } from "@/components/agenda/WhatsAppAppointmentButton";
 import { APPOINTMENT_STATUS_VISUAL } from "@/components/agenda/appointment-status";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,8 @@ interface AppointmentDetailDialogProps {
   appointment: AppointmentBoardItem | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called after a quick status action succeeds (parent refreshes the agenda). */
+  onStatusChanged?: (newStatus: AppointmentStatus) => void;
 }
 
 function DetailRow({
@@ -87,6 +90,7 @@ export function AppointmentDetailDialog({
   appointment,
   open,
   onOpenChange,
+  onStatusChanged,
 }: AppointmentDetailDialogProps) {
   const [template, setTemplate] = useState<WhatsAppTemplate>("confirmation");
   const [lastSent, setLastSent] = useState<SendWhatsAppResponse | null>(null);
@@ -109,7 +113,7 @@ export function AppointmentDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-lg"
+        className="max-h-[92vh] max-w-lg grid-rows-[auto_minmax(0,1fr)_auto]"
         data-testid="appointment-detail-dialog"
       >
         <DialogHeader>
@@ -130,7 +134,7 @@ export function AppointmentDetailDialog({
           <DialogDescription>Detalhes do agendamento</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 px-6">
+        <div className="space-y-5 overflow-y-auto px-6 pb-1">
           <div className="divide-y divide-border/60 rounded-lg border border-border px-4">
             <DetailRow icon={CalendarClock} label="Quando">
               {capitalizeFirst(
@@ -151,6 +155,11 @@ export function AppointmentDetailDialog({
               </DetailRow>
             )}
           </div>
+
+          <AppointmentStatusActions
+            appointment={appointment}
+            onChanged={onStatusChanged}
+          />
 
           <section className="space-y-2" aria-label="Mensagem de WhatsApp">
             <p className="text-sm font-medium text-foreground">

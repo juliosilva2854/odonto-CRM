@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -25,6 +25,7 @@ import "./agenda-fullcalendar.css";
 
 export default function AgendaPage() {
   const calendarRef = useRef<FullCalendar | null>(null);
+  const queryClient = useQueryClient();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [defaultStart, setDefaultStart] = useState<Date | null>(null);
   const [defaultEnd, setDefaultEnd] = useState<Date | null>(null);
@@ -235,6 +236,9 @@ export default function AgendaPage() {
         appointment={selectedAppointment}
         open={detailOpen && !!selectedAppointment}
         onOpenChange={setDetailOpen}
+        onStatusChanged={() =>
+          queryClient.invalidateQueries({ queryKey: ["agenda", "appointments"] })
+        }
       />
 
       {/* New appointment sheet */}
@@ -252,37 +256,79 @@ export default function AgendaPage() {
 // ──────────────────────────────────────────────────────────────────────────────
 // Custom event renderer (Modern Premium card)
 // ──────────────────────────────────────────────────────────────────────────────
+type EventDensity = "xs" | "compact" | "medium" | "regular";
+
+/**
+ * Time-grid height depends on duration (slot = 30 min ≈ 26px):
+ *  - ≤ 30 min  → "xs": single row (time + patient name)
+ *  - ≤ 50 min  → "compact": time + name, no meta/status
+ *  - ≤ 75 min  → "medium": time + name + meta (status conveyed by color only)
+ *  - longer    → "regular": full card
+ * Month view (dayGrid) has fixed-height rows → always compact.
+ */
+function eventDensity(a: AppointmentBoardItem, viewType?: string): EventDensity {
+  if (viewType?.startsWith("dayGrid")) return "compact";
+  const minutes = (new Date(a.ends_at).getTime() - new Date(a.starts_at).getTime()) / 60000;
+  if (minutes <= 30) return "xs";
+  if (minutes <= 50) return "compact";
+  if (minutes <= 75) return "medium";
+  return "regular";
+}
+
+function eventTooltip(a: AppointmentBoardItem, timeText: string, statusLabel: string): string {
+  return [
+    `${timeText} · ${a.patient_name}`,
+    [a.room_name, a.procedure_hint].filter(Boolean).join(" · "),
+    statusLabel,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function renderEventContent(arg: {
   event: { extendedProps: { appointment: AppointmentBoardItem } };
   timeText: string;
+  view?: { type: string };
 }) {
   const appointment = arg.event.extendedProps.appointment;
   const v = APPOINTMENT_STATUS_VISUAL[appointment.status];
+  const density = eventDensity(appointment, arg.view?.type);
+  const showMeta = density === "medium" || density === "regular";
+  const showStatus = density === "regular";
+  // Single-row layout: only the start time, so the patient name gets the room.
+  const timeLabel =
+    density === "xs" ? format(new Date(appointment.starts_at), "HH:mm") : arg.timeText;
   return (
     <div
-      className="agenda-event"
+      className={cn("agenda-event", `agenda-event--${density}`)}
       data-testid={`agenda-event-${appointment.id}`}
+      data-density={density}
+      title={eventTooltip(appointment, arg.timeText, v.label)}
       style={{ "--event-border": v.border } as React.CSSProperties}
     >
       <div className="agenda-event-time">
         <span className="agenda-event-dot" style={{ backgroundColor: v.border }} />
-        {arg.timeText}
+        {timeLabel}
       </div>
-      <div className="agenda-event-name" title={appointment.patient_name}>
+      <div className="agenda-event-name">
         {appointment.patient_name}
       </div>
-      <div className="agenda-event-meta">
-        {appointment.room_name}
-        {appointment.procedure_hint && (
-          <>
-            <span className="mx-1">·</span>
-            {appointment.procedure_hint}
-          </>
-        )}
-      </div>
-      <span className="agenda-event-status" style={{ color: v.text }}>
-        {v.label}
-      </span>
+      {showMeta && (
+        <div className="agenda-event-meta">
+          {appointment.room_name}
+          {appointment.procedure_hint && (
+            <>
+              <span className="mx-1">·</span>
+              {appointment.procedure_hint}
+            </>
+          )}
+        </div>
+      )}
+      {showStatus && (
+        <span className="agenda-event-status" style={{ color: v.text }}>
+          {v.label}
+        </span>
+      )}
       <ScreenReaderOnly>
         {appointment.patient_name} ·{" "}
         {format(new Date(appointment.starts_at), "d MMM HH:mm", { locale: ptBR })}{" "}
