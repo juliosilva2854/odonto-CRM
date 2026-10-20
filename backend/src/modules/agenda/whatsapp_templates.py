@@ -52,6 +52,24 @@ class AppointmentMessageContext:
     room_name: str | None = None
     procedure_hint: str | None = None
     pin_code: str | None = None
+    # Link da sala de teleconsulta (Jitsi). Quando presente, a mensagem de
+    # confirmação inclui o bloco de vídeo.
+    teleconsultation_url: str | None = None
+
+
+# Templates que aceitam o link de teleconsulta junto com a mensagem.
+TELECONSULTATION_TEMPLATES: frozenset[WhatsAppTemplate] = frozenset(
+    {WhatsAppTemplate.CONFIRMATION}
+)
+
+
+def _teleconsultation_block(url: str) -> list[str]:
+    return [
+        "A sua consulta será realizada por *teleconsulta* (vídeo). No horário "
+        "marcado, acesse o link abaixo pelo celular ou computador:",
+        url,
+        "",
+    ]
 
 
 def _local(dt: datetime, tz_name: str) -> datetime:
@@ -90,6 +108,7 @@ def render_message(template: WhatsAppTemplate, ctx: AppointmentMessageContext) -
             "",
             *_details_block(ctx),
             "",
+            *(_teleconsultation_block(ctx.teleconsultation_url) if ctx.teleconsultation_url else []),
             "O(a) senhor(a) confirma a sua presença? Basta responder *SIM* para "
             "confirmar ou nos avisar caso precise reagendar.",
         ]

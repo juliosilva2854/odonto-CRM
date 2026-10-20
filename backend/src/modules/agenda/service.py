@@ -34,7 +34,12 @@ from src.modules.agenda.schemas import (
     RoomCreateIn,
     RoomUpdateIn,
 )
+from src.modules.agenda.teleconsultation import (
+    build_teleconsultation_url,
+    teleconsultation_room_name,
+)
 from src.modules.agenda.whatsapp_templates import (
+    TELECONSULTATION_TEMPLATES,
     TEMPLATE_LABELS,
     AppointmentMessageContext,
     WhatsAppTemplate,
@@ -52,6 +57,11 @@ from src.modules.tenancy.models import Clinic
 # WhatsApp só faz sentido antes do paciente chegar.
 WHATSAPP_ALLOWED_STATUSES: frozenset[AppointmentStatus] = frozenset(
     {AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED}
+)
+
+# Teleconsulta: antes do atendimento ou durante (reentrar na sala).
+TELECONSULTATION_ALLOWED_STATUSES: frozenset[AppointmentStatus] = frozenset(
+    {AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED, AppointmentStatus.IN_PROGRESS}
 )
 
 
@@ -334,11 +344,31 @@ class AppointmentService:
         await self._session.flush()
         return appointment
 
+    async def get_teleconsultation(
+        self, clinic_id: uuid.UUID, appointment_id: uuid.UUID
+    ) -> dict:
+        """Sala Jitsi do agendamento (valida tenant via ``get``)."""
+        appointment = await self.get(clinic_id, appointment_id)
+        if appointment.status not in TELECONSULTATION_ALLOWED_STATUSES:
+            raise ValidationError(
+                "Teleconsulta disponível apenas para agendamentos agendados, "
+                "confirmados ou em atendimento",
+                code="appointment_not_teleconsultable",
+                details={"status": appointment.status.value},
+            )
+        return {
+            "appointment_id": appointment.id,
+            "room_name": teleconsultation_room_name(appointment.id),
+            "room_url": build_teleconsultation_url(appointment.id),
+        }
+
     async def build_whatsapp_message(
         self,
         clinic_id: uuid.UUID,
         appointment_id: uuid.UUID,
         template: WhatsAppTemplate,
+        *,
+        include_teleconsultation: bool = False,
     ) -> dict:
         """Renderiza o template pt-BR e devolve o deep-link wa.me (Click-to-Chat)."""
         appointment = await self.get(clinic_id, appointment_id)
@@ -349,6 +379,16 @@ class AppointmentService:
                 code="appointment_not_messageable",
                 details={"status": appointment.status.value},
             )
+
+        if include_teleconsultation and template not in TELECONSULTATION_TEMPLATES:
+            raise ValidationError(
+                "O link da teleconsulta só pode ser enviado com a mensagem de confirmação",
+                code="teleconsultation_template_unsupported",
+                details={"template": template.value},
+            )
+        teleconsultation_url = (
+            build_teleconsultation_url(appointment.id) if include_teleconsultation else None
+        )
 
         patient = await self._session.get(Patient, appointment.patient_id)
         if patient is None or patient.clinic_id != clinic_id:
@@ -387,6 +427,7 @@ class AppointmentService:
             room_name=room.name if room else None,
             procedure_hint=appointment.procedure_hint,
             pin_code=appointment.pin_code,
+            teleconsultation_url=teleconsultation_url,
         )
         message = render_message(template, ctx)
         url = build_whatsapp_url(phone, message)
@@ -405,6 +446,7 @@ class AppointmentService:
             "phone_e164": phone,
             "message": message,
             "whatsapp_url": url,
+            "teleconsultation_url": teleconsultation_url,
         }
 
 

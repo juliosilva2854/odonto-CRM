@@ -12,6 +12,8 @@ interface WhatsAppAppointmentButtonProps
   extends Omit<ButtonProps, "onClick" | "children" | "variant"> {
   appointmentId: string;
   template?: WhatsAppTemplate;
+  /** Append the teleconsultation (Jitsi) link — confirmation template only. */
+  includeTeleconsultation?: boolean;
   label?: string;
   /** Disabled reason shown as tooltip (e.g. appointment already finished). */
   disabledReason?: string | null;
@@ -30,6 +32,7 @@ interface WhatsAppAppointmentButtonProps
 export function WhatsAppAppointmentButton({
   appointmentId,
   template = "confirmation",
+  includeTeleconsultation = false,
   label = "Enviar WhatsApp",
   disabledReason,
   onSent,
@@ -46,7 +49,9 @@ export function WhatsAppAppointmentButton({
     const win = window.open("about:blank", "_blank");
     setPending(true);
     try {
-      const result = await agendaService.sendWhatsapp(appointmentId, template);
+      const result = await agendaService.sendWhatsapp(appointmentId, template, {
+        includeTeleconsultation,
+      });
       if (win && !win.closed) {
         win.opener = null;
         win.location.href = result.whatsapp_url;

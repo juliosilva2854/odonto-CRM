@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarClock, DoorOpen, Stethoscope, User } from "lucide-react";
+import {
+  CalendarClock,
+  DoorOpen,
+  MessageCircle,
+  Stethoscope,
+  User,
+  Video,
+} from "lucide-react";
 
 import { AppointmentStatusActions } from "@/components/agenda/AppointmentStatusActions";
+import {
+  TELECONSULTATION_STATUSES,
+  TeleconsultationButton,
+} from "@/components/agenda/TeleconsultationButton";
 import { WhatsAppAppointmentButton } from "@/components/agenda/WhatsAppAppointmentButton";
 import { APPOINTMENT_STATUS_VISUAL } from "@/components/agenda/appointment-status";
 import { Button } from "@/components/ui/button";
@@ -94,6 +105,7 @@ export function AppointmentDetailDialog({
 }: AppointmentDetailDialogProps) {
   const [template, setTemplate] = useState<WhatsAppTemplate>("confirmation");
   const [lastSent, setLastSent] = useState<SendWhatsAppResponse | null>(null);
+  const [includeTeleconsultation, setIncludeTeleconsultation] = useState(false);
 
   // Reset local state whenever another appointment is opened.
   useEffect(() => {
@@ -101,6 +113,7 @@ export function AppointmentDetailDialog({
       appointment?.status === "confirmed" ? "reminder" : "confirmation",
     );
     setLastSent(null);
+    setIncludeTeleconsultation(false);
   }, [appointment?.id, appointment?.status]);
 
   if (!appointment) return null;
@@ -109,6 +122,7 @@ export function AppointmentDetailDialog({
   const starts = new Date(appointment.starts_at);
   const ends = new Date(appointment.ends_at);
   const canMessage = MESSAGEABLE.includes(appointment.status);
+  const canTeleconsult = TELECONSULTATION_STATUSES.includes(appointment.status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -162,6 +176,23 @@ export function AppointmentDetailDialog({
             )}
           </div>
 
+          {canTeleconsult && (
+            <section
+              className="space-y-2 rounded-lg border border-accent/20 bg-accent/5 p-4"
+              aria-label="Teleconsulta"
+              data-testid="appointment-teleconsultation-section"
+            >
+              <TeleconsultationButton appointmentId={appointment.id} />
+              <p
+                className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground"
+                data-testid="teleconsultation-whatsapp-note"
+              >
+                <MessageCircle className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                O paciente receberá o link via WhatsApp
+              </p>
+            </section>
+          )}
+
           <AppointmentStatusActions
             appointment={appointment}
             onChanged={onStatusChanged}
@@ -200,6 +231,22 @@ export function AppointmentDetailDialog({
                 );
               })}
             </div>
+            {canMessage && template === "confirmation" && (
+              <label
+                className="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-medium text-foreground"
+                data-testid="whatsapp-include-teleconsultation"
+              >
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-[hsl(var(--accent))]"
+                  checked={includeTeleconsultation}
+                  onChange={(e) => setIncludeTeleconsultation(e.target.checked)}
+                  data-testid="whatsapp-include-teleconsultation-checkbox"
+                />
+                <Video className="h-3.5 w-3.5 text-accent" />
+                Incluir link da teleconsulta na mensagem
+              </label>
+            )}
             {!canMessage && (
               <p
                 className="text-xs text-muted-foreground"
@@ -226,6 +273,9 @@ export function AppointmentDetailDialog({
           <WhatsAppAppointmentButton
             appointmentId={appointment.id}
             template={template}
+            includeTeleconsultation={
+              template === "confirmation" && includeTeleconsultation
+            }
             disabledReason={
               canMessage
                 ? null

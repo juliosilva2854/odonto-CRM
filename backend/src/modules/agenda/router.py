@@ -27,6 +27,7 @@ from src.modules.agenda.schemas import (
     RoomUpdateIn,
     SendWhatsAppIn,
     SendWhatsAppOut,
+    TeleconsultationOut,
 )
 from src.modules.audit.enums import DataAccessPurpose
 from src.modules.audit.service import log_data_access
@@ -281,9 +282,13 @@ async def send_whatsapp(
     session: AsyncSession = Depends(get_db_session),
     user: User = Depends(require_role([UserRole.ADMIN, UserRole.RECEPTION, UserRole.DENTIST])),
 ) -> SendWhatsAppOut:
-    template = (payload or SendWhatsAppIn()).template
+    payload = payload or SendWhatsAppIn()
+    template = payload.template
     data = await AppointmentService(session).build_whatsapp_message(
-        user.clinic_id, appointment_id, template
+        user.clinic_id,
+        appointment_id,
+        template,
+        include_teleconsultation=payload.include_teleconsultation,
     )
     # LGPD: uso do telefone do paciente para comunicação fica auditado.
     ctx = get_context()
@@ -297,6 +302,21 @@ async def send_whatsapp(
         actor_ip=ctx.ip,
     )
     return SendWhatsAppOut.model_validate(data)
+
+
+@router.get(
+    "/appointments/{appointment_id}/teleconsultation",
+    response_model=TeleconsultationOut,
+    dependencies=[Depends(require_feature("agenda"))],
+    summary="Sala de teleconsulta (Jitsi Meet) do agendamento",
+)
+async def get_teleconsultation(
+    appointment_id: uuid.UUID,
+    session: AsyncSession = Depends(get_db_session),
+    user: User = Depends(require_role([UserRole.ADMIN, UserRole.RECEPTION, UserRole.DENTIST])),
+) -> TeleconsultationOut:
+    data = await AppointmentService(session).get_teleconsultation(user.clinic_id, appointment_id)
+    return TeleconsultationOut.model_validate(data)
 
 
 # ── Check-in ─────────────────────────────────────────────────

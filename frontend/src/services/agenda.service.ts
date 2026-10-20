@@ -10,6 +10,7 @@ import type {
   RoomCreatePayload,
   RoomUpdatePayload,
   SendWhatsAppResponse,
+  TeleconsultationResponse,
   WhatsAppTemplate,
 } from "@/types/api";
 
@@ -75,10 +76,24 @@ export const agendaService = {
   sendWhatsapp: async (
     appointmentId: string,
     template: WhatsAppTemplate = "confirmation",
+    options: { includeTeleconsultation?: boolean } = {},
   ): Promise<SendWhatsAppResponse> => {
     const { data } = await api.post<SendWhatsAppResponse>(
       `/api/agenda/appointments/${appointmentId}/send-whatsapp`,
-      { template },
+      {
+        template,
+        include_teleconsultation: Boolean(options.includeTeleconsultation),
+      },
+    );
+    return data;
+  },
+
+  /** Sala de teleconsulta (Jitsi Meet) do agendamento. */
+  getTeleconsultation: async (
+    appointmentId: string,
+  ): Promise<TeleconsultationResponse> => {
+    const { data } = await api.get<TeleconsultationResponse>(
+      `/api/agenda/appointments/${appointmentId}/teleconsultation`,
     );
     return data;
   },

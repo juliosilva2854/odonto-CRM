@@ -191,6 +191,16 @@ class CheckInPublicResult(BaseModel):
 
 class SendWhatsAppIn(BaseModel):
     template: WhatsAppTemplate = WhatsAppTemplate.CONFIRMATION
+    # Anexa o link da teleconsulta (Jitsi) — suportado no template de confirmação.
+    include_teleconsultation: bool = False
+
+
+class TeleconsultationOut(BaseModel):
+    """Sala de vídeo (Jitsi Meet) derivada do ID do agendamento."""
+
+    appointment_id: uuid.UUID
+    room_name: str
+    room_url: str
 
 
 class SendWhatsAppOut(BaseModel):
@@ -203,3 +213,4 @@ class SendWhatsAppOut(BaseModel):
     phone_e164: str
     message: str
     whatsapp_url: str
+    teleconsultation_url: str | None = None

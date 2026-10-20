@@ -416,6 +416,15 @@ export interface SendWhatsAppResponse {
   phone_e164: string;
   message: string;
   whatsapp_url: string;
+  /** Present when the message was rendered with the teleconsultation link. */
+  teleconsultation_url?: string | null;
+}
+
+/** Jitsi Meet room derived from the appointment id. */
+export interface TeleconsultationResponse {
+  appointment_id: string;
+  room_name: string;
+  room_url: string;
 }
 
 export interface AppointmentCreatePayload {
