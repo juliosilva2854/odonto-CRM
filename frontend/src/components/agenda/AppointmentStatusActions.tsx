@@ -3,7 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import { Ban, Loader2, LogIn, UserX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toaster";
 import { getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -29,8 +28,11 @@ const TERMINAL: AppointmentStatus[] = ["completed", "cancelled", "no_show"];
 
 interface AppointmentStatusActionsProps {
   appointment: AppointmentBoardItem;
-  /** Called after a successful transition (parent refreshes the agenda). */
-  onChanged?: (newStatus: AppointmentStatus) => void;
+  /**
+   * Called after every attempt (success OR error) so the parent re-syncs the
+   * agenda — e.g. a 409 "check-in já realizado" means our local status is stale.
+   */
+  onChanged?: () => void;
 }
 
 export function AppointmentStatusActions({
@@ -39,11 +41,9 @@ export function AppointmentStatusActions({
 }: AppointmentStatusActionsProps) {
   // Terminal actions (cancel / no-show) need an explicit second click.
   const [confirming, setConfirming] = useState<Exclude<QuickAction, "checkin"> | null>(null);
-  const [reason, setReason] = useState("");
 
   useEffect(() => {
     setConfirming(null);
-    setReason("");
   }, [appointment.id, appointment.status]);
 
   const mutation = useMutation({
@@ -52,22 +52,16 @@ export function AppointmentStatusActions({
         await agendaService.checkinManual(appointment.id);
         return "waiting_room";
       }
-      const updated = await agendaService.changeStatus(
-        appointment.id,
-        action,
-        action === "cancelled" ? reason.trim() : null,
-      );
+      const updated = await agendaService.changeStatus(appointment.id, action);
       return updated.status;
     },
-    onSuccess: (newStatus, action) => {
+    onSuccess: (_newStatus, action) => {
       toast({
         variant: "success",
         title: SUCCESS_TITLE[action],
         description: appointment.patient_name,
       });
       setConfirming(null);
-      setReason("");
-      onChanged?.(newStatus);
     },
     onError: (err) =>
       toast({
@@ -75,6 +69,7 @@ export function AppointmentStatusActions({
         title: "Não foi possível atualizar o agendamento",
         description: getErrorMessage(err, "Tente novamente."),
       }),
+    onSettled: () => onChanged?.(),
   });
 
   const can = (action: QuickAction) =>
@@ -170,16 +165,6 @@ export function AppointmentStatusActions({
               ? "Confirmar o cancelamento? O horário será liberado na agenda."
               : "Confirmar que o paciente não compareceu? Esta ação encerra o agendamento."}
           </p>
-          {confirming === "cancelled" && (
-            <Input
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Motivo (opcional)"
-              maxLength={300}
-              className="h-8 bg-background text-xs"
-              data-testid="status-action-reason"
-            />
-          )}
           <div className="flex justify-end gap-2">
             <Button
               type="button"

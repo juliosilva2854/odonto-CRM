@@ -225,6 +225,9 @@ export default function AgendaPage() {
                   day: "2-digit",
                   omitCommas: true,
                 }}
+                views={{
+                  dayGridMonth: { dayHeaderFormat: { weekday: "short" } },
+                }}
               />
             </div>
           </CardContent>
@@ -296,14 +299,15 @@ function renderEventContent(arg: {
   const showMeta = density === "medium" || density === "regular";
   const showStatus = density === "regular";
   // Single-row layout: only the start time, so the patient name gets the room.
-  const timeLabel =
-    density === "xs" ? format(new Date(appointment.starts_at), "HH:mm") : arg.timeText;
+  const startLabel = format(new Date(appointment.starts_at), "HH:mm");
+  const rangeLabel = `${startLabel} – ${format(new Date(appointment.ends_at), "HH:mm")}`;
+  const timeLabel = density === "xs" ? startLabel : rangeLabel;
   return (
     <div
       className={cn("agenda-event", `agenda-event--${density}`)}
       data-testid={`agenda-event-${appointment.id}`}
       data-density={density}
-      title={eventTooltip(appointment, arg.timeText, v.label)}
+      title={eventTooltip(appointment, rangeLabel, v.label)}
       style={{ "--event-border": v.border } as React.CSSProperties}
     >
       <div className="agenda-event-time">

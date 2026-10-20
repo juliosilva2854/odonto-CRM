@@ -1,0 +1,38 @@
+{
+  "summary": "Frontend-only test of the agenda quick actions and short-event density, run at localhost:3000 with Playwright as admin and reception. I created 7 fresh TEST_QA appointments on Sat 24 Oct 2026. QUICK ACTIONS all pass. The 'Ações rápidas' section has the 3 buttons. Check-in takes one click, calls POST /checkin and creates a CheckIn row (method=manual). The badge changes to 'Sala de espera' and the 'Check-in realizado' toast appears. Check-in and Não Compareceu become disabled, Cancelar stays enabled and the WhatsApp button is disabled. Não Compareceu shows the confirm panel without a reason input; confirming calls POST /status, the badge shows 'Não compareceu' and status-actions-closed is shown. Cancelar shows the panel with a reason input (maxlength=300). 'Voltar' hides the panel and does not change the status. Confirming calls POST /status, the badge shows 'Cancelado' and the toast appears. Cancel from waiting_room works. After each action the event background color changes without a reload (invalidate works). Error path: I opened the modal, checked the appointment in via the API (201), then clicked Check-in in the UI. The destructive toast 'Não foi possível atualizar o agendamento / Check-in já realizado para este agendamento' appears. WhatsApp regression: the button opens a new tab and whatsapp-last-message is shown. DENSITY passes in both week and day views: 30min=xs (24px), 40min=compact (33px), 60min=medium (51px, meta shown, no status label), 90min=regular (77px, status label shown). The .agenda-event-name is fully inside the event box in every case, long names get an ellipsis, and the title tooltip contains time, name, room/procedure and status. Month view is all compact. yarn tsc -b and yarn build both pass.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/agenda/appointments/{id}/status", "issue": "The cancellation 'reason' is only put in the bus event payload (service.change_status extra.reason). It is not saved: the appointments table has no reason column and nothing is written to an audit row. The reason typed in the new UI is effectively lost. This is pre-existing backend behaviour."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Quick action error path", "issue": "When a mutation fails (e.g. 409 'Check-in já realizado'), the agenda query is not invalidated. The modal keeps showing stale 'Agendado' with Check-in enabled even though the backend is now waiting_room, until a manual refresh. Suggest invalidating in onSettled/onError as well.", "affected_selectors": ["status-action-checkin", "appointment-detail-status"]}
+    ],
+    "design_issues": [
+      {"screen": "Agenda week/day", "issues": ["Time format is inconsistent: xs events show '08:00' (HH:mm) while the others show '9:00 - 9:40' (FullCalendar timeText without a leading zero); the tooltip also uses '8:00 - 8:30'"]},
+      {"screen": "Agenda month view", "issues": ["Column headers show 'SEG. 05 … DOM. 04' (the dayHeaderFormat with day:'2-digit' applies to the month view), which is confusing. Use weekday-only headers for dayGridMonth via views={{dayGridMonth:{dayHeaderFormat:{weekday:'short'}}}}. Probably pre-existing"]},
+      {"screen": "Appointment detail dialog", "issues": ["Success/error toasts still render under the dialog overlay (dimmed). Pre-existing, also reported in iteration_3", "The cancel reason text persists after 'Voltar' and reopening (it is reset only on success or a status change). This is minor, and some may prefer it"]}
+    ]
+  },
+  "test_report_links": ["/app/tests/seed_quick_actions.py"],
+  "action_items": [
+    "Invalidate ['agenda','appointments'] on quick-action error as well (onSettled), so stale modal state self-corrects after 409/422",
+    "(Optional) Save the cancel reason in the backend (column or audit log) so the reason the UI collects is not lost",
+    "(Optional) Make the time format consistent between xs and other densities",
+    "(Optional) Fix the month view day header format"
+  ],
+  "critical_code_review_comments": [
+    "AppointmentStatusActions: ACTION_ALLOWED_FROM duplicates backend ALLOWED_TRANSITIONS. This is acceptable, but it will drift if the backend changes",
+    "The mutation onError only toasts; it should also call onChanged/invalidate to resync",
+    "The confirm button spinner shows whenever busy (it is not tied to the action). Harmless because only one action can run at a time"
+  ],
+  "updated_files": ["/app/tests/seed_quick_actions.py"],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% of requested flows (1 minor integration issue on error resync)"},
+  "seed_data_creation": "7 Demo Odonto appointments on 2026-10-24 (Sala 1, Dr. Demo) with procedure_hint TEST_QA_*. Final statuses: xs30=cancelled (after check-in), compact40/medium60/regular90=scheduled, noshow=no_show, cancel=cancelled, 409=waiting_room.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Use localhost:3000 with backend 127.0.0.1:8765 (manual uvicorn). Run python3 /app/tests/seed_quick_actions.py [YYYY-MM-DD] to create fresh appointments on free days; ids are written to /tmp/qa_ids.json. Browser TZ is UTC, so the 08:00-16:30Z slots are visible in the grid."
+}

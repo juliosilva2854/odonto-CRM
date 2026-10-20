@@ -59,7 +59,7 @@ interface AppointmentDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Called after a quick status action succeeds (parent refreshes the agenda). */
-  onStatusChanged?: (newStatus: AppointmentStatus) => void;
+  onStatusChanged?: () => void;
 }
 
 function DetailRow({
