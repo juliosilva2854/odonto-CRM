@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { 
   CalendarDays, ShieldCheck, Lock, Sparkles, ArrowRight, Activity, 
   CheckCircle2, X, Check, FileText, Video, CreditCard, Users, 
-  BarChart4, MessageCircle, Clock, Database, Star, PlayCircle, 
-  TrendingUp, ShieldAlert, BadgeCheck
+  BarChart4, MessageCircle, Clock, Database, Star, TrendingUp, 
+  ShieldAlert, FolderSync, Zap
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ export default function LandingPage() {
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
             <a href="#recursos" className="hover:text-white transition-colors">Recursos</a>
-            <a href="#como-funciona" className="hover:text-white transition-colors">Como Funciona</a>
+            <a href="#comparativo" className="hover:text-white transition-colors">Comparativo</a>
             <a href="#precos" className="hover:text-white transition-colors">Preços</a>
             <a href="#faq" className="hover:text-white transition-colors">Dúvidas</a>
           </nav>
@@ -92,70 +92,126 @@ export default function LandingPage() {
             <p className="text-slate-400 max-w-2xl mx-auto">Tudo o que a sua clínica precisa para operar com excelência, do agendamento à auditoria.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Card 1 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
               <ShieldCheck className="w-8 h-8 text-indigo-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Trava Jurídica CFO</h3>
-              <p className="text-sm text-slate-400">Prontuários bloqueados automaticamente após 24h. Alterações posteriores geram adendos imutáveis para validade em juízo.</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Trava CFO 24h</h3>
+              <p className="text-sm text-slate-400">Prontuários bloqueados em 24h. Alterações geram adendos imutáveis.</p>
             </div>
-
             {/* Card 2 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
               <CalendarDays className="w-8 h-8 text-emerald-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Trava Tripla na Agenda</h3>
-              <p className="text-sm text-slate-400">O sistema impede conflitos de horário para o mesmo dentista, sala ou paciente. Sua recepção nunca mais errará.</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Trava Tripla</h3>
+              <p className="text-sm text-slate-400">Impede conflitos de horário para o mesmo dentista, sala ou paciente.</p>
             </div>
-
             {/* Card 3 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
               <Activity className="w-8 h-8 text-rose-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Odontograma Interativo</h3>
-              <p className="text-sm text-slate-400">Visualização 2.5D com histórico completo de cada dente (Event-Sourced). Rastreie cada procedimento de forma cirúrgica.</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Odontograma 2.5D</h3>
+              <p className="text-sm text-slate-400">Visualização interativa com histórico completo de cada dente.</p>
             </div>
-
             {/* Card 4 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
               <FileText className="w-8 h-8 text-blue-400 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">Anamnese Digital</h3>
-              <p className="text-sm text-slate-400">Formulário clínico versionado e integrado ao prontuário. Segurança total antes de qualquer procedimento.</p>
+              <p className="text-sm text-slate-400">Formulário clínico versionado e assinado pelo paciente.</p>
             </div>
-
             {/* Card 5 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
               <Video className="w-8 h-8 text-purple-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Teleconsulta Integrada</h3>
-              <p className="text-sm text-slate-400">Geração de link de vídeo (Jitsi) em 1 clique, direto do agendamento. Atenda pacientes remotamente sem custo extra.</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Teleconsulta</h3>
+              <p className="text-sm text-slate-400">Sala de vídeo gerada em 1 clique direto do agendamento.</p>
             </div>
-
             {/* Card 6 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
               <MessageCircle className="w-8 h-8 text-emerald-500 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">WhatsApp Nativo</h3>
-              <p className="text-sm text-slate-400">Mensagens de confirmação, lembrete e check-in geradas automaticamente. Envie também o link da teleconsulta.</p>
+              <p className="text-sm text-slate-400">Confirmações e lembretes gerados automaticamente.</p>
             </div>
-
             {/* Card 7 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
               <BarChart4 className="w-8 h-8 text-amber-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Dashboard de KPIs</h3>
-              <p className="text-sm text-slate-400">Acompanhe consultas do dia, faturamento do mês, top procedimentos e orçamentos pendentes em uma visão gerencial.</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Dashboard KPIs</h3>
+              <p className="text-sm text-slate-400">Faturamento, top procedimentos e agenda do dia.</p>
             </div>
-
             {/* Card 8 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
               <CreditCard className="w-8 h-8 text-indigo-300 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Orçamentos com PDF</h3>
-              <p className="text-sm text-slate-400">Aprovação item-a-item pelo paciente. Emissão de PDF com a identidade visual da sua clínica e link de pagamento.</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Orçamentos PDF</h3>
+              <p className="text-sm text-slate-400">Aprovação item-a-item com a identidade da sua clínica.</p>
             </div>
-
             {/* Card 9 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
-              <Lock className="w-8 h-8 text-cyan-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Conformidade LGPD</h3>
-              <p className="text-sm text-slate-400">Anonimização de pacientes a um clique, consentimentos versionados e log de auditoria de acessos. Em paz com a lei.</p>
+              <FolderSync className="w-8 h-8 text-cyan-400 mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Multi-Unidades</h3>
+              <p className="text-sm text-slate-400">Gerencie várias filiais com isolamento total de dados.</p>
             </div>
+            {/* Card 10 */}
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
+              <Clock className="w-8 h-8 text-orange-400 mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Gestão de Retornos</h3>
+              <p className="text-sm text-slate-400">Avisos automáticos de quando o paciente deve voltar.</p>
+            </div>
+            {/* Card 11 */}
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
+              <Database className="w-8 h-8 text-slate-400 mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Isolamento Total</h3>
+              <p className="text-sm text-slate-400">Arquitetura Multi-Tenant. Seus dados nunca se misturam.</p>
+            </div>
+            {/* Card 12 */}
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
+              <Users className="w-8 h-8 text-pink-400 mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Controle de Equipe</h3>
+              <p className="text-sm text-slate-400">Permissões específicas para admin, dentista e recepção.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── COMPARATIVO ─── */}
+        <section id="comparativo" className="max-w-4xl mx-auto px-6 mt-32">
+          <div className="text-center mb-12 space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white">Por que mudar para o Dental CRM?</h2>
+            <p className="text-slate-400">Veja o que você ganha ao sair do sistema antigo.</p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-900/50 overflow-hidden">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-white/5 border-b border-white/10">
+                <tr>
+                  <th className="px-6 py-4 font-semibold text-slate-300">Recurso</th>
+                  <th className="px-6 py-4 font-semibold text-slate-500 text-center">Sistemas Antigos</th>
+                  <th className="px-6 py-4 font-bold text-indigo-400 text-center bg-indigo-500/10">Dental CRM</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                <tr>
+                  <td className="px-6 py-4 text-slate-300">Prontuário bloqueado pós-24h</td>
+                  <td className="px-6 py-4 text-center text-slate-500"><X className="w-5 h-5 mx-auto" /></td>
+                  <td className="px-6 py-4 text-center bg-indigo-500/5"><Check className="w-5 h-5 mx-auto text-emerald-400" /></td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-slate-300">Agenda com Trava Tripla</td>
+                  <td className="px-6 py-4 text-center text-slate-500"><X className="w-5 h-5 mx-auto" /></td>
+                  <td className="px-6 py-4 text-center bg-indigo-500/5"><Check className="w-5 h-5 mx-auto text-emerald-400" /></td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-slate-300">Teleconsulta integrada (Grátis)</td>
+                  <td className="px-6 py-4 text-center text-slate-500"><X className="w-5 h-5 mx-auto" /></td>
+                  <td className="px-6 py-4 text-center bg-indigo-500/5"><Check className="w-5 h-5 mx-auto text-emerald-400" /></td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-slate-300">Customização de Preços (Descontos)</td>
+                  <td className="px-6 py-4 text-center text-slate-500"><X className="w-5 h-5 mx-auto" /></td>
+                  <td className="px-6 py-4 text-center bg-indigo-500/5"><Check className="w-5 h-5 mx-auto text-emerald-400" /></td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-slate-300">Contrato de Fidelidade</td>
+                  <td className="px-6 py-4 text-center text-slate-500">12 meses</td>
+                  <td className="px-6 py-4 text-center bg-indigo-500/5 font-semibold text-white">Zero</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -180,7 +236,7 @@ export default function LandingPage() {
                 <span className="text-2xl font-bold text-indigo-400">2</span>
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">Convide sua equipe</h3>
-              <p className="text-sm text-slate-400">Adicione dentistas e recepcionistas. Cada um vê apenas o que precisa.</p>
+              <p className="text-sm text-slate-400">Adicione dentistas e recepcionistas. Cada um vê o que precisa.</p>
             </div>
 
             <div className="text-center">
@@ -188,7 +244,7 @@ export default function LandingPage() {
                 <span className="text-2xl font-bold text-indigo-400">3</span>
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">Comece a atender</h3>
-              <p className="text-sm text-slate-400">Acesse do computador ou celular. O sistema está pronto para rodar.</p>
+              <p className="text-sm text-slate-400">Acesse do computador ou celular. O sistema está pronto.</p>
             </div>
           </div>
         </section>
@@ -345,41 +401,4 @@ export default function LandingPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">Tem fidelidade ou multa de cancelamento?</h3>
-              <p className="text-slate-400 text-sm">Não. Nós acreditamos que você deve ficar porque o sistema é excelente, não porque assinou um contrato. Cancele quando quiser, em 1 clique.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── CTA FINAL ─── */}
-        <section className="max-w-4xl mx-auto px-6 mt-32">
-          <div className="p-12 rounded-3xl bg-gradient-to-br from-indigo-900/50 to-slate-900 border border-indigo-500/30 text-center relative overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[100px] bg-indigo-500/30 blur-[60px] rounded-full pointer-events-none" />
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 relative z-10">Eleve o nível da sua clínica hoje.</h2>
-            <p className="text-slate-300 mb-8 max-w-xl mx-auto relative z-10">Junte-se às clínicas que já utilizam a plataforma mais moderna e segura do mercado odontológico.</p>
-            <Button asChild size="lg" variant="accent" className="rounded-full h-12 px-10 text-base shadow-[0_0_20px_rgba(99,102,241,0.4)] relative z-10">
-              <Link to="/signup">Começar meu teste grátis</Link>
-            </Button>
-          </div>
-        </section>
-
-      </main>
-
-      {/* ─── FOOTER ─── */}
-      <footer className="border-t border-white/5 py-12 bg-slate-950">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <BrandMark size="sm" tone="light" withWordmark />
-          </div>
-          <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} Dental CRM. Todos os direitos reservados.
-          </p>
-          <div className="flex items-center gap-6 text-sm text-slate-400">
-            <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
-            <a href="#" className="hover:text-white transition-colors">Política de Privacidade</a>
-          </div>
-        </div>
-      </footer>
-
-    </div>
-  );
-}
+              <p className="text-slate-400 text-sm">Não. Nós acreditamos que você deve ficar porque o sistema é excelente, não porque assinou um contrato. Cancele quando quiser
