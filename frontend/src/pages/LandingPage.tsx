@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { 
   CalendarDays, ShieldCheck, Lock, Sparkles, ArrowRight, Activity, 
   CheckCircle2, X, Check, FileText, Video, CreditCard, Users, 
-  BarChart4, MessageCircle, Clock, Database, Star, TrendingUp, 
+  MessageCircle, Clock, Database, Star, TrendingUp, 
   ShieldAlert, FolderSync, Zap
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
@@ -60,7 +60,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Button asChild size="lg" variant="accent" className="w-full sm:w-auto rounded-full h-12 px-8 text-base shadow-[0_0_20px_rgba(99,102,241,0.4)]">
               <Link to="/signup">
-                Criar conta grátis <ArrowRight className="ml-2 w-4 h-4" />
+                <Zap className="mr-2 w-5 h-5 fill-current" /> Criar conta grátis
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto rounded-full h-12 px-8 text-base border-white/10 text-white hover:bg-white/5 bg-transparent">
@@ -95,7 +95,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Card 1 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
-              <ShieldCheck className="w-8 h-8 text-indigo-400 mb-4" />
+              <ShieldAlert className="w-8 h-8 text-indigo-400 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">Trava CFO 24h</h3>
               <p className="text-sm text-slate-400">Prontuários bloqueados em 24h. Alterações geram adendos imutáveis.</p>
             </div>
@@ -131,7 +131,7 @@ export default function LandingPage() {
             </div>
             {/* Card 7 */}
             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all">
-              <BarChart4 className="w-8 h-8 text-amber-400 mb-4" />
+              <TrendingUp className="w-8 h-8 text-amber-400 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">Dashboard KPIs</h3>
               <p className="text-sm text-slate-400">Faturamento, top procedimentos e agenda do dia.</p>
             </div>
@@ -197,11 +197,6 @@ export default function LandingPage() {
                 </tr>
                 <tr>
                   <td className="px-6 py-4 text-slate-300">Teleconsulta integrada (Grátis)</td>
-                  <td className="px-6 py-4 text-center text-slate-500"><X className="w-5 h-5 mx-auto" /></td>
-                  <td className="px-6 py-4 text-center bg-indigo-500/5"><Check className="w-5 h-5 mx-auto text-emerald-400" /></td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 text-slate-300">Customização de Preços (Descontos)</td>
                   <td className="px-6 py-4 text-center text-slate-500"><X className="w-5 h-5 mx-auto" /></td>
                   <td className="px-6 py-4 text-center bg-indigo-500/5"><Check className="w-5 h-5 mx-auto text-emerald-400" /></td>
                 </tr>
