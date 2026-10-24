@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { 
   CalendarDays, ShieldCheck, Lock, Sparkles, Activity, CheckCircle2, 
   X, Check, FileText, Video, CreditCard, Users, MessageCircle, 
-  Clock, Database, Star, TrendingUp, ShieldAlert, FolderSync, Zap, 
-  ChevronDown, Monitor, Smartphone, Server, ArrowRight
+  Clock, Database, TrendingUp, ShieldAlert, FolderSync, Zap, 
+  ChevronDown, Server, ArrowRight
 } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { Button } from "@/components/ui/button";
