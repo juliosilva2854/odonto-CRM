@@ -401,4 +401,41 @@ export default function LandingPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">Tem fidelidade ou multa de cancelamento?</h3>
-              <p className="text-slate-400 text-sm">Não. Nós acreditamos que você deve ficar porque o sistema é excelente, não porque assinou um contrato. Cancele quando quiser
+              <p className="text-slate-400 text-sm">Não. Nós acreditamos que você deve ficar porque o sistema é excelente, não porque assinou um contrato. Cancele quando quiser, em 1 clique.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── CTA FINAL ─── */}
+        <section className="max-w-4xl mx-auto px-6 mt-32">
+          <div className="p-12 rounded-3xl bg-gradient-to-br from-indigo-900/50 to-slate-900 border border-indigo-500/30 text-center relative overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[100px] bg-indigo-500/30 blur-[60px] rounded-full pointer-events-none" />
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 relative z-10">Eleve o nível da sua clínica hoje.</h2>
+            <p className="text-slate-300 mb-8 max-w-xl mx-auto relative z-10">Junte-se às clínicas que já utilizam a plataforma mais moderna e segura do mercado odontológico.</p>
+            <Button asChild size="lg" variant="accent" className="rounded-full h-12 px-10 text-base shadow-[0_0_20px_rgba(99,102,241,0.4)] relative z-10">
+              <Link to="/signup">Começar meu teste grátis</Link>
+            </Button>
+          </div>
+        </section>
+
+      </main>
+
+      {/* ─── FOOTER ─── */}
+      <footer className="border-t border-white/5 py-12 bg-slate-950">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <BrandMark size="sm" tone="light" withWordmark />
+          </div>
+          <p className="text-sm text-slate-500">
+            © {new Date().getFullYear()} Dental CRM. Todos os direitos reservados.
+          </p>
+          <div className="flex items-center gap-6 text-sm text-slate-400">
+            <a href="#" className="hover:text-white transition-colors">Termos de Uso</a>
+            <a href="#" className="hover:text-white transition-colors">Política de Privacidade</a>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
