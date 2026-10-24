@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CalendarDays, ShieldCheck, Lock, Sparkles, ArrowRight, Activity, CheckCircle2, X, Check, FileText, Video, CreditCard, Users, MessageCircle, Clock, Database, Star, TrendingUp, ShieldAlert, FolderSync, Zap } from "lucide-react";
+import { CalendarDays, ShieldCheck, Lock, Sparkles, Activity, CheckCircle2, X, Check, FileText, Video, CreditCard, Users, MessageCircle, Clock, Database, Star, TrendingUp, ShieldAlert, FolderSync, Zap } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { Button } from "@/components/ui/button";
 
