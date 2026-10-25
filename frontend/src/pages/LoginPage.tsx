@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
-import { Lock, Mail, Loader2, ArrowRight, ShieldCheck, CheckCircle2, HeartPulse, Shield, Fingerprint } from "lucide-react";
+import { Lock, Mail, Loader2, ArrowRight, ShieldCheck, HeartPulse, Shield, Fingerprint } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,7 @@ export default function LoginPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-100/50 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-teal-100/50 blur-[120px] rounded-full pointer-events-none" />
       
-      {/* Container Principal (Tamanho Controlado) */}
+      {/* Container Principal */}
       <div className="w-full max-w-[1000px] bg-white rounded-[2rem] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden grid lg:grid-cols-[1.1fr_1fr] relative z-10">
         
         {/* ─── LEFT: BRANDING & CONFIANÇA ─── */}
@@ -78,7 +78,7 @@ export default function LoginPage() {
               A plataforma completa para gestão odontológica. Segurança, conformidade e praticidade para você focar no que realmente importa: seus pacientes.
             </p>
 
-            {/* Cards de Recursos (Acolhedores e Tecnológicos) */}
+            {/* Cards de Recursos */}
             <div className="space-y-4">
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-sm">
                 <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
