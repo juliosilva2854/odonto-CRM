@@ -28,5 +28,4 @@ export function DashboardLayout() {
   );
 }
 
-// Adicionando export default para caso o App.tsx use "import DashboardLayout from..."
 export default DashboardLayout;
