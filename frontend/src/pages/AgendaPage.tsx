@@ -8,7 +8,7 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { format, isSameDay, parseISO } from "date-fns";
 import { 
-  CalendarDays, CalendarPlus, RefreshCw, Clock, 
+  CalendarDays, RefreshCw, Clock, 
   CheckCircle2, AlertCircle, Users, ChevronRight, Plus
 } from "lucide-react";
 
@@ -88,7 +88,6 @@ export default function AgendaPage() {
   }
 
   return (
-    // Trava a altura da tela para não ter scroll na página principal (desconta o header do sistema)
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-[1600px] mx-auto animate-in fade-in duration-500" data-testid="agenda-page">
       
       {/* ─── Header Compacto ─── */}
@@ -104,7 +103,7 @@ export default function AgendaPage() {
         </div>
       </div>
 
-      {/* ─── Layout em 2 Colunas (Preenchendo toda a altura) ─── */}
+      {/* ─── Layout em 2 Colunas ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 flex-1 min-h-0 pb-4">
         
         {/* ─── COLUNA ESQUERDA: CALENDÁRIO ─── */}
@@ -150,7 +149,6 @@ export default function AgendaPage() {
                   allDaySlot={false}
                   nowIndicator
                   weekends
-                  // IMPORTANTE: Força o calendário a ocupar 100% do Card e criar scroll interno
                   height="100%"
                   expandRows
                   stickyHeaderDates
