@@ -15,9 +15,9 @@
   height: 100%; /* Força altura total */
 }
 
-/* Header toolbar (Remove espaço vazio em cima) */
+/* Header toolbar */
 .agenda-card .fc .fc-toolbar.fc-header-toolbar {
-  margin-bottom: 0.5rem; /* Reduzido de 1rem para 0.5rem */
+  margin-bottom: 0.5rem;
   padding: 0 0.5rem;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -26,7 +26,6 @@
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: hsl(var(--foreground));
 }
 
 /* Buttons */
@@ -44,163 +43,65 @@
 }
 .agenda-card .fc .fc-button:hover {
   background: hsl(var(--secondary));
-  border-color: hsl(var(--border));
-  color: hsl(var(--foreground));
 }
-.agenda-card .fc .fc-button:focus,
-.agenda-card .fc .fc-button:active {
-  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.5);
-  outline: none;
-}
-.agenda-card .fc .fc-button-primary:not(:disabled).fc-button-active,
-.agenda-card .fc .fc-button-primary:not(:disabled):active {
+.agenda-card .fc .fc-button-primary:not(:disabled).fc-button-active {
   background: hsl(var(--accent));
   border-color: hsl(var(--accent));
   color: white;
-  box-shadow: 0 1px 2px 0 rgb(79 70 229 / 0.25);
-}
-.agenda-card .fc .fc-button-group .fc-button:not(:first-child) {
-  margin-left: -1px;
 }
 
-/* Day headers */
+/* Cabeçalho dos dias */
 .agenda-card .fc .fc-col-header-cell {
   background: hsl(var(--background));
-  border-color: hsl(var(--border));
-  padding: 0.25rem 0;
+  padding: 0.15rem 0;
 }
 .agenda-card .fc .fc-col-header-cell-cushion {
-  padding: 6px 4px;
+  padding: 4px;
   font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
-  text-decoration: none;
 }
 
-/* Time labels */
-.agenda-card .fc .fc-timegrid-slot-label {
-  border-color: hsl(var(--border));
-  vertical-align: middle;
-}
-.agenda-card .fc .fc-timegrid-slot-label-cushion {
-  padding-right: 8px;
-  font-size: 0.68rem;
-  color: hsl(var(--muted-foreground));
-  font-variant-numeric: tabular-nums;
-}
-
-/* Slot lines */
+/* Horários e Linhas */
 .agenda-card .fc .fc-timegrid-slot {
   border-color: hsl(var(--border));
-  height: 2rem; /* Aumentado levemente para melhor leitura */
+  height: 1.8rem; /* Diminuído para caber mais na tela */
 }
-.agenda-card .fc .fc-timegrid-slot-minor {
-  border-top-style: dotted;
-  border-color: hsl(var(--border) / 0.4);
-}
-
-/* Today column */
-.agenda-card .fc .fc-day-today {
-  background: hsl(var(--accent) / 0.04) !important;
-}
-.agenda-card .fc .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
-  color: hsl(var(--accent));
+.agenda-card .fc .fc-timegrid-slot-label-cushion {
+  font-size: 0.65rem;
+  color: hsl(var(--muted-foreground));
+  padding-right: 4px;
 }
 
-/* Now indicator */
-.agenda-card .fc .fc-timegrid-now-indicator-line {
-  border-top-width: 2px;
-  border-color: hsl(var(--accent));
-}
-
-/* Events */
-.agenda-card .fc .fc-timegrid-event,
-.agenda-card .fc .fc-daygrid-event {
-  border-radius: 0.4rem !important;
-  border-width: 1px;
+/* Evento */
+.agenda-card .fc .fc-timegrid-event {
+  border-radius: 0.3rem !important;
   border-left-width: 3px;
-  box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.06);
-  padding: 0;
-  margin: 1px 2px;
-  overflow: hidden;
+  box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  margin: 1px 1px;
 }
 
-/* Selection */
-.agenda-card .fc .fc-highlight {
-  background: hsl(var(--accent) / 0.08);
-  border: 1px dashed hsl(var(--accent) / 0.6);
-}
-
-/* Custom event content */
 .agenda-event {
-  padding: 4px 6px;
-  font-family: inherit;
+  padding: 2px 4px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centraliza o conteúdo verticalmente */
-  gap: 1px;
-  cursor: pointer;
-}
-.agenda-event-time {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: inherit;
-  opacity: 0.85;
-  font-variant-numeric: tabular-nums;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.agenda-event-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  display: inline-block;
-}
-.agenda-event-name {
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
+  justify-content: center;
   overflow: hidden;
-  text-overflow: ellipsis;
-}
-.agenda-event-meta {
-  font-size: 10px;
-  opacity: 0.75;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* Remove the default box shadow around the calendar root */
+/* Remove bordas e fundos indesejados do container */
 .agenda-card .fc .fc-scrollgrid {
   border-color: hsl(var(--border));
-  border-radius: 0.5rem;
+  border-radius: 0.4rem;
   overflow: hidden;
 }
-.agenda-card .fc .fc-scrollgrid > tbody > tr > td,
-.agenda-card .fc .fc-scrollgrid > thead > tr > th {
-  border-color: hsl(var(--border));
-}
-
-/* Scrollbar inside calendar */
 .agenda-card .fc-scroller::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-.agenda-card .fc-scroller::-webkit-scrollbar-track {
-  background: transparent;
-}
 .agenda-card .fc-scroller::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
   border-radius: 999px;
-}
-.agenda-card .fc-scroller::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.3);
 }
