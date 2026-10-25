@@ -7,12 +7,13 @@ import {
 import { BrandMark } from "@/components/brand/BrandMark";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 interface NavItem {
   to: string;
   label: string;
   Icon: LucideIcon;
-  roles?: string[]; // Se não tiver roles, todo mundo vê
+  roles?: string[];
 }
 
 const NAV_PRIMARY: NavItem[] = [
@@ -24,7 +25,7 @@ const NAV_PRIMARY: NavItem[] = [
 const NAV_FINANCE: NavItem[] = [
   { to: "/finance/quotes", label: "Orçamentos", Icon: ReceiptText },
   { to: "/finance/cash", label: "Caixa", Icon: Wallet, roles: ["admin", "reception"] },
-  { to: "/finance", label: "Financeiro", Icon: Receipt, roles: ["admin"] }, // Só admin vê o lucro
+  { to: "/finance", label: "Financeiro", Icon: Receipt, roles: ["admin"] },
 ];
 
 const NAV_SECONDARY: NavItem[] = [
@@ -35,11 +36,10 @@ const NAV_SECONDARY: NavItem[] = [
   { to: "/settings/billing", label: "Assinatura", Icon: Settings, roles: ["admin"] },
 ];
 
-export function Sidebar() {
+function SidebarContent() {
   const user = useAuthStore((s) => s.user);
-  const role = user?.role || "admin"; // Fallback
+  const role = user?.role || "admin";
 
-  // Filtra os itens baseado no cargo
   const filterNav = (items: NavItem[]) => items.filter(item => !item.roles || item.roles.includes(role));
 
   const primaryItems = filterNav(NAV_PRIMARY);
@@ -47,8 +47,8 @@ export function Sidebar() {
   const secondaryItems = filterNav(NAV_SECONDARY);
 
   return (
-    <aside className="sticky top-0 z-30 flex h-screen w-60 flex-col border-r border-border bg-card">
-      <div className="px-5 py-6">
+    <div className="flex h-full w-full flex-col bg-card">
+      <div className="px-5 py-6 shrink-0">
         <BrandMark size="md" withWordmark />
       </div>
 
@@ -82,7 +82,27 @@ export function Sidebar() {
           </>
         )}
       </nav>
+    </div>
+  );
+}
+
+// Desktop
+export function Sidebar() {
+  return (
+    <aside className="sticky top-0 z-30 hidden h-screen w-60 flex-col border-r border-border md:flex shrink-0">
+      <SidebarContent />
     </aside>
+  );
+}
+
+// Mobile
+export function MobileSidebar({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="left" className="w-60 p-0">
+        <SidebarContent />
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -91,6 +111,7 @@ function SidebarLink({ item }: { item: NavItem }) {
   return (
     <NavLink
       to={item.to}
+      onClick={() => {}}
       className={({ isActive }) =>
         cn(
           "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
