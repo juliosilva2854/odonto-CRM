@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   CalendarDays, ShieldCheck, Lock, Sparkles, Activity, CheckCircle2, 
-  X, Check, FileText, Video, CreditCard, Users, MessageCircle, 
-  Clock, Database, TrendingUp, ShieldAlert, FolderSync, Zap, 
-  ChevronDown, Server, ArrowRight, HeartHandshake, MessageSquare,
+  X, Check, FileText, CreditCard, Users, MessageCircle, 
+  Clock, Database, TrendingUp, ShieldAlert, Zap, 
+  ChevronDown, Server, ArrowRight, HeartHandshake, 
   Stethoscope, MonitorPlay
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
