@@ -105,7 +105,8 @@ export default function AgendaPage() {
   }
 
   return (
-    <div className="flex flex-col h-full max-w-[1600px] mx-auto animate-in fade-in duration-500" data-testid="agenda-page">
+    // Removido max-w para preencher a largura inteira da tela
+    <div className="flex flex-col h-full w-full animate-in fade-in duration-500" data-testid="agenda-page">
       
       {/* Header Compacto */}
       <header className="flex items-center justify-between pb-4 shrink-0">
@@ -150,12 +151,12 @@ export default function AgendaPage() {
         </div>
       </header>
 
-      {/* Layout Principal: Flex-1 para ocupar o resto da tela */}
+      {/* Layout Principal */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 flex-1 min-h-0 pb-2">
         
-        {/* Calendário */}
-        <Card className="agenda-card overflow-hidden border-slate-200 shadow-sm flex flex-col h-full">
-          <CardContent className="p-0 flex-1 relative min-h-0">
+        {/* Calendário (Adicionado w-full aqui) */}
+        <Card className="agenda-card overflow-hidden border-slate-200 shadow-sm flex flex-col h-full w-full">
+          <CardContent className="p-0 flex-1 relative min-h-0 w-full">
             {isError ? (
               <Alert variant="destructive" className="m-6">
                 <AlertDescription>Não foi possível carregar a agenda.</AlertDescription>
@@ -314,7 +315,6 @@ export default function AgendaPage() {
   );
 }
 
-// ─── Renderização Customizada do Evento (Compacta para não cortar) ───
 function renderEventContent(arg: any) {
   const appointment = arg.event.extendedProps.appointment as AppointmentBoardItem;
   const v = APPOINTMENT_STATUS_VISUAL[appointment.status];
