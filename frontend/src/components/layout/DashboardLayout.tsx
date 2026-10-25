@@ -8,17 +8,19 @@ export function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Menu Desktop */}
       <Sidebar />
 
       {/* Menu Mobile */}
       <MobileSidebar open={mobileOpen} onOpenChange={setMobileOpen} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* Área principal da direita (Header + Conteúdo) */}
+      <div className="flex flex-1 flex-col min-w-0 h-full">
         <Header onMenuClick={() => setMobileOpen(true)} />
+        
         <main
-          className="flex-1 px-4 py-6 sm:px-8 sm:py-8 animate-fade-in"
+          className="flex-1 flex flex-col min-h-0 px-4 py-4 sm:px-8 sm:py-6 overflow-hidden animate-fade-in"
           data-testid="dashboard-main"
         >
           <Outlet />
