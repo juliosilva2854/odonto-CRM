@@ -1,520 +1,282 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Navigate, useNavigate, Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Building2,
-  Check,
-  CheckCircle2,
-  Loader2,
-  Sparkles,
-  UserRound,
-} from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Building2, User, Lock, CreditCard, ChevronRight, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
 
-import { BrandMark } from "@/components/brand/BrandMark";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SelectNative } from "@/components/ui/select-native";
-import { toast } from "@/components/ui/toaster";
-import { getErrorMessage } from "@/lib/api";
-import { isValidCnpj, maskCnpj, onlyDigits } from "@/lib/masks";
-import { cn } from "@/lib/utils";
-import { PLANS } from "@/lib/plans";
-import { authService } from "@/services/auth.service";
 import { onboardingService } from "@/services/onboarding.service";
 import { useAuthStore } from "@/store/auth";
+import { authService } from "@/services/auth.service";
 import type { PlanTier } from "@/types/api";
 
-const TIMEZONES = [
-  "America/Sao_Paulo",
-  "America/Manaus",
-  "America/Belem",
-  "America/Fortaleza",
-  "America/Recife",
-  "America/Cuiaba",
-  "America/Porto_Velho",
-  "America/Rio_Branco",
-  "America/Noronha",
-];
-
-const STEPS = ["Sua clínica", "Administrador", "Escolha seu plano"];
+// Ícone customizado
+const BrandMarkCustom = ({ className = "w-8 h-8" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M12 2C8.5 2 6 4.5 6 8.5C6 12 7.5 16.5 9 20C10 22 11 22 11.5 22C12 22 12.5 21 12.5 20C12.5 18 12 15 12 15C12 15 11.5 18 11.5 20C11.5 21 12 22 12.5 22C13 22 14 22 15 20C16.5 16.5 18 12 18 8.5C18 4.5 15.5 2 12 2Z" fill="url(#paint0_linear_signup)" />
+    <path d="M12 5V11M9 7L12 9L15 7" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <defs>
+      <linearGradient id="paint0_linear_signup" x1="6" y1="2" x2="18" y2="22" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#4F46E5" />
+        <stop offset="1" stopColor="#14B8A6" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
 
 export default function SignupPage() {
-  const isAuthed = useAuthStore((s) => s.isAuthenticated());
   const navigate = useNavigate();
   const setTokens = useAuthStore((s) => s.setTokens);
   const setIdentity = useAuthStore((s) => s.setIdentity);
+  
+  const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [step, setStep] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
-
-  // Step 1 — clinic
-  const [legalName, setLegalName] = useState("");
-  const [tradeName, setTradeName] = useState("");
-  const [cnpj, setCnpj] = useState("");
-  const [timezone, setTimezone] = useState("America/Sao_Paulo");
-
-  // Step 2 — admin
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-
-  // Step 3 — plan
+  // Form states
+  const [clinicData, setClinicData] = useState({ legal_name: "", trade_name: "", cnpj: "", timezone: "America/Sao_Paulo" });
+  const [adminData, setAdminData] = useState({ full_name: "", email: "", password: "", confirmPassword: "" });
   const [plan, setPlan] = useState<PlanTier>("pro");
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const handleNext = () => setStep((s) => Math.min(s + 1, 3));
+  const handlePrev = () => setStep((s) => Math.max(s - 1, 1));
 
-  const passwordValid = useMemo(
-    () => password.length >= 8 && /[a-zA-Z]/.test(password) && /\d/.test(password),
-    [password],
-  );
-
-  if (isAuthed) return <Navigate to="/dashboard" replace />;
-
-  function validateStep(current: number): boolean {
-    const e: Record<string, string> = {};
-    if (current === 0) {
-      if (legalName.trim().length < 2) e.legalName = "Informe a razão social.";
-      if (tradeName.trim().length < 2) e.tradeName = "Informe o nome fantasia.";
-      if (!isValidCnpj(cnpj)) e.cnpj = "CNPJ inválido.";
-      if (!timezone) e.timezone = "Selecione o fuso horário.";
-    }
-    if (current === 1) {
-      if (fullName.trim().length < 2) e.fullName = "Informe o nome completo.";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
-        e.email = "E-mail inválido.";
-      if (!passwordValid)
-        e.password = "Mínimo 8 caracteres, com letra e número.";
-      if (confirm !== password) e.confirm = "As senhas não coincidem.";
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
-  function next() {
-    if (validateStep(step)) setStep((s) => Math.min(s + 1, STEPS.length - 1));
-  }
-
-  function back() {
-    setServerError(null);
-    setStep((s) => Math.max(s - 1, 0));
-  }
-
-  async function onSubmit(ev: FormEvent) {
-    ev.preventDefault();
-    if (!validateStep(0) || !validateStep(1)) {
-      setStep(0);
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (step < 3) {
+      handleNext();
       return;
     }
-    setSubmitting(true);
-    setServerError(null);
+
+    // Final submit
+    if (adminData.password !== adminData.confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
     try {
       const res = await onboardingService.signup({
-        clinic_legal_name: legalName.trim(),
-        clinic_trade_name: tradeName.trim(),
-        clinic_cnpj: onlyDigits(cnpj),
-        clinic_timezone: timezone,
-        admin_full_name: fullName.trim(),
-        admin_email: email.trim(),
-        admin_password: password,
-        plan,
+        clinic_legal_name: clinicData.legal_name,
+        clinic_trade_name: clinicData.trade_name,
+        clinic_cnpj: clinicData.cnpj,
+        clinic_timezone: clinicData.timezone,
+        admin_full_name: adminData.full_name,
+        admin_email: adminData.email,
+        admin_password: adminData.password,
+        plan: plan
       });
+
       setTokens(res.access_token, res.refresh_token);
       const me = await authService.me();
-      setIdentity(me.user, {
-        id: String(me.clinic.id),
-        legal_name: String(me.clinic.legal_name),
-        trade_name: String(me.clinic.trade_name),
-        cnpj: String(me.clinic.cnpj),
-        timezone: String(me.clinic.timezone),
-        plan: String(me.clinic.plan),
-      });
-      toast({
-        variant: "success",
-        title: "Bem-vindo!",
-        description: "14 dias grátis começaram.",
-      });
-      navigate("/dashboard", { replace: true });
-    } catch (err) {
-      setServerError(getErrorMessage(err, "Não foi possível criar sua conta."));
+      setIdentity(me.user, me.clinic);
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || "Erro ao criar conta. Verifique os dados.");
+      setStep(1); // Volta pro começo se houver erro
     } finally {
-      setSubmitting(false);
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[1.1fr_1fr]">
-      {/* ─── Left splash ─────────────────────────────────────── */}
-      <aside className="relative hidden overflow-hidden bg-foreground text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="absolute inset-0 bg-dotgrid opacity-30" aria-hidden />
-        <div
-          className="pointer-events-none absolute -left-32 top-1/3 h-[420px] w-[420px] rounded-full bg-accent/40 blur-[120px]"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -right-24 bottom-0 h-[360px] w-[360px] rounded-full bg-indigo-500/30 blur-[120px]"
-          aria-hidden
-        />
+    <div className="grid min-h-screen w-full lg:grid-cols-[1fr_1.2fr] bg-white font-sans">
+      
+      {/* ─── LEFT: SPLASH ─── */}
+      <aside className="relative hidden overflow-hidden bg-slate-900 lg:flex lg:flex-col lg:justify-between text-white border-r border-slate-800">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+        <div className="absolute -left-32 top-1/3 h-[500px] w-[500px] rounded-full bg-indigo-600/30 blur-[120px] pointer-events-none" />
+        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-teal-500/20 blur-[100px] pointer-events-none" />
 
-        <div className="relative z-10 flex items-center gap-3 px-12 pt-12">
-          <BrandMark size="md" withWordmark tone="light" />
+        <div className="relative z-10 flex items-center gap-2 px-12 pt-12">
+          <BrandMarkCustom className="w-9 h-9" />
+          <span className="text-2xl font-bold tracking-tight">Dental<span className="text-indigo-400">.CRM</span></span>
         </div>
 
         <div className="relative z-10 px-12 pb-16">
-          <h2 className="max-w-lg text-4xl font-semibold leading-tight tracking-tight text-white/95">
-            Comece grátis em <span className="text-accent">2 minutos</span>.
-          </h2>
-          <p className="mt-4 max-w-md text-sm text-white/60">
-            Ative sua clínica e leve toda a operação para um só lugar — agenda,
-            prontuário, odontograma e financeiro.
-          </p>
-          <ul className="mt-8 space-y-3 text-sm text-white/80">
-            {[
-              "14 dias grátis, sem cartão",
-              "Multi-tenant com LGPD e trava CFO",
-              "Cancele quando quiser",
-            ].map((b) => (
-              <li key={b} className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/20 text-accent">
-                  <Check className="h-3.5 w-3.5" />
-                </span>
-                {b}
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white mb-6">
+            Comece grátis em <span className="text-indigo-400">2 minutos.</span>
+          </h1>
+          <p className="text-slate-400 mb-8 max-w-md">Ative sua clínica e leve toda a operação para um só lugar — agenda, prontuário, odontograma e financeiro.</p>
+          
+          <ul className="space-y-4">
+            {["14 dias grátis, sem cartão", "Multi-tenant com LGPD e trava CFO", "Cancele quando quiser"].map((item, i) => (
+              <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-300">
+                <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
+                {item}
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="relative z-10 border-t border-white/10 px-12 py-7 text-[11px] uppercase tracking-[0.18em] text-white/45">
-          Dental.CRM · Modern Premium
+        <div className="relative z-10 border-t border-slate-800 px-12 py-6">
+          <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">Dental.CRM · Modern Premium</p>
         </div>
       </aside>
 
-      {/* ─── Right form ──────────────────────────────────────── */}
-      <section className="flex items-center justify-center bg-background px-6 py-10 sm:px-10">
-        <div className="w-full max-w-md">
-          <div className="mb-8 lg:hidden">
-            <BrandMark size="md" withWordmark />
+      {/* ─── RIGHT: FORM ─── */}
+      <section className="flex items-center justify-center bg-slate-50 px-6 py-10 sm:px-10 relative overflow-y-auto">
+        <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px] opacity-50 pointer-events-none" />
+        
+        <div className="w-full max-w-lg relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          
+          <div className="mb-10 lg:hidden flex items-center gap-2">
+            <BrandMarkCustom className="w-8 h-8" />
+            <span className="text-xl font-bold text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
           </div>
 
           {/* Stepper */}
-          <ol className="mb-8 flex items-center gap-2" data-testid="signup-stepper">
-            {STEPS.map((label, i) => (
-              <li key={label} className="flex flex-1 items-center gap-2">
-                <div
-                  className={cn(
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                    i < step && "bg-accent text-accent-foreground",
-                    i === step && "bg-accent/15 text-accent ring-2 ring-accent",
-                    i > step && "bg-secondary text-muted-foreground",
-                  )}
-                >
-                  {i < step ? <Check className="h-3.5 w-3.5" /> : i + 1}
-                </div>
-                {i < STEPS.length - 1 && (
-                  <span
-                    className={cn(
-                      "h-px flex-1",
-                      i < step ? "bg-accent" : "bg-border",
-                    )}
-                  />
-                )}
-              </li>
+          <div className="flex items-center justify-between mb-8 relative">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 -z-10 rounded-full" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-indigo-600 -z-10 rounded-full transition-all duration-300" style={{ width: `${((step - 1) / 2) * 100}%` }} />
+            
+            {[1, 2, 3].map((num) => (
+              <div key={num} className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-4 border-slate-50 transition-colors ${step >= num ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-500"}`}>
+                {num}
+              </div>
             ))}
-          </ol>
+          </div>
 
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {STEPS[step]}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Passo {step + 1} de {STEPS.length}
-          </p>
+          <div className="bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200">
+            <h2 className="text-2xl font-bold text-slate-900 mb-1">
+              {step === 1 && "Sua clínica"}
+              {step === 2 && "Dados do Administrador"}
+              {step === 3 && "Escolha seu plano"}
+            </h2>
+            <p className="text-sm text-slate-500 mb-6">
+              Passo {step} de 3
+            </p>
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-5" noValidate>
-            {step === 0 && (
-              <>
-                <Field
-                  id="legal_name"
-                  label="Razão social"
-                  value={legalName}
-                  onChange={setLegalName}
-                  placeholder="Clínica Sorriso LTDA"
-                  error={errors.legalName}
-                  icon={<Building2 className="h-4 w-4" />}
-                />
-                <Field
-                  id="trade_name"
-                  label="Nome fantasia"
-                  value={tradeName}
-                  onChange={setTradeName}
-                  placeholder="Sorriso Odontologia"
-                  error={errors.tradeName}
-                />
-                <div className="space-y-2">
-                  <Label htmlFor="cnpj">CNPJ</Label>
-                  <Input
-                    id="cnpj"
-                    inputMode="numeric"
-                    placeholder="00.000.000/0001-00"
-                    value={cnpj}
-                    onChange={(e) => setCnpj(maskCnpj(e.target.value))}
-                    data-testid="signup-cnpj"
-                  />
-                  {errors.cnpj && <FieldError>{errors.cnpj}</FieldError>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">Fuso horário</Label>
-                  <SelectNative
-                    id="timezone"
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                    data-testid="signup-timezone"
-                  >
-                    {TIMEZONES.map((tz) => (
-                      <option key={tz} value={tz}>
-                        {tz}
-                      </option>
-                    ))}
-                  </SelectNative>
-                </div>
-              </>
-            )}
-
-            {step === 1 && (
-              <>
-                <Field
-                  id="full_name"
-                  label="Nome completo"
-                  value={fullName}
-                  onChange={setFullName}
-                  placeholder="Dra. Ana Souza"
-                  error={errors.fullName}
-                  icon={<UserRound className="h-4 w-4" />}
-                />
-                <Field
-                  id="email"
-                  type="email"
-                  label="E-mail"
-                  value={email}
-                  onChange={setEmail}
-                  placeholder="voce@clinica.com.br"
-                  error={errors.email}
-                />
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    data-testid="signup-password"
-                  />
-                  <p
-                    className={cn(
-                      "text-xs",
-                      password.length === 0
-                        ? "text-muted-foreground"
-                        : passwordValid
-                          ? "text-success"
-                          : "text-amber-600",
-                    )}
-                  >
-                    Mínimo 8 caracteres, com pelo menos uma letra e um número.
-                  </p>
-                  {errors.password && <FieldError>{errors.password}</FieldError>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm">Confirmar senha</Label>
-                  <Input
-                    id="confirm"
-                    type="password"
-                    placeholder="••••••••"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    data-testid="signup-confirm"
-                  />
-                  {errors.confirm && <FieldError>{errors.confirm}</FieldError>}
-                </div>
-              </>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-3" data-testid="signup-plans">
-                {PLANS.map((p) => {
-                  const selected = plan === p.tier;
-                  return (
-                    <button
-                      type="button"
-                      key={p.tier}
-                      onClick={() => setPlan(p.tier)}
-                      data-testid={`signup-plan-${p.tier}`}
-                      className={cn(
-                        "relative w-full rounded-2xl border p-4 text-left transition-all",
-                        selected
-                          ? "border-accent bg-accent/5 shadow-glow"
-                          : "border-border bg-card hover:border-accent/40",
-                      )}
-                    >
-                      {p.highlight && (
-                        <span className="absolute -top-2.5 right-4 inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-foreground">
-                          <Sparkles className="h-3 w-3" /> Mais escolhido
-                        </span>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">
-                            {p.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {p.tagline}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold tracking-tight text-foreground">
-                            {p.priceLabel}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground">/mês</p>
-                        </div>
-                      </div>
-                      <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-                        {p.features.map((f) => (
-                          <li
-                            key={f}
-                            className="flex items-center gap-1.5 text-xs text-muted-foreground"
-                          >
-                            <Check className="h-3 w-3 text-accent" />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                      <span
-                        className={cn(
-                          "absolute right-4 top-4 flex h-5 w-5 items-center justify-center rounded-full border",
-                          selected
-                            ? "border-accent bg-accent text-accent-foreground"
-                            : "border-border",
-                          p.highlight && "hidden",
-                        )}
-                      >
-                        {selected && <Check className="h-3 w-3" />}
-                      </span>
-                    </button>
-                  );
-                })}
+            {error && (
+              <div className="mb-4 p-3 bg-rose-50 text-rose-600 text-sm rounded-lg border border-rose-200">
+                {error}
               </div>
             )}
 
-            {serverError && (
-              <Alert variant="destructive" data-testid="signup-error">
-                <AlertDescription>{serverError}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center gap-3 pt-2">
-              {step > 0 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={back}
-                  disabled={submitting}
-                  data-testid="signup-back"
-                >
-                  <ArrowLeft className="h-4 w-4" /> Voltar
-                </Button>
+            <form onSubmit={onSubmit} className="space-y-4">
+              {/* STEP 1: CLINIC */}
+              {step === 1 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                  <div className="space-y-2">
+                    <Label>Razão Social</Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <Input required placeholder="Ex: Clínica Sorriso LTDA" className="pl-10 h-11" value={clinicData.legal_name} onChange={e => setClinicData({...clinicData, legal_name: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Nome Fantasia</Label>
+                    <Input required placeholder="Ex: Sorriso Odontologia" className="h-11" value={clinicData.trade_name} onChange={e => setClinicData({...clinicData, trade_name: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>CNPJ</Label>
+                    <Input required placeholder="00.000.000/0001-00" className="h-11" value={clinicData.cnpj} onChange={e => setClinicData({...clinicData, cnpj: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Fuso Horário</Label>
+                    <select 
+                      className="flex h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      value={clinicData.timezone}
+                      onChange={e => setClinicData({...clinicData, timezone: e.target.value})}
+                    >
+                      <option value="America/Sao_Paulo">America/Sao_Paulo</option>
+                      <option value="America/Manaus">America/Manaus</option>
+                      <option value="America/Belem">America/Belem</option>
+                    </select>
+                  </div>
+                </div>
               )}
-              {step < STEPS.length - 1 ? (
-                <Button
-                  type="button"
-                  variant="accent"
-                  className="flex-1"
-                  onClick={next}
-                  data-testid="signup-next"
-                >
-                  Próximo <ArrowRight className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  variant="accent"
-                  className="flex-1"
-                  disabled={submitting}
-                  data-testid="signup-submit"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Criando…
-                    </>
+
+              {/* STEP 2: ADMIN */}
+              {step === 2 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                  <div className="space-y-2">
+                    <Label>Nome Completo</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <Input required placeholder="Seu nome" className="pl-10 h-11" value={adminData.full_name} onChange={e => setAdminData({...adminData, full_name: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>E-mail Profissional</Label>
+                    <Input required type="email" placeholder="voce@clinica.com.br" className="h-11" value={adminData.email} onChange={e => setAdminData({...adminData, email: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Senha</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <Input required type="password" placeholder="Min. 8 caracteres" className="pl-10 h-11" value={adminData.password} onChange={e => setAdminData({...adminData, password: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Confirmar Senha</Label>
+                    <Input required type="password" placeholder="Repita a senha" className="h-11" value={adminData.confirmPassword} onChange={e => setAdminData({...adminData, confirmPassword: e.target.value})} />
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: PLAN */}
+              {step === 3 && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                  <div 
+                    onClick={() => setPlan("pro")}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${plan === "pro" ? "border-indigo-600 bg-indigo-50" : "border-slate-200 hover:border-slate-300"}`}
+                  >
+                    <div>
+                      <h4 className="font-bold text-slate-900">Plano Pro</h4>
+                      <p className="text-xs text-slate-500">Para clínicas em crescimento</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-bold text-slate-900">R$ 497</span><span className="text-xs text-slate-500">/mês</span>
+                    </div>
+                  </div>
+
+                  <div 
+                    onClick={() => setPlan("essencial")}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${plan === "essencial" ? "border-indigo-600 bg-indigo-50" : "border-slate-200 hover:border-slate-300"}`}
+                  >
+                    <div>
+                      <h4 className="font-bold text-slate-900">Plano Essencial</h4>
+                      <p className="text-xs text-slate-500">Para dentistas autônomos</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-bold text-slate-900">R$ 297</span><span className="text-xs text-slate-500">/mês</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* BUTTONS */}
+              <div className="flex items-center gap-3 pt-6 mt-6 border-t border-slate-100">
+                {step > 1 && (
+                  <Button type="button" variant="outline" onClick={handlePrev} className="h-11 px-4" disabled={isLoading}>
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
+                  </Button>
+                )}
+                
+                <Button type="submit" variant="accent" className="flex-1 h-11 rounded-xl shadow-lg shadow-indigo-500/20" disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : step === 3 ? (
+                    <>Criar conta grátis <CheckCircle2 className="w-4 h-4 ml-2" /></>
                   ) : (
-                    <>
-                      <CheckCircle2 className="h-4 w-4" /> Começar trial grátis de
-                      14 dias
-                    </>
+                    <>Próximo <ChevronRight className="w-4 h-4 ml-1" /></>
                   )}
                 </Button>
-              )}
-            </div>
-          </form>
+              </div>
+            </form>
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Já tem conta?{" "}
-            <Link to="/login" className="font-medium text-accent hover:underline">
-              Entrar
-            </Link>
-          </p>
+            <p className="mt-6 text-center text-sm text-slate-500">
+              Já tem conta?{" "}
+              <Link to="/login" className="font-semibold text-indigo-600 hover:underline">
+                Entrar
+              </Link>
+            </p>
+          </div>
         </div>
       </section>
     </div>
   );
-}
-
-function Field({
-  id,
-  label,
-  value,
-  onChange,
-  placeholder,
-  error,
-  type = "text",
-  icon,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  error?: string;
-  type?: string;
-  icon?: ReactNode;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="relative">
-        {icon && (
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-            {icon}
-          </span>
-        )}
-        <Input
-          id={id}
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={cn(icon && "pl-9")}
-          data-testid={`signup-${id}`}
-        />
-      </div>
-      {error && <FieldError>{error}</FieldError>}
-    </div>
-  );
-}
-
-function FieldError({ children }: { children: ReactNode }) {
-  return <p className="text-xs font-medium text-destructive">{children}</p>;
 }
