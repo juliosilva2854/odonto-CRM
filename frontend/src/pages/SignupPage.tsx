@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Building2, User, Lock, ChevronRight, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { Building2, User, Lock, ChevronRight, ChevronLeft, Loader2, CheckCircle2, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,73 +79,82 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[1fr_1.1fr] bg-white font-sans overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-200/60 p-4 sm:p-8 font-sans relative overflow-hidden">
       
-      {/* ─── LEFT: SPLASH ─── */}
-      <aside className="relative hidden overflow-hidden bg-slate-50 lg:flex lg:flex-col lg:justify-between border-r border-slate-200">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:32px_32px] opacity-60" />
-        <div className="absolute -left-32 top-1/3 h-[500px] w-[500px] rounded-full bg-indigo-200/50 blur-[100px] pointer-events-none" />
-        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-teal-200/50 blur-[100px] pointer-events-none" />
+      {/* Efeitos de Fundo */}
+      <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-indigo-200/30 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-teal-200/30 blur-[120px] rounded-full pointer-events-none" />
+      
+      {/* Container Principal */}
+      <div className="w-full max-w-[1050px] bg-white rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white/50 overflow-hidden grid lg:grid-cols-[1fr_1.1fr] relative z-10">
+        
+        {/* ─── LEFT: SPLASH ─── */}
+        <div className="relative hidden lg:flex flex-col justify-between bg-gradient-to-br from-slate-800 to-teal-950 p-12 lg:p-16 text-white overflow-hidden">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px]" />
+          <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-teal-500/20 blur-[80px] rounded-full pointer-events-none" />
 
-        <div className="relative z-10 flex items-center gap-2 px-12 pt-12">
-          <BrandMarkCustom className="w-9 h-9" />
-          <span className="text-2xl font-bold tracking-tight text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
+          <div className="relative z-10">
+            <Link to="/" className="flex items-center gap-2 mb-12 hover:opacity-80 transition-opacity w-max">
+              <BrandMarkCustom className="w-9 h-9" />
+              <span className="text-2xl font-bold tracking-tight">Dental<span className="text-teal-400">.CRM</span></span>
+            </Link>
+
+            <h2 className="text-3xl font-bold leading-tight mb-4">
+              Comece grátis em <br/>
+              <span className="text-teal-300">2 minutos.</span>
+            </h2>
+            <p className="text-slate-300 text-base mb-12 max-w-sm">
+              Ative sua clínica e leve toda a operação para um só lugar — agenda, prontuário, odontograma e financeiro.
+            </p>
+
+            <div className="space-y-4">
+              {["14 dias grátis, sem cartão", "Multi-tenant com LGPD e trava CFO", "Cancele quando quiser"].map((item, i) => (
+                <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-sm">
+                  <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
+                  <span className="text-sm font-semibold text-white">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative z-10 pt-6">
+            <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">Dental.CRM · Modern Premium</p>
+          </div>
         </div>
 
-        <div className="relative z-10 px-12 pb-16">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-slate-900 mb-6">
-            Comece grátis em <span className="text-indigo-600">2 minutos.</span>
-          </h1>
-          <p className="text-slate-600 mb-8 max-w-md text-lg font-medium">Ative sua clínica e leve toda a operação para um só lugar — agenda, prontuário, odontograma e financeiro.</p>
+        {/* ─── RIGHT: FORM ─── */}
+        <div className="flex flex-col justify-center p-8 sm:p-12 relative bg-slate-50 overflow-y-auto">
           
-          <ul className="space-y-4">
-            {["14 dias grátis, sem cartão", "Multi-tenant com LGPD e trava CFO", "Cancele quando quiser"].map((item, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm font-semibold text-slate-700">
-                <CheckCircle2 className="w-5 h-5 text-teal-500 shrink-0" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="relative z-10 border-t border-slate-200 px-12 py-6">
-          <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">Dental.CRM · Modern Premium</p>
-        </div>
-      </aside>
-
-      {/* ─── RIGHT: FORM ─── */}
-      <section className="flex items-center justify-center bg-white px-6 py-10 sm:px-10 relative overflow-y-auto">
-        <div className="w-full max-w-lg relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          
-          <div className="mb-10 lg:hidden flex items-center gap-2 justify-center">
+          <div className="mb-8 lg:hidden flex items-center gap-2 justify-center">
             <BrandMarkCustom className="w-8 h-8" />
             <span className="text-2xl font-bold text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
           </div>
 
-          {/* Stepper */}
-          <div className="flex items-center justify-between mb-10 relative px-4">
-            <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10 rounded-full" />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 h-1 bg-indigo-600 -z-10 rounded-full transition-all duration-500" style={{ width: `calc(${((step - 1) / 2) * 100}% - 8px)` }} />
+          <div className="w-full max-w-md mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
             
-            {[1, 2, 3].map((num) => (
-              <div key={num} className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-4 border-white transition-all duration-300 shadow-sm ${step >= num ? "bg-indigo-600 text-white scale-110" : "bg-slate-100 text-slate-400"}`}>
-                {num}
-              </div>
-            ))}
-          </div>
+            {/* Stepper */}
+            <div className="flex items-center justify-between mb-8 relative px-2">
+              <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-1 bg-slate-200 -z-10 rounded-full" />
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 h-1 bg-indigo-600 -z-10 rounded-full transition-all duration-500" style={{ width: `calc(${((step - 1) / 2) * 100}% - 4px)` }} />
+              
+              {[1, 2, 3].map((num) => (
+                <div key={num} className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-4 border-slate-50 transition-all duration-300 shadow-sm ${step >= num ? "bg-indigo-600 text-white scale-110" : "bg-slate-200 text-slate-500"}`}>
+                  {num}
+                </div>
+              ))}
+            </div>
 
-          <div className="bg-white p-8 sm:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">
               {step === 1 && "Sua clínica"}
               {step === 2 && "Acesso do Administrador"}
               {step === 3 && "Escolha seu plano"}
-            </h2>
-            <p className="text-sm text-slate-500 mb-8 font-medium">
+            </h1>
+            <p className="text-sm text-slate-500 mb-6 font-medium">
               Passo {step} de 3. Preencha os dados abaixo.
             </p>
 
             {error && (
-              <div className="mb-6 p-4 bg-rose-50 text-rose-600 text-sm font-medium rounded-xl border border-rose-200 animate-in shake">
+              <div className="mb-6 p-4 bg-rose-50 text-rose-600 text-sm font-semibold rounded-xl border border-rose-200 animate-in shake">
                 {error}
               </div>
             )}
@@ -156,22 +165,22 @@ export default function SignupPage() {
                   <div className="space-y-2">
                     <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Razão Social</Label>
                     <div className="relative group">
-                      <Building2 className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500" />
-                      <Input required placeholder="Ex: Clínica Sorriso LTDA" className="pl-11 h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={clinicData.legal_name} onChange={e => setClinicData({...clinicData, legal_name: e.target.value})} />
+                      <Building2 className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600" />
+                      <Input required placeholder="Ex: Clínica Sorriso LTDA" className="pl-11 h-12 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl shadow-sm" value={clinicData.legal_name} onChange={e => setClinicData({...clinicData, legal_name: e.target.value})} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Nome Fantasia</Label>
-                    <Input required placeholder="Ex: Sorriso Odontologia" className="h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={clinicData.trade_name} onChange={e => setClinicData({...clinicData, trade_name: e.target.value})} />
+                    <Input required placeholder="Ex: Sorriso Odontologia" className="h-12 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl shadow-sm" value={clinicData.trade_name} onChange={e => setClinicData({...clinicData, trade_name: e.target.value})} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">CNPJ</Label>
-                    <Input required placeholder="00.000.000/0001-00" className="h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={clinicData.cnpj} onChange={e => setClinicData({...clinicData, cnpj: e.target.value})} />
+                    <Input required placeholder="00.000.000/0001-00" className="h-12 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl shadow-sm" value={clinicData.cnpj} onChange={e => setClinicData({...clinicData, cnpj: e.target.value})} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Fuso Horário</Label>
                     <select 
-                      className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                      className="flex h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-sm font-medium text-slate-700"
                       value={clinicData.timezone}
                       onChange={e => setClinicData({...clinicData, timezone: e.target.value})}
                     >
@@ -188,24 +197,24 @@ export default function SignupPage() {
                   <div className="space-y-2">
                     <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Nome Completo</Label>
                     <div className="relative group">
-                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500" />
-                      <Input required placeholder="Seu nome" className="pl-11 h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={adminData.full_name} onChange={e => setAdminData({...adminData, full_name: e.target.value})} />
+                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600" />
+                      <Input required placeholder="Seu nome" className="pl-11 h-12 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl shadow-sm" value={adminData.full_name} onChange={e => setAdminData({...adminData, full_name: e.target.value})} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">E-mail Profissional</Label>
-                    <Input required type="email" placeholder="voce@clinica.com.br" className="h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={adminData.email} onChange={e => setAdminData({...adminData, email: e.target.value})} />
+                    <Input required type="email" placeholder="voce@clinica.com.br" className="h-12 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl shadow-sm" value={adminData.email} onChange={e => setAdminData({...adminData, email: e.target.value})} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Senha</Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500" />
-                      <Input required type="password" placeholder="Min. 8 caracteres" className="pl-11 h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={adminData.password} onChange={e => setAdminData({...adminData, password: e.target.value})} />
+                      <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600" />
+                      <Input required type="password" placeholder="Min. 8 caracteres" className="pl-11 h-12 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl shadow-sm" value={adminData.password} onChange={e => setAdminData({...adminData, password: e.target.value})} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Confirmar Senha</Label>
-                    <Input required type="password" placeholder="Repita a senha" className="h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={adminData.confirmPassword} onChange={e => setAdminData({...adminData, confirmPassword: e.target.value})} />
+                    <Input required type="password" placeholder="Repita a senha" className="h-12 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-xl shadow-sm" value={adminData.confirmPassword} onChange={e => setAdminData({...adminData, confirmPassword: e.target.value})} />
                   </div>
                 </div>
               )}
@@ -214,43 +223,43 @@ export default function SignupPage() {
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                   <div 
                     onClick={() => setPlan("pro")}
-                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex justify-between items-center ${plan === "pro" ? "border-indigo-600 bg-indigo-50/50 shadow-md" : "border-slate-200 hover:border-slate-300"}`}
+                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex justify-between items-center ${plan === "pro" ? "border-indigo-600 bg-indigo-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}
                   >
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold text-slate-900 text-lg">Plano Pro</h4>
-                        <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Recomendado</span>
+                        <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border border-indigo-200">Recomendado</span>
                       </div>
-                      <p className="text-sm text-slate-500 mt-1">Para clínicas em crescimento</p>
+                      <p className="text-sm text-slate-500 mt-1 font-medium">Para clínicas em crescimento</p>
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-bold text-slate-900">R$ 497</span><span className="text-sm text-slate-500">/mês</span>
+                      <span className="text-2xl font-bold text-slate-900">R$ 497</span><span className="text-sm text-slate-500 font-medium">/mês</span>
                     </div>
                   </div>
 
                   <div 
                     onClick={() => setPlan("essencial")}
-                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex justify-between items-center ${plan === "essencial" ? "border-indigo-600 bg-indigo-50/50 shadow-md" : "border-slate-200 hover:border-slate-300"}`}
+                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex justify-between items-center ${plan === "essencial" ? "border-indigo-600 bg-indigo-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}
                   >
                     <div>
                       <h4 className="font-bold text-slate-900 text-lg">Plano Essencial</h4>
-                      <p className="text-sm text-slate-500 mt-1">Para dentistas autônomos</p>
+                      <p className="text-sm text-slate-500 mt-1 font-medium">Para dentistas autônomos</p>
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-bold text-slate-900">R$ 297</span><span className="text-sm text-slate-500">/mês</span>
+                      <span className="text-2xl font-bold text-slate-900">R$ 297</span><span className="text-sm text-slate-500 font-medium">/mês</span>
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="flex items-center gap-3 pt-6 mt-8 border-t border-slate-100">
+              <div className="flex items-center gap-3 pt-6 mt-6 border-t border-slate-200">
                 {step > 1 && (
-                  <Button type="button" variant="outline" onClick={handlePrev} className="h-12 px-6 rounded-xl" disabled={isLoading}>
+                  <Button type="button" variant="outline" onClick={handlePrev} className="h-12 px-6 rounded-xl border-slate-300 text-slate-700 bg-white" disabled={isLoading}>
                     <ChevronLeft className="w-5 h-5 mr-1" /> Voltar
                   </Button>
                 )}
                 
-                <Button type="submit" className="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/20 hover:-translate-y-0.5 transition-all text-base font-semibold" disabled={isLoading}>
+                <Button type="submit" className="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 transition-all text-base font-semibold" disabled={isLoading}>
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : step === 3 ? (
@@ -268,9 +277,13 @@ export default function SignupPage() {
                 Entrar
               </Link>
             </p>
+            <div className="mt-6 flex items-center justify-center gap-2 text-xs font-semibold text-slate-400">
+              <ShieldCheck className="h-4 w-4" />
+              Protegido por criptografia · Conformidade LGPD/CFO
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
