@@ -19,7 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import { NewAppointmentSheet } from "@/components/agenda/NewAppointmentSheet";
 import { AppointmentDetailDialog } from "@/components/agenda/AppointmentDetailDialog";
 import { APPOINTMENT_STATUS_VISUAL } from "@/components/agenda/appointment-status";
@@ -68,7 +67,7 @@ export default function AgendaPage() {
   const upcomingAppointments = [...todayAppointments]
     .filter(apt => parseISO(apt.starts_at) >= today && apt.status !== "cancelled" && apt.status !== "no_show")
     .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
-    .slice(0, 5); // Mostra no máximo 5 no painel
+    .slice(0, 5);
 
   const events = useMemo(() =>
     filteredAppointments.map((a) => {
@@ -108,7 +107,6 @@ export default function AgendaPage() {
   }
 
   return (
-    // Trava a altura para preencher a tela sem barra de rolagem global
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-[1600px] mx-auto animate-in fade-in duration-500" data-testid="agenda-page">
       
       {/* ─── Header ─── */}
@@ -243,7 +241,6 @@ export default function AgendaPage() {
                 <Clock className="w-4 h-4 text-amber-500" /> Na Sala de Espera
               </h3>
             </div>
-            {/* Adicionado max-h e overflow interno apenas se a lista for enorme */}
             <CardContent className="p-2 overflow-y-auto max-h-[200px] custom-scrollbar">
               {waitingRoom.length === 0 ? (
                 <div className="text-center py-4">
@@ -275,7 +272,6 @@ export default function AgendaPage() {
                 <CalendarDays className="w-4 h-4 text-indigo-500" /> Próximos
               </h3>
             </div>
-            {/* Ocupa todo o espaço restante e rola internamente se precisar */}
             <CardContent className="p-2 overflow-y-auto custom-scrollbar">
               {upcomingAppointments.length === 0 ? (
                 <div className="text-center py-8">
