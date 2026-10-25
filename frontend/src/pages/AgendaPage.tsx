@@ -7,7 +7,6 @@ import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { format, isSameDay, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { 
   CalendarDays, CalendarPlus, RefreshCw, Clock, 
   CheckCircle2, AlertCircle, Users, ChevronRight 
@@ -36,7 +35,6 @@ export default function AgendaPage() {
   const [defaultEnd, setDefaultEnd] = useState<Date | null>(null);
   const [viewRange, setViewRange] = useState<{ start: Date; end: Date } | null>(null);
 
-  // ─── Busca de Dados ───
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["agenda", "appointments", viewRange?.start.toISOString(), viewRange?.end.toISOString()],
     queryFn: () => agendaService.listAppointments({
@@ -49,19 +47,16 @@ export default function AgendaPage() {
 
   const appointments: AppointmentBoardItem[] = data ?? [];
 
-  // ─── Cálculos do Painel Lateral ───
   const today = new Date();
   const todayAppointments = appointments.filter(apt => isSameDay(parseISO(apt.starts_at), today));
   const waitingRoom = appointments.filter(apt => apt.status === "waiting_room");
   const confirmedToday = todayAppointments.filter(apt => apt.status === "confirmed" || apt.status === "in_progress").length;
   
-  // Próximas consultas (ordenadas por horário)
   const upcomingAppointments = [...todayAppointments]
     .filter(apt => parseISO(apt.starts_at) >= today && apt.status !== "cancelled" && apt.status !== "no_show")
     .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
     .slice(0, 4);
 
-  // ─── Eventos do FullCalendar ───
   const events = useMemo(() =>
     appointments.map((a) => {
       const visual = APPOINTMENT_STATUS_VISUAL[a.status];
@@ -79,7 +74,6 @@ export default function AgendaPage() {
     [appointments]
   );
 
-  // ─── Ações ───
   function handleSelect(arg: DateSelectArg) {
     setDefaultStart(arg.start);
     setDefaultEnd(arg.end);
@@ -295,7 +289,6 @@ export default function AgendaPage() {
   );
 }
 
-// ─── Renderização Customizada do Evento ───
 function renderEventContent(arg: any) {
   const appointment = arg.event.extendedProps.appointment as AppointmentBoardItem;
   const v = APPOINTMENT_STATUS_VISUAL[appointment.status];
