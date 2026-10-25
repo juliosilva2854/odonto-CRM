@@ -86,7 +86,6 @@ function SidebarContent() {
   );
 }
 
-// Desktop
 export function Sidebar() {
   return (
     <aside className="sticky top-0 z-30 hidden h-screen w-60 flex-col border-r border-border md:flex shrink-0">
@@ -95,7 +94,6 @@ export function Sidebar() {
   );
 }
 
-// Mobile
 export function MobileSidebar({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -111,7 +109,6 @@ function SidebarLink({ item }: { item: NavItem }) {
   return (
     <NavLink
       to={item.to}
-      onClick={() => {}}
       className={({ isActive }) =>
         cn(
           "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
