@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Building2, User, Lock, CreditCard, ChevronRight, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { Building2, User, Lock, ChevronRight, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
