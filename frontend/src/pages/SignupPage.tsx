@@ -79,73 +79,68 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[1fr_1.2fr] bg-slate-950 font-sans overflow-hidden">
+    <div className="grid min-h-screen w-full lg:grid-cols-[1fr_1.1fr] bg-white font-sans overflow-hidden">
       
       {/* ─── LEFT: SPLASH ─── */}
-      <aside className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between text-white border-r border-slate-800/50">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
-        <div className="absolute -left-32 top-1/3 h-[500px] w-[500px] rounded-full bg-indigo-600/30 blur-[120px] pointer-events-none" />
-        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-teal-500/20 blur-[100px] pointer-events-none" />
+      <aside className="relative hidden overflow-hidden bg-slate-50 lg:flex lg:flex-col lg:justify-between border-r border-slate-200">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:32px_32px] opacity-60" />
+        <div className="absolute -left-32 top-1/3 h-[500px] w-[500px] rounded-full bg-indigo-200/50 blur-[100px] pointer-events-none" />
+        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-teal-200/50 blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-2 px-12 pt-12">
           <BrandMarkCustom className="w-9 h-9" />
-          <span className="text-2xl font-bold tracking-tight">Dental<span className="text-indigo-400">.CRM</span></span>
+          <span className="text-2xl font-bold tracking-tight text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
         </div>
 
         <div className="relative z-10 px-12 pb-16">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white mb-6">
-            Comece grátis em <span className="text-indigo-400">2 minutos.</span>
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-slate-900 mb-6">
+            Comece grátis em <span className="text-indigo-600">2 minutos.</span>
           </h1>
-          <p className="text-slate-400 mb-8 max-w-md text-lg">Ative sua clínica e leve toda a operação para um só lugar — agenda, prontuário, odontograma e financeiro.</p>
+          <p className="text-slate-600 mb-8 max-w-md text-lg font-medium">Ative sua clínica e leve toda a operação para um só lugar — agenda, prontuário, odontograma e financeiro.</p>
           
           <ul className="space-y-4">
             {["14 dias grátis, sem cartão", "Multi-tenant com LGPD e trava CFO", "Cancele quando quiser"].map((item, i) => (
-              <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-300">
-                <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0" />
+              <li key={i} className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                <CheckCircle2 className="w-5 h-5 text-teal-500 shrink-0" />
                 {item}
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="relative z-10 border-t border-slate-800/50 px-12 py-6 bg-slate-950/30 backdrop-blur-sm">
-          <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">Dental.CRM · Modern Premium</p>
+        <div className="relative z-10 border-t border-slate-200 px-12 py-6">
+          <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">Dental.CRM · Modern Premium</p>
         </div>
       </aside>
 
       {/* ─── RIGHT: FORM ─── */}
-      <section className="flex items-center justify-center bg-slate-50 px-6 py-10 sm:px-10 relative overflow-y-auto">
-        <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-200/30 blur-[100px] rounded-full pointer-events-none" />
-        
+      <section className="flex items-center justify-center bg-white px-6 py-10 sm:px-10 relative overflow-y-auto">
         <div className="w-full max-w-lg relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
           
-          <div className="mb-8 lg:hidden flex items-center gap-2 justify-center">
+          <div className="mb-10 lg:hidden flex items-center gap-2 justify-center">
             <BrandMarkCustom className="w-8 h-8" />
             <span className="text-2xl font-bold text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
           </div>
 
           {/* Stepper */}
           <div className="flex items-center justify-between mb-10 relative px-4">
-            <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-1 bg-slate-200 -z-10 rounded-full" />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-indigo-500 to-indigo-600 -z-10 rounded-full transition-all duration-500" style={{ width: `calc(${((step - 1) / 2) * 100}% - 8px)` }} />
+            <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10 rounded-full" />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 h-1 bg-indigo-600 -z-10 rounded-full transition-all duration-500" style={{ width: `calc(${((step - 1) / 2) * 100}% - 8px)` }} />
             
             {[1, 2, 3].map((num) => (
-              <div key={num} className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-4 border-slate-50 transition-all duration-300 shadow-md ${step >= num ? "bg-indigo-600 text-white scale-110" : "bg-slate-200 text-slate-500"}`}>
+              <div key={num} className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-4 border-white transition-all duration-300 shadow-sm ${step >= num ? "bg-indigo-600 text-white scale-110" : "bg-slate-100 text-slate-400"}`}>
                 {num}
               </div>
             ))}
           </div>
 
-          <div className="bg-white/80 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-white/50 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-400" />
-            
+          <div className="bg-white p-8 sm:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative">
             <h2 className="text-3xl font-bold text-slate-900 mb-2">
               {step === 1 && "Sua clínica"}
               {step === 2 && "Acesso do Administrador"}
               {step === 3 && "Escolha seu plano"}
             </h2>
-            <p className="text-sm text-slate-500 mb-8">
+            <p className="text-sm text-slate-500 mb-8 font-medium">
               Passo {step} de 3. Preencha os dados abaixo.
             </p>
 
@@ -158,23 +153,23 @@ export default function SignupPage() {
             <form onSubmit={onSubmit} className="space-y-5">
               {step === 1 && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Razão Social</Label>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Razão Social</Label>
                     <div className="relative group">
                       <Building2 className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500" />
                       <Input required placeholder="Ex: Clínica Sorriso LTDA" className="pl-11 h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={clinicData.legal_name} onChange={e => setClinicData({...clinicData, legal_name: e.target.value})} />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Nome Fantasia</Label>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Nome Fantasia</Label>
                     <Input required placeholder="Ex: Sorriso Odontologia" className="h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={clinicData.trade_name} onChange={e => setClinicData({...clinicData, trade_name: e.target.value})} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">CNPJ</Label>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">CNPJ</Label>
                     <Input required placeholder="00.000.000/0001-00" className="h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={clinicData.cnpj} onChange={e => setClinicData({...clinicData, cnpj: e.target.value})} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Fuso Horário</Label>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Fuso Horário</Label>
                     <select 
                       className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
                       value={clinicData.timezone}
@@ -190,26 +185,26 @@ export default function SignupPage() {
 
               {step === 2 && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Nome Completo</Label>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Nome Completo</Label>
                     <div className="relative group">
                       <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500" />
                       <Input required placeholder="Seu nome" className="pl-11 h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={adminData.full_name} onChange={e => setAdminData({...adminData, full_name: e.target.value})} />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">E-mail Profissional</Label>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">E-mail Profissional</Label>
                     <Input required type="email" placeholder="voce@clinica.com.br" className="h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={adminData.email} onChange={e => setAdminData({...adminData, email: e.target.value})} />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Senha</Label>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Senha</Label>
                     <div className="relative group">
                       <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500" />
                       <Input required type="password" placeholder="Min. 8 caracteres" className="pl-11 h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={adminData.password} onChange={e => setAdminData({...adminData, password: e.target.value})} />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Confirmar Senha</Label>
+                  <div className="space-y-2">
+                    <Label className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Confirmar Senha</Label>
                     <Input required type="password" placeholder="Repita a senha" className="h-12 bg-slate-50 border-slate-200 focus-visible:bg-white rounded-xl shadow-sm" value={adminData.confirmPassword} onChange={e => setAdminData({...adminData, confirmPassword: e.target.value})} />
                   </div>
                 </div>
