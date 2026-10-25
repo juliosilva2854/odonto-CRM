@@ -2,10 +2,9 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { 
   ArrowUpRight, CalendarDays, DollarSign, Users, 
-  Clock, FileText, ChevronRight, Activity
+  Clock, FileText, Activity
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +14,6 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 
-// Tipagem do que vem da API
 interface DashboardData {
   greeting_name: string;
   appointments_today_count: number;
@@ -39,7 +37,6 @@ export default function DashboardPage() {
     },
   });
 
-  // Pega a hora para dar "Bom dia" / "Boa tarde"
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Bom dia";
@@ -47,7 +44,6 @@ export default function DashboardPage() {
     return "Boa noite";
   }, []);
 
-  // Se não carregou, mostra esqueleto
   if (isLoading || !data) {
     return <DashboardSkeleton />;
   }
@@ -81,9 +77,8 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* ─── KPIs (Cores e Destaques) ─── */}
+      {/* ─── KPIs ─── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Faturamento (Destaque escuro) */}
         <Card className="bg-slate-900 text-white border-0 shadow-lg relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-2xl rounded-full group-hover:scale-150 transition-transform duration-500" />
           <CardContent className="p-6 relative z-10">
@@ -102,7 +97,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Consultas Hoje */}
         <Card className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -116,7 +110,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Pacientes Ativos */}
         <Card className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -132,7 +125,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Orçamentos Pendentes */}
         <Card className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -147,10 +139,9 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* ─── GRÁFICOS E AGENDA ─── */}
+      {/* ─── AGENDA E GRÁFICOS ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Agenda do Dia (Ocupa 1 coluna) */}
         <Card className="lg:col-span-1 border-slate-200 shadow-sm flex flex-col">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-900">Agenda de Hoje</h3>
@@ -181,7 +172,6 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Top Procedimentos (Gráfico de Barras CSS) */}
         <Card className="lg:col-span-2 border-slate-200 shadow-sm">
           <div className="p-6 border-b border-slate-100">
             <h3 className="font-bold text-slate-900">Top Procedimentos (Mês)</h3>
@@ -228,7 +218,6 @@ export default function DashboardPage() {
   );
 }
 
-// Tela de carregamento animada
 function DashboardSkeleton() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
