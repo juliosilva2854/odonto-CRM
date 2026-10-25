@@ -39,60 +39,55 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[1fr_1.1fr] bg-slate-950 font-sans overflow-hidden">
+    <div className="grid min-h-screen w-full lg:grid-cols-[1.1fr_1fr] bg-white font-sans overflow-hidden">
       
       {/* ─── LEFT: SPLASH ─── */}
-      <aside className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between text-white border-r border-slate-800/50">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
-        <div className="absolute -left-32 top-1/3 h-[500px] w-[500px] rounded-full bg-indigo-600/30 blur-[120px] pointer-events-none" />
-        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-teal-500/20 blur-[100px] pointer-events-none" />
+      <aside className="relative hidden overflow-hidden bg-slate-50 lg:flex lg:flex-col lg:justify-between border-r border-slate-200">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:32px_32px] opacity-60" />
+        <div className="absolute -left-32 top-1/3 h-[500px] w-[500px] rounded-full bg-indigo-200/50 blur-[100px] pointer-events-none" />
+        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-teal-200/50 blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-2 px-12 pt-12">
           <Link to="/" className="flex items-center gap-2 group">
             <BrandMarkCustom className="w-9 h-9 group-hover:scale-105 transition-transform" />
-            <span className="text-2xl font-bold tracking-tight">Dental<span className="text-indigo-400">.CRM</span></span>
+            <span className="text-2xl font-bold tracking-tight text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
           </Link>
         </div>
 
         <div className="relative z-10 px-12 pb-16">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white mb-6">
+          <h1 className="text-4xl font-bold leading-tight tracking-tight text-slate-900 mb-6">
             Segurança em primeiro lugar.
           </h1>
-          <p className="text-slate-400 mb-8 max-w-md text-lg">Não se preocupe. Nós cuidamos para que você recupere seu acesso de forma rápida e segura.</p>
+          <p className="text-slate-600 mb-8 max-w-md text-lg font-medium">Não se preocupe. Nós cuidamos para que você recupere seu acesso de forma rápida e segura.</p>
         </div>
 
-        <div className="relative z-10 border-t border-slate-800/50 px-12 py-6 bg-slate-950/30 backdrop-blur-sm">
-          <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">Dental.CRM · Enterprise Grade</p>
+        <div className="relative z-10 border-t border-slate-200 px-12 py-6">
+          <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">Dental.CRM · Enterprise Grade</p>
         </div>
       </aside>
 
       {/* ─── RIGHT: FORM ─── */}
-      <section className="flex items-center justify-center bg-slate-50 px-6 py-10 sm:px-10 relative">
-        <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-200/30 blur-[100px] rounded-full pointer-events-none" />
-        
+      <section className="flex items-center justify-center bg-white px-6 py-10 sm:px-10 relative">
         <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
           
-          <div className="mb-8 lg:hidden flex items-center gap-2 justify-center">
+          <div className="mb-10 lg:hidden flex items-center gap-2 justify-center">
             <BrandMarkCustom className="w-8 h-8" />
             <span className="text-2xl font-bold text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-2xl border border-white/50 rounded-3xl p-8 sm:p-10 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-indigo-500 to-purple-500" />
-            
+          <div className="bg-white p-8 sm:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative">
             {!isSuccess ? (
               <>
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">
                   Recuperar senha
                 </h1>
-                <p className="text-sm text-slate-500 mb-8">
+                <p className="text-sm text-slate-500 mb-8 font-medium">
                   Informe seu e-mail e enviaremos um link para redefinir sua senha.
                 </p>
 
                 <form onSubmit={onSubmit} className="space-y-5">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs font-semibold text-slate-600 uppercase tracking-wide">E-mail</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-slate-700 font-semibold text-xs tracking-wide uppercase">E-mail</Label>
                     <div className="relative group">
                       <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
                       <Input
@@ -100,7 +95,7 @@ export default function ForgotPasswordPage() {
                         type="email"
                         required
                         placeholder="voce@clinica.com.br"
-                        className="pl-11 h-12 bg-slate-50 border-slate-200 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-indigo-500 transition-all rounded-xl text-base shadow-sm"
+                        className="pl-11 h-12 bg-slate-50 border-slate-200 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl shadow-sm text-base"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                       />
@@ -125,7 +120,7 @@ export default function ForgotPasswordPage() {
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-3">
                   Verifique seu e-mail
                 </h1>
-                <p className="text-sm text-slate-500 mb-8">
+                <p className="text-sm text-slate-500 mb-8 font-medium">
                   Se o e-mail <strong className="text-slate-900">{email}</strong> estiver cadastrado, você receberá um link para redefinir sua senha em instantes.
                 </p>
               </div>
