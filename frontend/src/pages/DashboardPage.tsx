@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
   ArrowUpRight, CalendarDays, DollarSign, Users, 
-  Clock, FileText, Activity, Plus, TrendingUp, MoreHorizontal
+  Clock, FileText, Activity, Plus, MoreHorizontal
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,7 +58,6 @@ export default function DashboardPage() {
 
   const displayName = getFirstName();
 
-  // Dados mockados APENAS para visualização do gráfico de área (até a API retornar histórico)
   const chartData = [35, 45, 30, 60, 50, 80, 65];
   const months = ["Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov"];
 
@@ -154,7 +153,7 @@ export default function DashboardPage() {
       {/* ─── GRÁFICOS E AGENDA ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Gráfico de Faturamento (Ocupa 2 colunas) */}
+        {/* Gráfico de Faturamento */}
         <Card className="lg:col-span-2 border-slate-200 shadow-sm flex flex-col">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <div>
@@ -168,9 +167,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <CardContent className="p-6 flex-1 flex flex-col justify-end">
-            {/* Gráfico de Barras SVG simulado (Pronto para receber dados reais) */}
             <div className="h-48 w-full flex items-end justify-between gap-2 sm:gap-4 mt-4 relative">
-              {/* Linhas de grade de fundo */}
               <div className="absolute inset-0 flex flex-col justify-between border-b border-slate-100 pb-6">
                 <div className="border-t border-slate-100 w-full h-0"></div>
                 <div className="border-t border-slate-100 w-full h-0"></div>
@@ -184,7 +181,6 @@ export default function DashboardPage() {
                     className="w-full max-w-[40px] bg-indigo-100 rounded-t-sm group-hover:bg-indigo-600 transition-all duration-300 relative"
                     style={{ height: `${value}%` }}
                   >
-                    {/* Tooltip no hover */}
                     <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded pointer-events-none transition-opacity">
                       R$ {(value * 100).toFixed(0)}
                     </div>
@@ -196,7 +192,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Agenda de Hoje (Ocupa 1 coluna) */}
+        {/* Agenda de Hoje */}
         <Card className="lg:col-span-1 border-slate-200 shadow-sm flex flex-col">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-900">Agenda de Hoje</h3>
@@ -237,7 +233,6 @@ export default function DashboardPage() {
       {/* ─── PROCEDIMENTOS E ATIVIDADES ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Top Procedimentos */}
         <Card className="border-slate-200 shadow-sm">
           <div className="p-6 border-b border-slate-100">
             <h3 className="font-bold text-slate-900">Top Procedimentos (Mês)</h3>
@@ -282,7 +277,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Últimas Atividades (Feed visual) */}
         <Card className="border-slate-200 shadow-sm">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <div>
