@@ -4,9 +4,9 @@ import {
   CalendarDays, ShieldCheck, Lock, Sparkles, Activity, CheckCircle2, 
   X, Check, FileText, Video, CreditCard, Users, MessageCircle, 
   Clock, Database, TrendingUp, ShieldAlert, FolderSync, Zap, 
-  ChevronDown, Server, ArrowRight, HeartHandshake 
+  ChevronDown, Server, ArrowRight, HeartHandshake, MessageSquare,
+  Stethoscope, MonitorPlay
 } from "lucide-react";
-import { BrandMark } from "@/components/brand/BrandMark";
 import { Button } from "@/components/ui/button";
 
 // Hook simples para animar elementos ao rolar a página
@@ -27,6 +27,20 @@ function useScrollReveal() {
     return () => observer.disconnect();
   }, []);
 }
+
+// NOVO ÍCONE DA MARCA (Dente + Escudo minimalista)
+const BrandMarkCustom = ({ className = "w-8 h-8" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M12 2C8.5 2 6 4.5 6 8.5C6 12 7.5 16.5 9 20C10 22 11 22 11.5 22C12 22 12.5 21 12.5 20C12.5 18 12 15 12 15C12 15 11.5 18 11.5 20C11.5 21 12 22 12.5 22C13 22 14 22 15 20C16.5 16.5 18 12 18 8.5C18 4.5 15.5 2 12 2Z" fill="url(#paint0_linear)" />
+    <path d="M12 5V11M9 7L12 9L15 7" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <defs>
+      <linearGradient id="paint0_linear" x1="6" y1="2" x2="18" y2="22" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#4F46E5" />
+        <stop offset="1" stopColor="#14B8A6" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
 
 export default function LandingPage() {
   const [isAnnual, setIsAnnual] = useState(true);
@@ -72,11 +86,12 @@ export default function LandingPage() {
       <div className="absolute top-[20%] -left-40 w-[400px] h-[400px] bg-teal-200/40 blur-[100px] rounded-full pointer-events-none animate-float-delayed" />
       <div className="absolute top-[60%] right-[-10%] w-[500px] h-[500px] bg-blue-100/50 blur-[120px] rounded-full pointer-events-none animate-float" />
 
-      {/* ─── NAVBAR GLASSMORPHISM ─── */}
+      {/* ─── NAVBAR ─── */}
       <header className="fixed top-0 inset-x-0 z-50 border-b border-slate-200/50 bg-white/70 backdrop-blur-xl transition-all">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BrandMark size="md" tone="dark" withWordmark />
+            <BrandMarkCustom className="w-8 h-8" />
+            <span className="text-xl font-bold tracking-tight text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <a href="#recursos" className="hover:text-indigo-600 transition-colors">Recursos</a>
@@ -147,55 +162,73 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* ─── MOCKUP DO SISTEMA (Visual Flutuante) ─── */}
+        {/* ─── MOCKUP DO SISTEMA (Visual Realista) ─── */}
         <section className="max-w-5xl mx-auto px-6 mt-16 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300 fill-mode-both">
           <div className="relative group perspective-1000">
-            {/* Brilho atrás do mockup */}
             <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-teal-400 to-blue-500 rounded-3xl blur-2xl opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200 animate-pulse-glow"></div>
             
             <div className="relative rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-indigo-500/10 animate-float">
               <div className="rounded-xl overflow-hidden border border-slate-100 bg-slate-50 flex flex-col h-[400px]">
-                {/* Fake Browser Header */}
+                {/* Barra do Navegador */}
                 <div className="h-10 border-b border-slate-200 bg-white flex items-center px-4 gap-2">
                   <div className="w-3 h-3 rounded-full bg-rose-400" />
                   <div className="w-3 h-3 rounded-full bg-amber-400" />
                   <div className="w-3 h-3 rounded-full bg-emerald-400" />
-                  <div className="ml-4 h-5 w-64 bg-slate-100 rounded-md flex items-center px-2 text-[10px] text-slate-400">app.dentalcrm.com.br</div>
+                  <div className="ml-4 h-5 w-64 bg-slate-100 rounded-md flex items-center px-2 text-[10px] text-slate-400 font-mono">app.dentalcrm.com.br/dashboard</div>
                 </div>
-                {/* Fake App Content */}
+                {/* Conteúdo Falso */}
                 <div className="flex flex-1">
-                  {/* Fake Sidebar */}
+                  {/* Sidebar */}
                   <div className="w-48 border-r border-slate-200 bg-white p-4 space-y-4 hidden md:block">
-                    <div className="h-6 w-24 bg-slate-200 rounded" />
-                    <div className="space-y-2 pt-4">
-                      <div className="h-8 w-full bg-indigo-50 rounded-md border border-indigo-100 flex items-center px-2 gap-2"><Activity className="w-3 h-3 text-indigo-500"/> <div className="h-2 w-16 bg-indigo-200 rounded"/></div>
-                      <div className="h-8 w-full hover:bg-slate-50 rounded-md flex items-center px-2 gap-2"><CalendarDays className="w-3 h-3 text-slate-400"/> <div className="h-2 w-16 bg-slate-200 rounded"/></div>
-                      <div className="h-8 w-full hover:bg-slate-50 rounded-md flex items-center px-2 gap-2"><Users className="w-3 h-3 text-slate-400"/> <div className="h-2 w-16 bg-slate-200 rounded"/></div>
+                    <div className="flex items-center gap-2 mb-6">
+                      <BrandMarkCustom className="w-5 h-5" />
+                      <div className="h-4 w-16 bg-slate-200 rounded" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="h-9 w-full bg-indigo-50 rounded-lg border border-indigo-100 flex items-center px-3 gap-3"><Activity className="w-4 h-4 text-indigo-600"/> <div className="h-2 w-16 bg-indigo-300 rounded"/></div>
+                      <div className="h-9 w-full hover:bg-slate-50 rounded-lg flex items-center px-3 gap-3"><CalendarDays className="w-4 h-4 text-slate-400"/> <div className="h-2 w-16 bg-slate-200 rounded"/></div>
+                      <div className="h-9 w-full hover:bg-slate-50 rounded-lg flex items-center px-3 gap-3"><Users className="w-4 h-4 text-slate-400"/> <div className="h-2 w-16 bg-slate-200 rounded"/></div>
+                      <div className="h-9 w-full hover:bg-slate-50 rounded-lg flex items-center px-3 gap-3"><FileText className="w-4 h-4 text-slate-400"/> <div className="h-2 w-16 bg-slate-200 rounded"/></div>
                     </div>
                   </div>
-                  {/* Fake Main Area */}
-                  <div className="flex-1 p-6 space-y-6 bg-slate-50">
+                  {/* Área Principal */}
+                  <div className="flex-1 p-6 space-y-6 bg-slate-50/50">
                     <div className="flex justify-between items-center">
-                      <div className="h-8 w-48 bg-slate-200 rounded" />
-                      <div className="h-8 w-24 bg-indigo-500 rounded shadow-sm shadow-indigo-500/30" />
+                      <div className="space-y-1">
+                        <div className="h-6 w-32 bg-slate-800 rounded" />
+                        <div className="h-3 w-48 bg-slate-300 rounded" />
+                      </div>
+                      <div className="h-9 w-32 bg-indigo-600 rounded-lg shadow-md shadow-indigo-500/20" />
                     </div>
+                    
+                    {/* Cards de KPI */}
                     <div className="grid grid-cols-3 gap-4">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="h-24 bg-white border border-slate-200 shadow-sm rounded-xl p-4 flex flex-col justify-between hover:-translate-y-1 transition-transform">
-                          <div className="h-3 w-16 bg-slate-200 rounded" />
-                          <div className="h-6 w-24 bg-slate-800 rounded" />
+                          <div className="flex justify-between items-center">
+                            <div className="h-3 w-16 bg-slate-200 rounded" />
+                            <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center"><Activity className="w-3 h-3 text-indigo-500"/></div>
+                          </div>
+                          <div className="h-6 w-20 bg-slate-800 rounded" />
                         </div>
                       ))}
                     </div>
-                    {/* Fake Odontograma */}
-                    <div className="h-32 bg-white border border-slate-200 shadow-sm rounded-xl p-4 flex items-center justify-center gap-1">
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="w-8 h-10 border border-slate-300 rounded-t-lg rounded-b-sm flex flex-col justify-between p-0.5 hover:scale-110 transition-transform cursor-pointer">
-                          <div className="h-3 w-full bg-slate-100 rounded-t-sm" />
-                          <div className="h-4 w-full bg-indigo-100" />
-                          <div className="h-2 w-full bg-slate-100 rounded-b-sm" />
-                        </div>
-                      ))}
+
+                    {/* Odontograma Falso */}
+                    <div className="h-36 bg-white border border-slate-200 shadow-sm rounded-xl p-4 flex flex-col">
+                       <div className="flex justify-between items-center mb-4">
+                         <div className="h-4 w-24 bg-slate-800 rounded" />
+                         <div className="h-3 w-32 bg-slate-300 rounded" />
+                       </div>
+                       <div className="flex-1 flex items-center justify-center gap-1.5">
+                          {[...Array(8)].map((_, i) => (
+                            <div key={i} className="w-8 h-12 border border-slate-300 rounded-t-lg rounded-b-sm flex flex-col justify-between p-0.5 hover:scale-110 transition-transform cursor-pointer overflow-hidden bg-white">
+                              <div className="h-3 w-full bg-slate-100 rounded-t-sm" />
+                              <div className={`h-5 w-full ${i === 3 || i === 4 ? 'bg-indigo-400' : 'bg-slate-200'}`} />
+                              <div className="h-2 w-full bg-slate-100 rounded-b-sm" />
+                            </div>
+                          ))}
+                       </div>
                     </div>
                   </div>
                 </div>
@@ -229,7 +262,7 @@ export default function LandingPage() {
 
             {/* Feature 3 */}
             <div className="reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700 delay-100 ease-out p-8 rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-              <Activity className="w-10 h-10 text-rose-500 mb-6 group-hover:scale-110 transition-transform" />
+              <Stethoscope className="w-10 h-10 text-rose-500 mb-6 group-hover:scale-110 transition-transform" />
               <h3 className="text-xl font-semibold text-slate-900 mb-2">Odontograma 2.5D</h3>
               <p className="text-slate-600">Visualização anatômica com histórico de cada dente. O sistema guarda cada procedimento através de Event-Sourcing.</p>
             </div>
@@ -243,16 +276,17 @@ export default function LandingPage() {
             </div>
           </div>
 
+          {/* Ícones sem "Multi-unidades" e "Financeiro" */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
             {[
               { icon: FileText, label: "Anamnese Digital" },
               { icon: TrendingUp, label: "Dashboard KPIs" },
               { icon: CreditCard, label: "Orçamentos PDF" },
-              { icon: FolderSync, label: "Multi-Unidades" },
+              { icon: ShieldCheck, label: "LGPD Completa" },
               { icon: Clock, label: "Gestão de Retornos" },
               { icon: Database, label: "Isolamento Total" },
               { icon: Users, label: "Controle de Equipe" },
-              { icon: Video, label: "Sala de Espera" }
+              { icon: MonitorPlay, label: "Sala de Espera" }
             ].map((feat, i) => (
               <div key={i} className="reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700 ease-out p-4 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center gap-3 hover:shadow-md hover:-translate-y-1 transition-all cursor-default group" style={{ transitionDelay: `${i * 50}ms` }}>
                 <feat.icon className="w-6 h-6 text-indigo-500 group-hover:scale-110 transition-transform" />
@@ -304,7 +338,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ─── COMPARATIVO ─── */}
+        {/* ─── COMPARATIVO (Mais recursos) ─── */}
         <section id="comparativo" className="max-w-4xl mx-auto px-6 mt-32">
           <div className="text-center mb-12 space-y-4 reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Por que mudar para o Dental CRM?</h2>
@@ -322,9 +356,11 @@ export default function LandingPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {[
-                  { feature: "Prontuário bloqueado pós-24h", old: false },
-                  { feature: "Agenda com Trava Tripla", old: false },
-                  { feature: "Teleconsulta integrada (Grátis)", old: false },
+                  { feature: "Prontuário bloqueado pós-24h (CFO)", old: false },
+                  { feature: "Agenda com Trava Tripla de Conflito", old: false },
+                  { feature: "Teleconsulta integrada (Jitsi Grátis)", old: false },
+                  { feature: "Odontograma Event-Sourced", old: false },
+                  { feature: "Isolamento de Dados (Multi-Tenant real)", old: "Compartilhado" },
                   { feature: "Contrato de Fidelidade", old: "12 meses" }
                 ].map((row, i) => (
                   <tr key={i} className="hover:bg-slate-50 transition-colors">
@@ -342,7 +378,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ─── PREÇOS ─── */}
+        {/* ─── PREÇOS (2 Planos + Custom) ─── */}
         <section id="precos" className="max-w-6xl mx-auto px-6 mt-32">
           <div className="text-center mb-12 space-y-4 reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Planos simples. Sem fidelidade.</h2>
@@ -418,32 +454,30 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Plano Clínica */}
-            <div className="reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700 delay-200 p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all">
-              <h3 className="text-xl font-bold text-slate-900">Clínica</h3>
-              <p className="text-sm text-slate-500 mt-2 mb-6">Para grandes operações.</p>
+            {/* Plano Clínica (Sob Medida) */}
+            <div className="reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700 delay-200 p-8 rounded-3xl border border-slate-200 bg-slate-50 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100 blur-[40px] rounded-full pointer-events-none" />
+              <h3 className="text-xl font-bold text-slate-900">Clínica (Sob Medida)</h3>
+              <p className="text-sm text-slate-500 mt-2 mb-6">Para operações maiores ou personalizadas.</p>
               <div className="mb-6 flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-slate-900">R$</span>
-                <span className="text-4xl font-bold text-slate-900">{isAnnual ? "637" : "797"}</span>
-                <span className="text-slate-500">/mês</span>
+                <span className="text-2xl font-bold text-slate-900">Fale Conosco</span>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span><strong className="text-slate-900">Usuários Ilimitados</strong></span></li>
-                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>Multi-unidades</span></li>
-                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span><strong className="text-slate-900">Financeiro e Caixa</strong></span></li>
-                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>Relatórios BI</span></li>
-                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>Retornos Automáticos</span></li>
-                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>Suporte Prioritário</span></li>
-                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>Customização de Preços</span></li>
+                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span><strong className="text-slate-900">Usuários Customizados</strong></span></li>
+                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>Treinamento Dedicado</span></li>
+                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>Integrações Personalizadas</span></li>
+                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>Onboarding com Especialista</span></li>
+                <li className="flex items-start gap-2 text-sm text-slate-700"><Check className="w-5 h-5 text-teal-500 shrink-0" /> <span>SLA de Suporte Prioritário</span></li>
+                <li className="flex items-start gap-2 text-sm text-slate-400"><X className="w-5 h-5 shrink-0" /> <span>Módulos avançados em breve</span></li>
               </ul>
-              <Button asChild variant="outline" className="w-full rounded-full border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 h-11 transition-colors">
-                <Link to="/signup">Falar com vendas</Link>
+              <Button asChild variant="outline" className="w-full rounded-full border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400 h-11 transition-colors bg-white">
+                <a href="https://wa.me/5511989442854" target="_blank" rel="noreferrer">Falar com vendas</a>
               </Button>
             </div>
           </div>
         </section>
 
-        {/* ─── FAQ ─── */}
+        {/* ─── FAQ (Com 6 perguntas) ─── */}
         <section id="faq" className="max-w-3xl mx-auto px-6 mt-32 mb-24">
           <div className="text-center mb-12 reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Perguntas Frequentes</h2>
@@ -453,7 +487,9 @@ export default function LandingPage() {
               { q: "Preciso instalar algo no computador?", a: "Não. O Dental CRM é 100% online (SaaS). Você e sua equipe acessam de qualquer navegador, seja no computador, tablet ou celular." },
               { q: "Como funciona o período de teste?", a: "São 14 dias totalmente gratuitos, sem precisar cadastrar cartão de crédito. Ao final do período, você decide se quer continuar com um dos planos." },
               { q: "O sistema é adequado à LGPD e ao CFO?", a: "Sim. Temos anonimização de pacientes, consentimento versionado e a exclusiva trava de 24h do CFO, que garante a validade jurídica do prontuário." },
-              { q: "Tem fidelidade ou multa de cancelamento?", a: "Não. Nós acreditamos que você deve ficar porque o sistema é excelente, não porque assinou um contrato. Cancele quando quiser, em 1 clique." }
+              { q: "Tem fidelidade ou multa de cancelamento?", a: "Não. Nós acreditamos que você deve ficar porque o sistema é excelente, não porque assinou um contrato. Cancele quando quiser, em 1 clique." },
+              { q: "Vocês emitem Nota Fiscal (NFS-e)?", a: "A emissão nativa está em desenvolvimento. No momento, o sistema gera todos os relatórios necessários para a sua contabilidade emitir a nota, e clientes do plano Clínica contam com auxílio dedicado." },
+              { q: "Como funciona o backup dos meus dados?", a: "Seus dados ficam armazenados na Hostinger (infraestrutura enterprise com backup automático) e utilizamos o Neon PostgreSQL (Serverless) com replicação e alta disponibilidade." }
             ].map((item, i) => (
               <details key={i} className="reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700 group border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all [&_summary::-webkit-details-marker]:hidden" style={{ transitionDelay: `${i * 50}ms` }}>
                 <summary className="flex items-center justify-between p-6 cursor-pointer hover:bg-slate-50 transition-colors">
@@ -468,15 +504,17 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ─── CTA FINAL ─── */}
-        <section className="max-w-4xl mx-auto px-6 mt-32">
-          <div className="reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700 p-12 rounded-3xl bg-indigo-600 text-center relative overflow-hidden shadow-2xl shadow-indigo-500/30 group">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[100px] bg-white/20 blur-[60px] rounded-full pointer-events-none group-hover:scale-150 transition-transform duration-1000" />
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 relative z-10">Eleve o nível da sua clínica hoje.</h2>
-            <p className="text-indigo-100 mb-8 max-w-xl mx-auto relative z-10">Junte-se às clínicas que já utilizam a plataforma mais moderna e segura do mercado odontológico.</p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-              <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto rounded-full h-12 px-10 text-base shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all">
-                <Link to="/signup">Começar meu teste grátis <ArrowRight className="ml-2 w-4 h-4" /></Link>
+        {/* ─── CTA FINAL (Integrado ao fundo) ─── */}
+        <section className="relative w-full pt-24 pb-12 mt-16 bg-gradient-to-br from-indigo-600 to-indigo-800 overflow-hidden">
+          <div className="absolute inset-0 bg-grid-pattern opacity-10 mix-blend-overlay" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-white/10 blur-[80px] rounded-full pointer-events-none" />
+          
+          <div className="max-w-4xl mx-auto px-6 text-center relative z-10 reveal-on-scroll opacity-0 translate-y-12 transition-all duration-700">
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Eleve o nível da sua clínica hoje.</h2>
+            <p className="text-indigo-100 text-lg mb-10 max-w-2xl mx-auto">Junte-se às clínicas que já utilizam a plataforma mais moderna, segura e acolhedora do mercado odontológico.</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto rounded-full h-14 px-10 text-base shadow-2xl hover:-translate-y-1 transition-all font-bold text-indigo-900">
+                <Link to="/signup">Começar meu teste grátis <ArrowRight className="ml-2 w-5 h-5" /></Link>
               </Button>
             </div>
           </div>
@@ -485,10 +523,11 @@ export default function LandingPage() {
       </main>
 
       {/* ─── FOOTER ─── */}
-      <footer className="border-t border-slate-200 py-12 bg-white">
+      <footer className="border-t border-slate-200 py-8 bg-white relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <BrandMark size="sm" tone="dark" withWordmark />
+            <BrandMarkCustom className="w-6 h-6" />
+            <span className="text-lg font-bold tracking-tight text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
           </div>
           <p className="text-sm text-slate-500">
             © {new Date().getFullYear()} Dental CRM. Todos os direitos reservados.
