@@ -53,60 +53,64 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 p-4 sm:p-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-200/60 p-4 sm:p-8 font-sans relative overflow-hidden">
       
-      {/* Efeitos de Fundo Suaves (Acolhedores) */}
-      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-100/50 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-teal-100/50 blur-[120px] rounded-full pointer-events-none" />
+      {/* Efeitos de Fundo Suaves (Menos brilho, mais profundidade) */}
+      <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-indigo-200/30 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-teal-200/30 blur-[120px] rounded-full pointer-events-none" />
       
       {/* Container Principal */}
-      <div className="w-full max-w-[1000px] bg-white rounded-[2rem] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden grid lg:grid-cols-[1.1fr_1fr] relative z-10">
+      <div className="w-full max-w-[1050px] bg-white rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white/50 overflow-hidden grid lg:grid-cols-[1.1fr_1fr] relative z-10">
         
         {/* ─── LEFT: BRANDING & CONFIANÇA ─── */}
-        <div className="relative hidden lg:flex flex-col justify-between bg-gradient-to-br from-indigo-50/50 to-teal-50/30 p-12 lg:p-16 border-r border-slate-100">
+        <div className="relative hidden lg:flex flex-col justify-between bg-gradient-to-br from-slate-800 to-teal-950 p-12 lg:p-16 text-white overflow-hidden">
+          {/* Grid sutil no fundo escuro */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:32px_32px]" />
+          <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-teal-500/20 blur-[80px] rounded-full pointer-events-none" />
+
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-16">
+            <div className="flex items-center gap-2 mb-12">
               <BrandMarkCustom className="w-9 h-9" />
-              <span className="text-2xl font-bold tracking-tight text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
+              <span className="text-2xl font-bold tracking-tight">Dental<span className="text-teal-400">.CRM</span></span>
             </div>
 
-            <h2 className="text-3xl font-bold leading-tight text-slate-900 mb-4">
+            <h2 className="text-3xl font-bold leading-tight mb-4">
               Cuidar da sua clínica <br/>
-              <span className="text-indigo-600">nunca foi tão simples.</span>
+              <span className="text-teal-300">nunca foi tão simples.</span>
             </h2>
-            <p className="text-slate-600 text-base mb-12 max-w-sm">
+            <p className="text-slate-300 text-base mb-12 max-w-sm">
               A plataforma completa para gestão odontológica. Segurança, conformidade e praticidade para você focar no que realmente importa: seus pacientes.
             </p>
 
-            {/* Cards de Recursos */}
+            {/* Cards de Recursos (Glassmorphism escuro) */}
             <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                  <HeartPulse className="w-5 h-5 text-teal-600" />
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-sm hover:bg-white/10 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center shrink-0 border border-teal-500/30">
+                  <HeartPulse className="w-5 h-5 text-teal-300" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Foco no Paciente</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Prontuário com trava jurídica CFO e histórico completo.</p>
+                  <h3 className="text-sm font-bold text-white">Foco no Paciente</h3>
+                  <p className="text-xs text-slate-300 mt-0.5">Prontuário com trava jurídica CFO e histórico completo.</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                  <Shield className="w-5 h-5 text-indigo-600" />
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-sm hover:bg-white/10 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0 border border-indigo-500/30">
+                  <Shield className="w-5 h-5 text-indigo-300" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Segurança LGPD</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Seus dados e dos seus pacientes 100% protegidos.</p>
+                  <h3 className="text-sm font-bold text-white">Segurança LGPD</h3>
+                  <p className="text-xs text-slate-300 mt-0.5">Seus dados e dos seus pacientes 100% protegidos.</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-sm">
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                  <Fingerprint className="w-5 h-5 text-slate-700" />
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-sm hover:bg-white/10 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-slate-500/20 flex items-center justify-center shrink-0 border border-slate-500/30">
+                  <Fingerprint className="w-5 h-5 text-slate-300" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Acesso Restrito</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Ambiente multi-tenant isolado com criptografia avançada.</p>
+                  <h3 className="text-sm font-bold text-white">Acesso Restrito</h3>
+                  <p className="text-xs text-slate-300 mt-0.5">Ambiente multi-tenant isolado com criptografia avançada.</p>
                 </div>
               </div>
             </div>
@@ -114,7 +118,7 @@ export default function LoginPage() {
         </div>
 
         {/* ─── RIGHT: FORMULÁRIO ─── */}
-        <div className="flex flex-col justify-center p-8 sm:p-12 relative">
+        <div className="flex flex-col justify-center p-8 sm:p-12 relative bg-slate-50">
           
           <div className="mb-10 lg:hidden flex items-center gap-2 justify-center">
             <BrandMarkCustom className="w-8 h-8" />
@@ -126,7 +130,7 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">
               Acesse sua clínica.
             </h1>
-            <p className="text-sm text-slate-500 mb-8">
+            <p className="text-sm text-slate-500 mb-8 font-medium">
               Insira suas credenciais para continuar.
             </p>
 
@@ -209,7 +213,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div className="mt-10 flex items-center justify-center gap-2 text-xs font-medium text-slate-400">
+            <div className="mt-10 flex items-center justify-center gap-2 text-xs font-semibold text-slate-400">
               <ShieldCheck className="h-4 w-4" />
               Protegido por criptografia · Conformidade LGPD/CFO
             </div>
