@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
-import { Lock, Mail, Loader2, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Lock, Mail, Loader2, ArrowRight, ShieldCheck, CheckCircle2, Activity, CalendarDays } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -53,180 +53,190 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[1.1fr_1fr] bg-white font-sans overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-teal-50 p-6 sm:p-12 font-sans relative overflow-hidden">
       
-      {/* ─── LEFT: VISUAL SPLASH ─── */}
-      <aside className="relative hidden overflow-hidden bg-slate-50 lg:flex lg:flex-col lg:justify-between border-r border-slate-200">
-        {/* Efeitos de Fundo */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:32px_32px] opacity-60" />
-        <div className="absolute -left-32 top-1/3 h-[500px] w-[500px] rounded-full bg-indigo-200/50 blur-[100px] pointer-events-none animate-pulse-glow" />
-        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-teal-200/50 blur-[100px] pointer-events-none" />
+      {/* Efeitos de Fundo Globais */}
+      <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-indigo-200/40 blur-[120px] rounded-full pointer-events-none mix-blend-multiply" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-teal-200/40 blur-[100px] rounded-full pointer-events-none mix-blend-multiply" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 pointer-events-none" />
 
-        <div className="relative z-10 flex items-center gap-2 px-12 pt-12">
-          <BrandMarkCustom className="w-9 h-9" />
-          <span className="text-2xl font-bold tracking-tight text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
-        </div>
+      {/* Container Principal (Glassmorphism + Sombra) */}
+      <div className="w-full max-w-6xl bg-white/70 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] shadow-[0_20px_80px_-20px_rgba(0,0,0,0.1)] overflow-hidden grid lg:grid-cols-2 relative z-10">
+        
+        {/* ─── LEFT: VISUAL SHOWCASE ─── */}
+        <div className="relative hidden lg:flex flex-col justify-between bg-slate-900 p-12 overflow-hidden text-white">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] opacity-20" />
+          <div className="absolute -top-40 -left-40 w-[400px] h-[400px] bg-indigo-600/50 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-teal-500/30 blur-[100px] rounded-full pointer-events-none" />
 
-        {/* Texto e Mockup Visual */}
-        <div className="relative z-10 px-12 pb-16">
-          <blockquote className="max-w-lg mb-8">
-            <p className="text-4xl font-bold leading-[1.15] tracking-tight text-slate-900">
-              Operar uma clínica de alto padrão exige software <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-500">objetivo, rápido e sem fricção.</span>
+          <div className="relative z-10 flex items-center gap-3">
+            <BrandMarkCustom className="w-10 h-10" />
+            <span className="text-2xl font-bold tracking-tight">Dental<span className="text-indigo-400">.CRM</span></span>
+          </div>
+
+          <div className="relative z-10 mt-12">
+            <h2 className="text-4xl font-bold leading-tight mb-6">
+              A gestão da sua clínica em <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">outro nível.</span>
+            </h2>
+            <p className="text-slate-400 text-lg mb-10 max-w-md">
+              Agenda, prontuário, odontograma e financeiro em uma única plataforma desenhada para a alta performance.
             </p>
-          </blockquote>
 
-          {/* Mockup Flutuante (Mini) */}
-          <div className="relative w-full max-w-md animate-float">
-            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-teal-400 rounded-2xl blur opacity-20"></div>
-            <div className="relative rounded-xl border border-white/50 bg-white/80 backdrop-blur-sm p-3 shadow-xl">
-              <div className="rounded-lg overflow-hidden border border-slate-100 bg-white flex flex-col h-[200px]">
-                <div className="h-6 border-b border-slate-100 bg-slate-50 flex items-center px-3 gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-rose-400" />
-                  <div className="w-2 h-2 rounded-full bg-amber-400" />
-                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                </div>
-                <div className="flex flex-1 p-3 gap-3">
-                  <div className="w-16 border-r border-slate-100 space-y-2 hidden sm:block">
-                    <div className="h-2 w-full bg-indigo-100 rounded" />
-                    <div className="h-2 w-full bg-slate-100 rounded" />
-                    <div className="h-2 w-full bg-slate-100 rounded" />
+            {/* Mockup 3D do Sistema */}
+            <div className="relative w-full max-w-md animate-float">
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-teal-400 rounded-2xl blur opacity-30"></div>
+              <div className="relative rounded-xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-md p-3 shadow-2xl">
+                <div className="rounded-lg overflow-hidden border border-slate-700 bg-slate-900 flex flex-col h-[220px]">
+                  {/* Barra do navegador falsa */}
+                  <div className="h-8 border-b border-slate-700 bg-slate-800 flex items-center px-4 gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                   </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <div className="h-3 w-16 bg-slate-200 rounded" />
-                      <div className="h-3 w-8 bg-indigo-500 rounded" />
+                  {/* Interface falsa */}
+                  <div className="flex flex-1">
+                    <div className="w-16 border-r border-slate-700 bg-slate-800/50 p-2 space-y-3 hidden sm:block">
+                      <div className="h-6 w-full bg-indigo-500/20 rounded flex items-center justify-center"><Activity className="w-3 h-3 text-indigo-400"/></div>
+                      <div className="h-6 w-full bg-slate-700/50 rounded" />
+                      <div className="h-6 w-full bg-slate-700/50 rounded" />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="h-10 bg-slate-50 border border-slate-100 rounded" />
-                      <div className="h-10 bg-slate-50 border border-slate-100 rounded" />
-                    </div>
-                    <div className="h-14 bg-slate-50 border border-slate-100 rounded flex items-center justify-center gap-1">
-                       {[...Array(5)].map((_, i) => (
-                         <div key={i} className="w-3 h-5 border border-slate-200 rounded-sm bg-white" />
-                       ))}
+                    <div className="flex-1 p-4 space-y-4">
+                      <div className="flex justify-between">
+                        <div className="h-4 w-24 bg-slate-700 rounded" />
+                        <div className="h-6 w-16 bg-indigo-500 rounded" />
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="h-12 bg-slate-800 border border-slate-700 rounded p-2 flex flex-col justify-between"><div className="h-1.5 w-8 bg-slate-600 rounded"/><div className="h-3 w-12 bg-slate-400 rounded"/></div>
+                        <div className="h-12 bg-slate-800 border border-slate-700 rounded p-2 flex flex-col justify-between"><div className="h-1.5 w-8 bg-slate-600 rounded"/><div className="h-3 w-12 bg-slate-400 rounded"/></div>
+                        <div className="h-12 bg-slate-800 border border-slate-700 rounded p-2 flex flex-col justify-between"><div className="h-1.5 w-8 bg-slate-600 rounded"/><div className="h-3 w-12 bg-slate-400 rounded"/></div>
+                      </div>
+                      <div className="h-16 bg-slate-800 border border-slate-700 rounded flex items-center justify-center gap-1">
+                        <CalendarDays className="w-4 h-4 text-slate-500 mr-2"/>
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="w-3 h-6 border border-slate-600 rounded-sm bg-slate-700/50" />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <div className="relative z-10 flex items-center gap-6 text-xs font-semibold text-slate-400 mt-12 pt-6 border-t border-slate-700/50">
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-teal-400" /> CFO Compliant</div>
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-teal-400" /> LGPD Ready</div>
+            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-teal-400" /> 99.9% Uptime</div>
+          </div>
         </div>
 
-        <div className="relative z-10 grid grid-cols-3 gap-6 border-t border-slate-200/60 px-12 py-6 bg-white/40 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-            <CheckCircle2 className="w-4 h-4 text-teal-500" /> CFO Compliant
-          </div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-            <CheckCircle2 className="w-4 h-4 text-teal-500" /> LGPD Ready
-          </div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-            <CheckCircle2 className="w-4 h-4 text-teal-500" /> 99.9% Uptime
-          </div>
-        </div>
-      </aside>
-
-      {/* ─── RIGHT: FORMULÁRIO ─── */}
-      <section className="flex items-center justify-center bg-white px-6 py-10 sm:px-10 relative">
-        <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        {/* ─── RIGHT: FORMULÁRIO ─── */}
+        <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16 relative">
           
           <div className="mb-10 lg:hidden flex items-center gap-2 justify-center">
             <BrandMarkCustom className="w-8 h-8" />
             <span className="text-2xl font-bold text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
           </div>
 
-          {/* Badge de Segurança no Form */}
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-500 shadow-sm">
-              <ShieldCheck className="w-4 h-4 text-teal-500" />
-              Ambiente Seguro · Criptografia 256-bit
-            </div>
-          </div>
-
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 text-center">
-            Acesse sua clínica.
-          </h1>
-          <p className="mt-2 text-sm text-slate-500 font-medium text-center mb-8">
-            Entre com suas credenciais profissionais.
-          </p>
-
-          <form onSubmit={onSubmit} className="space-y-5" noValidate>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-700 font-semibold text-xs tracking-wide uppercase">E-mail profissional</Label>
-              <div className="relative group">
-                <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  placeholder="voce@clinica.com.br"
-                  className="pl-12 h-14 bg-white border-slate-200 focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl shadow-sm text-base transition-all"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+          <div className="w-full max-w-sm mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
+            
+            {/* Selo de Segurança */}
+            <div className="flex justify-center mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700 shadow-sm">
+                <ShieldCheck className="w-4 h-4 text-teal-500" />
+                Ambiente Criptografado 256-bit
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Senha</Label>
-                <Link
-                  to="/forgot-password"
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
-                >
-                  Esqueceu a senha?
-                </Link>
-              </div>
-              <div className="relative group">
-                <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  placeholder="••••••••"
-                  className="pl-12 h-14 bg-white border-slate-200 focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-xl shadow-sm text-base transition-all"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 text-center mb-2">
+              Acesse sua clínica.
+            </h1>
+            <p className="text-sm text-slate-500 font-medium text-center mb-8">
+              Insira suas credenciais para continuar.
+            </p>
 
-            {error && (
-              <Alert variant="destructive" className="bg-rose-50 border-rose-200 text-rose-600 rounded-xl animate-in shake">
-                <AlertDescription className="text-sm font-medium">
-                  {getErrorMessage(error, "Falha ao autenticar. Verifique suas credenciais.")}
-                </AlertDescription>
-              </Alert>
-            )}
+            <form onSubmit={onSubmit} className="space-y-5" noValidate>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-slate-700 font-bold text-[11px] tracking-wider uppercase ml-1">E-mail profissional</Label>
+                <div className="relative group">
+                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    placeholder="voce@clinica.com.br"
+                    className="pl-12 h-14 bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-indigo-600 rounded-xl shadow-sm text-base transition-all placeholder:text-slate-400 font-medium"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+              </div>
 
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full h-14 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white shadow-[0_8px_20px_-8px_rgba(79,70,229,0.5)] hover:shadow-[0_12px_24px_-8px_rgba(79,70,229,0.6)] hover:-translate-y-0.5 transition-all text-base font-bold mt-4 group"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  Autenticando...
-                </>
-              ) : (
-                <>
-                  Entrar no painel
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between ml-1">
+                  <Label htmlFor="password" className="text-slate-700 font-bold text-[11px] tracking-wider uppercase">Senha</Label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                  >
+                    Esqueceu a senha?
+                  </Link>
+                </div>
+                <div className="relative group">
+                  <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    placeholder="••••••••"
+                    className="pl-12 h-14 bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-indigo-600 rounded-xl shadow-sm text-base transition-all placeholder:text-slate-400 font-medium"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <Alert variant="destructive" className="bg-rose-50 border-rose-200 text-rose-600 rounded-xl animate-in shake">
+                  <AlertDescription className="text-sm font-semibold">
+                    {getErrorMessage(error, "Falha ao autenticar. Verifique suas credenciais.")}
+                  </AlertDescription>
+                </Alert>
               )}
-            </Button>
-          </form>
 
-          <p className="mt-10 text-center text-sm text-slate-500 font-medium">
-            Ainda não tem conta?{" "}
-            <Link to="/signup" className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
-              Criar conta grátis
-            </Link>
-          </p>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full h-14 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white shadow-[0_8px_20px_-8px_rgba(79,70,229,0.6)] hover:shadow-[0_12px_28px_-8px_rgba(79,70,229,0.7)] hover:-translate-y-0.5 transition-all text-base font-bold mt-4 group"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    Autenticando...
+                  </>
+                ) : (
+                  <>
+                    Entrar no painel
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <div className="mt-8 text-center">
+              <p className="text-sm text-slate-500 font-medium">
+                Ainda não tem conta?{" "}
+                <Link to="/signup" className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                  Criar conta grátis
+                </Link>
+              </p>
+            </div>
+
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
