@@ -38,7 +38,6 @@ export default function AgendaPage() {
   const [defaultEnd, setDefaultEnd] = useState<Date | null>(null);
   const [viewRange, setViewRange] = useState<{ start: Date; end: Date } | null>(null);
 
-  // Estados dos Filtros (Começa mostrando todos)
   const [visibleStatuses, setVisibleStatuses] = useState<Set<string>>(
     new Set(Object.keys(APPOINTMENT_STATUS_VISUAL))
   );
@@ -53,7 +52,6 @@ export default function AgendaPage() {
     refetchOnWindowFocus: false,
   });
 
-  // Filtra os agendamentos com base nos status selecionados
   const filteredAppointments = useMemo(() => {
     if (!data) return [];
     return data.filter(apt => visibleStatuses.has(apt.status));
@@ -107,17 +105,15 @@ export default function AgendaPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-[1600px] mx-auto animate-in fade-in duration-500" data-testid="agenda-page">
+    <div className="flex flex-col h-full max-w-[1600px] mx-auto animate-in fade-in duration-500" data-testid="agenda-page">
       
-      {/* ─── Header ─── */}
-      <header className="flex items-center justify-between py-4 shrink-0">
+      {/* Header Compacto */}
+      <header className="flex items-center justify-between pb-4 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Agenda</h1>
           <p className="text-sm text-slate-500 font-medium">Gestão de fluxo e atendimentos.</p>
         </div>
         <div className="flex items-center gap-3">
-          
-          {/* Botão de Filtros */}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="bg-white">
@@ -154,10 +150,10 @@ export default function AgendaPage() {
         </div>
       </header>
 
-      {/* ─── Layout Principal ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 flex-1 min-h-0 pb-4">
+      {/* Layout Principal: Flex-1 para ocupar o resto da tela */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 flex-1 min-h-0 pb-2">
         
-        {/* ─── COLUNA ESQUERDA: CALENDÁRIO ─── */}
+        {/* Calendário */}
         <Card className="agenda-card overflow-hidden border-slate-200 shadow-sm flex flex-col h-full">
           <CardContent className="p-0 flex-1 relative min-h-0">
             {isError ? (
@@ -210,10 +206,9 @@ export default function AgendaPage() {
           </CardContent>
         </Card>
 
-        {/* ─── COLUNA DIREITA: PAINEL DE CONTEXTO ─── */}
+        {/* Painel Direito */}
         <div className="flex flex-col gap-4 h-full min-h-0">
           
-          {/* Resumo do Dia */}
           <Card className="bg-slate-900 text-white border-0 shadow-lg relative overflow-hidden shrink-0">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-2xl rounded-full" />
             <CardContent className="p-5 relative z-10">
@@ -234,7 +229,6 @@ export default function AgendaPage() {
             </CardContent>
           </Card>
 
-          {/* Sala de Espera */}
           <Card className="border-slate-200 shadow-sm flex flex-col min-h-0 shrink-0">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-xl shrink-0">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
@@ -265,7 +259,6 @@ export default function AgendaPage() {
             </CardContent>
           </Card>
 
-          {/* Próximos Atendimentos */}
           <Card className="border-slate-200 shadow-sm flex flex-col flex-1 min-h-0">
             <div className="p-4 border-b border-slate-100 shrink-0">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
@@ -299,7 +292,6 @@ export default function AgendaPage() {
               )}
             </CardContent>
           </Card>
-
         </div>
       </div>
 
@@ -322,19 +314,18 @@ export default function AgendaPage() {
   );
 }
 
+// ─── Renderização Customizada do Evento (Compacta para não cortar) ───
 function renderEventContent(arg: any) {
   const appointment = arg.event.extendedProps.appointment as AppointmentBoardItem;
   const v = APPOINTMENT_STATUS_VISUAL[appointment.status];
   return (
     <div className="agenda-event" data-testid={`agenda-event-${appointment.id}`}>
-      <div className="agenda-event-time">
-        <span className="agenda-event-dot" style={{ backgroundColor: v.border }} />
-        {arg.timeText}
+      <div className="flex items-center gap-1.5 overflow-hidden">
+        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: v.border }} />
+        <span className="text-[10px] font-bold shrink-0">{arg.timeText}</span>
+        <span className="text-[11px] font-bold truncate leading-none">{appointment.patient_name}</span>
       </div>
-      <div className="agenda-event-name" title={appointment.patient_name}>
-        {appointment.patient_name}
-      </div>
-      <div className="agenda-event-meta">
+      <div className="text-[9px] text-slate-500 font-medium truncate mt-0.5 ml-3">
         {appointment.room_name}
       </div>
     </div>
