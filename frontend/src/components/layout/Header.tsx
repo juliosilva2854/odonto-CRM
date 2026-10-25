@@ -1,4 +1,4 @@
-import { LogOut, Menu, Search } from "lucide-react";
+import { LogOut, Search, Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,14 @@ const ROLE_LABEL: Record<string, string> = {
   dentist: "Dentista",
   reception: "Recepção",
   assistant: "Assistente",
+  super_admin: "Super Admin",
 };
 
 interface HeaderProps {
-  /** Opens the mobile navigation drawer (button only rendered < md). */
-  onOpenMobileNav?: () => void;
+  onMenuClick?: () => void;
 }
 
-export function Header({ onOpenMobileNav }: HeaderProps) {
+export function Header({ onMenuClick }: HeaderProps) {
   const user = useAuthStore((s) => s.user);
   const clinic = useAuthStore((s) => s.clinic);
   const { mutate: logout, isPending } = useLogout();
@@ -26,23 +26,23 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
   return (
     <header
       data-testid="app-header"
-      className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border glass px-4 sm:px-6 md:gap-6 md:px-8 print:hidden"
+      className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-border glass px-4 sm:px-8"
     >
-      {/* Mobile menu (hamburger) */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="-ml-1 shrink-0 md:hidden"
-        onClick={onOpenMobileNav}
-        aria-label="Abrir menu"
-        data-testid="header-mobile-menu-button"
-      >
-        <Menu className="h-5 w-5" />
-      </Button>
+      {/* Botão Hamburger (Apenas Mobile) */}
+      {onMenuClick && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden shrink-0"
+          onClick={onMenuClick}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      )}
 
       {/* Clinic context */}
-      <div className="flex min-w-0 flex-1 items-center gap-3 md:flex-none">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground text-[11px] font-semibold uppercase tracking-wider text-background">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="hidden sm:flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-[11px] font-semibold uppercase tracking-wider text-background">
           {clinic ? initialsOf(clinic.trade_name) : "—"}
         </div>
         <div className="min-w-0">
@@ -50,24 +50,23 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
             {clinic?.trade_name ?? "—"}
           </p>
           <p className="truncate text-[11px] text-muted-foreground">
-            Plano <span className="font-medium text-foreground/80">{clinic?.plan ?? "—"}</span>
-            <span className="hidden sm:inline"> · CNPJ {clinic?.cnpj ?? "—"}</span>
+            Plano <span className="font-medium text-foreground/80">{clinic?.plan ?? "—"}</span> <span className="hidden sm:inline">· CNPJ {clinic?.cnpj ?? "—"}</span>
           </p>
         </div>
       </div>
 
       {/* Search */}
-      <div className="relative ml-auto hidden flex-1 max-w-md md:block">
+      <div className="relative ml-auto hidden flex-1 max-w-md lg:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           data-testid="header-search"
-          placeholder="Buscar paciente, orçamento ou consulta…"
+          placeholder="Buscar paciente, orçamento ou consulta..."
           className="pl-9 bg-secondary/60 border-transparent focus-visible:bg-card focus-visible:border-input"
         />
       </div>
 
       {/* User chip */}
-      <div className="flex shrink-0 items-center gap-2 md:gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 ml-auto lg:ml-0">
         <div className="hidden text-right md:block">
           <p className="text-sm font-medium leading-tight text-foreground">
             {user?.full_name ?? "—"}
@@ -76,7 +75,7 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
             {ROLE_LABEL[user?.role ?? ""] ?? user?.role}
           </p>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-accent to-indigo-500 text-[12px] font-semibold text-white shadow-xs">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-indigo-500 text-[12px] font-semibold text-white shadow-xs">
           {user ? initialsOf(user.full_name) : "?"}
         </div>
         <Button
@@ -86,6 +85,7 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
           disabled={isPending}
           aria-label="Sair"
           data-testid="header-logout-button"
+          className="shrink-0"
         >
           <LogOut className="h-4 w-4" />
         </Button>
