@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Navigate, Link } from "react-router-dom";
-import { Lock, Mail, Loader2, ArrowRight, ShieldCheck, CheckCircle2, Activity, CalendarDays } from "lucide-react";
+import { Lock, Mail, Loader2, ArrowRight, ShieldCheck, CheckCircle2, HeartPulse, Shield, Fingerprint } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -53,85 +53,68 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-teal-50 p-6 sm:p-12 font-sans relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 p-4 sm:p-8 font-sans relative overflow-hidden">
       
-      {/* Efeitos de Fundo Globais */}
-      <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-indigo-200/40 blur-[120px] rounded-full pointer-events-none mix-blend-multiply" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-teal-200/40 blur-[100px] rounded-full pointer-events-none mix-blend-multiply" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 pointer-events-none" />
-
-      {/* Container Principal (Glassmorphism + Sombra) */}
-      <div className="w-full max-w-6xl bg-white/70 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] shadow-[0_20px_80px_-20px_rgba(0,0,0,0.1)] overflow-hidden grid lg:grid-cols-2 relative z-10">
+      {/* Efeitos de Fundo Suaves (Acolhedores) */}
+      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-100/50 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-teal-100/50 blur-[120px] rounded-full pointer-events-none" />
+      
+      {/* Container Principal (Tamanho Controlado) */}
+      <div className="w-full max-w-[1000px] bg-white rounded-[2rem] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden grid lg:grid-cols-[1.1fr_1fr] relative z-10">
         
-        {/* ─── LEFT: VISUAL SHOWCASE ─── */}
-        <div className="relative hidden lg:flex flex-col justify-between bg-slate-900 p-12 overflow-hidden text-white">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] opacity-20" />
-          <div className="absolute -top-40 -left-40 w-[400px] h-[400px] bg-indigo-600/50 blur-[100px] rounded-full pointer-events-none" />
-          <div className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-teal-500/30 blur-[100px] rounded-full pointer-events-none" />
+        {/* ─── LEFT: BRANDING & CONFIANÇA ─── */}
+        <div className="relative hidden lg:flex flex-col justify-between bg-gradient-to-br from-indigo-50/50 to-teal-50/30 p-12 lg:p-16 border-r border-slate-100">
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-16">
+              <BrandMarkCustom className="w-9 h-9" />
+              <span className="text-2xl font-bold tracking-tight text-slate-900">Dental<span className="text-indigo-600">.CRM</span></span>
+            </div>
 
-          <div className="relative z-10 flex items-center gap-3">
-            <BrandMarkCustom className="w-10 h-10" />
-            <span className="text-2xl font-bold tracking-tight">Dental<span className="text-indigo-400">.CRM</span></span>
-          </div>
-
-          <div className="relative z-10 mt-12">
-            <h2 className="text-4xl font-bold leading-tight mb-6">
-              A gestão da sua clínica em <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-300">outro nível.</span>
+            <h2 className="text-3xl font-bold leading-tight text-slate-900 mb-4">
+              Cuidar da sua clínica <br/>
+              <span className="text-indigo-600">nunca foi tão simples.</span>
             </h2>
-            <p className="text-slate-400 text-lg mb-10 max-w-md">
-              Agenda, prontuário, odontograma e financeiro em uma única plataforma desenhada para a alta performance.
+            <p className="text-slate-600 text-base mb-12 max-w-sm">
+              A plataforma completa para gestão odontológica. Segurança, conformidade e praticidade para você focar no que realmente importa: seus pacientes.
             </p>
 
-            {/* Mockup 3D do Sistema */}
-            <div className="relative w-full max-w-md animate-float">
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-teal-400 rounded-2xl blur opacity-30"></div>
-              <div className="relative rounded-xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-md p-3 shadow-2xl">
-                <div className="rounded-lg overflow-hidden border border-slate-700 bg-slate-900 flex flex-col h-[220px]">
-                  {/* Barra do navegador falsa */}
-                  <div className="h-8 border-b border-slate-700 bg-slate-800 flex items-center px-4 gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                  </div>
-                  {/* Interface falsa */}
-                  <div className="flex flex-1">
-                    <div className="w-16 border-r border-slate-700 bg-slate-800/50 p-2 space-y-3 hidden sm:block">
-                      <div className="h-6 w-full bg-indigo-500/20 rounded flex items-center justify-center"><Activity className="w-3 h-3 text-indigo-400"/></div>
-                      <div className="h-6 w-full bg-slate-700/50 rounded" />
-                      <div className="h-6 w-full bg-slate-700/50 rounded" />
-                    </div>
-                    <div className="flex-1 p-4 space-y-4">
-                      <div className="flex justify-between">
-                        <div className="h-4 w-24 bg-slate-700 rounded" />
-                        <div className="h-6 w-16 bg-indigo-500 rounded" />
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="h-12 bg-slate-800 border border-slate-700 rounded p-2 flex flex-col justify-between"><div className="h-1.5 w-8 bg-slate-600 rounded"/><div className="h-3 w-12 bg-slate-400 rounded"/></div>
-                        <div className="h-12 bg-slate-800 border border-slate-700 rounded p-2 flex flex-col justify-between"><div className="h-1.5 w-8 bg-slate-600 rounded"/><div className="h-3 w-12 bg-slate-400 rounded"/></div>
-                        <div className="h-12 bg-slate-800 border border-slate-700 rounded p-2 flex flex-col justify-between"><div className="h-1.5 w-8 bg-slate-600 rounded"/><div className="h-3 w-12 bg-slate-400 rounded"/></div>
-                      </div>
-                      <div className="h-16 bg-slate-800 border border-slate-700 rounded flex items-center justify-center gap-1">
-                        <CalendarDays className="w-4 h-4 text-slate-500 mr-2"/>
-                        {[...Array(6)].map((_, i) => (
-                          <div key={i} className="w-3 h-6 border border-slate-600 rounded-sm bg-slate-700/50" />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+            {/* Cards de Recursos (Acolhedores e Tecnológicos) */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                  <HeartPulse className="w-5 h-5 text-teal-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Foco no Paciente</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Prontuário com trava jurídica CFO e histórico completo.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                  <Shield className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Segurança LGPD</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Seus dados e dos seus pacientes 100% protegidos.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/80 shadow-sm">
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <Fingerprint className="w-5 h-5 text-slate-700" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Acesso Restrito</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Ambiente multi-tenant isolado com criptografia avançada.</p>
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="relative z-10 flex items-center gap-6 text-xs font-semibold text-slate-400 mt-12 pt-6 border-t border-slate-700/50">
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-teal-400" /> CFO Compliant</div>
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-teal-400" /> LGPD Ready</div>
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-teal-400" /> 99.9% Uptime</div>
-          </div>
         </div>
 
         {/* ─── RIGHT: FORMULÁRIO ─── */}
-        <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16 relative">
+        <div className="flex flex-col justify-center p-8 sm:p-12 relative">
           
           <div className="mb-10 lg:hidden flex items-center gap-2 justify-center">
             <BrandMarkCustom className="w-8 h-8" />
@@ -140,24 +123,16 @@ export default function LoginPage() {
 
           <div className="w-full max-w-sm mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
             
-            {/* Selo de Segurança */}
-            <div className="flex justify-center mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-xs font-bold text-indigo-700 shadow-sm">
-                <ShieldCheck className="w-4 h-4 text-teal-500" />
-                Ambiente Criptografado 256-bit
-              </div>
-            </div>
-
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 text-center mb-2">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">
               Acesse sua clínica.
             </h1>
-            <p className="text-sm text-slate-500 font-medium text-center mb-8">
+            <p className="text-sm text-slate-500 mb-8">
               Insira suas credenciais para continuar.
             </p>
 
             <form onSubmit={onSubmit} className="space-y-5" noValidate>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 font-bold text-[11px] tracking-wider uppercase ml-1">E-mail profissional</Label>
+                <Label htmlFor="email" className="text-slate-700 font-semibold text-xs tracking-wide uppercase">E-mail profissional</Label>
                 <div className="relative group">
                   <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                   <Input
@@ -166,7 +141,7 @@ export default function LoginPage() {
                     autoComplete="email"
                     required
                     placeholder="voce@clinica.com.br"
-                    className="pl-12 h-14 bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-indigo-600 rounded-xl shadow-sm text-base transition-all placeholder:text-slate-400 font-medium"
+                    className="pl-12 h-12 bg-white border-slate-200 focus-visible:ring-2 focus-visible:ring-indigo-600 rounded-xl shadow-sm text-base transition-all placeholder:text-slate-400"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -174,11 +149,11 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between ml-1">
-                  <Label htmlFor="password" className="text-slate-700 font-bold text-[11px] tracking-wider uppercase">Senha</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-slate-700 font-semibold text-xs tracking-wide uppercase">Senha</Label>
                   <Link
                     to="/forgot-password"
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
                   >
                     Esqueceu a senha?
                   </Link>
@@ -191,7 +166,7 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     required
                     placeholder="••••••••"
-                    className="pl-12 h-14 bg-slate-50/50 border-slate-200 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-indigo-600 rounded-xl shadow-sm text-base transition-all placeholder:text-slate-400 font-medium"
+                    className="pl-12 h-12 bg-white border-slate-200 focus-visible:ring-2 focus-visible:ring-indigo-600 rounded-xl shadow-sm text-base transition-all placeholder:text-slate-400"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -209,7 +184,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isPending}
-                className="w-full h-14 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white shadow-[0_8px_20px_-8px_rgba(79,70,229,0.6)] hover:shadow-[0_12px_28px_-8px_rgba(79,70,229,0.7)] hover:-translate-y-0.5 transition-all text-base font-bold mt-4 group"
+                className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all text-base font-semibold mt-2 group"
               >
                 {isPending ? (
                   <>
@@ -232,6 +207,11 @@ export default function LoginPage() {
                   Criar conta grátis
                 </Link>
               </p>
+            </div>
+
+            <div className="mt-10 flex items-center justify-center gap-2 text-xs font-medium text-slate-400">
+              <ShieldCheck className="h-4 w-4" />
+              Protegido por criptografia · Conformidade LGPD/CFO
             </div>
 
           </div>
