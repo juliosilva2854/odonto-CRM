@@ -5,7 +5,7 @@ import { format, parseISO, isThisMonth } from "date-fns";
 import { 
   Search, UserPlus, MoreHorizontal, ChevronRight, 
   Users, Filter, CalendarDays, FileText, UserCheck, 
-  UserX, Plus, Mail, Phone
+  UserX, Plus, Mail, Phone, ShieldAlert
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -40,13 +40,14 @@ export default function PatientsListPage() {
   const patients = data?.items ?? [];
   const total = data?.total ?? 0;
 
-  // Cálculos para os KPIs (baseados na página atual)
+  // Cálculos para os KPIs
   const activeCount = patients.filter(p => !p.anonymized_at).length;
   const inactiveCount = patients.filter(p => p.anonymized_at).length;
   const newThisMonthCount = patients.filter(p => isThisMonth(parseISO(p.created_at))).length;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 animate-in fade-in duration-500" data-testid="patients-list-page">
+    // Alterado para w-full e max-w-[1600px] para expandir em telas grandes
+    <div className="w-full max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-500" data-testid="patients-list-page">
       
       {/* ─── Header ─── */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -63,17 +64,17 @@ export default function PatientsListPage() {
         </Button>
       </header>
 
-      {/* ─── KPIs ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ─── KPIs (Largura total) ─── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{total}</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total de Pacientes</p>
+                <p className="text-3xl font-bold text-slate-900 mt-1">{total}</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                <Users className="h-5 w-5 text-indigo-600" />
+              <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center">
+                <Users className="h-6 w-6 text-indigo-600" />
               </div>
             </div>
           </CardContent>
@@ -83,25 +84,11 @@ export default function PatientsListPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Ativos</p>
-                <p className="text-2xl font-bold text-emerald-600 mt-1">{activeCount}</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pacientes Ativos</p>
+                <p className="text-3xl font-bold text-emerald-600 mt-1">{activeCount}</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
-                <UserCheck className="h-5 w-5 text-emerald-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border-slate-200 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Anonimizados</p>
-                <p className="text-2xl font-bold text-rose-600 mt-1">{inactiveCount}</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center">
-                <UserX className="h-5 w-5 text-rose-600" />
+              <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center">
+                <UserCheck className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
           </CardContent>
@@ -111,11 +98,27 @@ export default function PatientsListPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Novos (Mês)</p>
-                <p className="text-2xl font-bold text-indigo-600 mt-1">{newThisMonthCount}</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1" title="Pacientes que solicitaram exclusão de dados (LGPD)">
+                  Inativos (LGPD) <ShieldAlert className="w-3 h-3 text-slate-400" />
+                </p>
+                <p className="text-3xl font-bold text-rose-600 mt-1">{inactiveCount}</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                <Plus className="h-5 w-5 text-indigo-600" />
+              <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center">
+                <UserX className="h-6 w-6 text-rose-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border-slate-200 shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Novos (Este Mês)</p>
+                <p className="text-3xl font-bold text-indigo-600 mt-1">{newThisMonthCount}</p>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center">
+                <Plus className="h-6 w-6 text-indigo-600" />
               </div>
             </div>
           </CardContent>
@@ -123,24 +126,24 @@ export default function PatientsListPage() {
       </div>
 
       {/* ─── Barra de Busca e Filtros ─── */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="relative flex-1 w-full">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             type="search"
-            placeholder="Buscar por nome, CPF, telefone..."
+            placeholder="Buscar por nome, CPF, telefone ou e-mail..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-10 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-lg shadow-sm"
+            className="pl-9 h-11 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-lg shadow-sm w-full"
           />
         </div>
-        <Button variant="outline" className="h-10 border-slate-200 text-slate-700 bg-white">
-          <Filter className="h-4 w-4 mr-2 text-slate-400" /> Filtros
+        <Button variant="outline" className="h-11 border-slate-200 text-slate-700 bg-white w-full sm:w-auto shrink-0">
+          <Filter className="h-4 w-4 mr-2 text-slate-400" /> Filtros Avançados
         </Button>
       </div>
 
-      {/* ─── Tabela de Pacientes ─── */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
+      {/* ─── Tabela de Pacientes (Largura Total) ─── */}
+      <Card className="border-slate-200 shadow-sm overflow-hidden w-full">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-4">
@@ -174,16 +177,16 @@ export default function PatientsListPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
+            <div className="overflow-x-auto w-full">
+              <Table className="w-full">
                 <TableHeader className="bg-slate-50/50">
                   <TableRow className="hover:bg-transparent border-slate-100">
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 pl-6">Paciente</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 hidden md:table-cell">Contato</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 hidden lg:table-cell">CPF</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Cadastro</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</TableHead>
-                    <TableHead className="text-right pr-6"></TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 pl-6 py-4">Paciente</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 py-4">Contato</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 py-4 hidden lg:table-cell">CPF</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 py-4 hidden md:table-cell">Data de Cadastro</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 py-4">Status</TableHead>
+                    <TableHead className="text-right pr-6 py-4"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -209,14 +212,14 @@ export default function PatientsListPage() {
                         </div>
                       </TableCell>
 
-                      {/* Contato (Telefone + Email) - Escondido no Mobile */}
-                      <TableCell className="hidden md:table-cell">
+                      {/* Contato (Telefone + Email) */}
+                      <TableCell>
                         <div className="flex flex-col gap-1">
-                          <span className="text-sm text-slate-700 flex items-center gap-1.5">
-                            <Phone className="w-3 h-3 text-slate-400" /> {p.phone_e164}
+                          <span className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
+                            <Phone className="w-3.5 h-3.5 text-slate-400" /> {p.phone_e164}
                           </span>
                           <span className="text-xs text-slate-500 flex items-center gap-1.5 truncate max-w-[200px]">
-                            <Mail className="w-3 h-3 text-slate-400" /> {p.email || "—"}
+                            <Mail className="w-3.5 h-3.5 text-slate-400" /> {p.email || "—"}
                           </span>
                         </div>
                       </TableCell>
@@ -227,18 +230,18 @@ export default function PatientsListPage() {
                       </TableCell>
 
                       {/* Data de Cadastro */}
-                      <TableCell className="hidden sm:table-cell">
-                        <span className="text-sm text-slate-700">
-                          {format(new Date(p.created_at), "dd/MM/yyyy")}
+                      <TableCell className="hidden md:table-cell">
+                        <span className="text-sm text-slate-600">
+                          {format(parseISO(p.created_at), "dd/MM/yyyy")}
                         </span>
                       </TableCell>
 
                       {/* Status */}
                       <TableCell>
                         {p.anonymized_at ? (
-                          <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] uppercase">Anonimizado</Badge>
+                          <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] uppercase font-bold px-2 py-0.5">Inativo (LGPD)</Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] uppercase">Ativo</Badge>
+                          <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] uppercase font-bold px-2 py-0.5">Ativo</Badge>
                         )}
                       </TableCell>
 
