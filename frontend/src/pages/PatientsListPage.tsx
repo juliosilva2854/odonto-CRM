@@ -1,20 +1,30 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, UserPlus } from "lucide-react";
+import { format } from "date-fns";
+import { 
+  Search, UserPlus, MoreHorizontal, ChevronRight, 
+  Users, Filter, CalendarDays, FileText 
+} from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { NewPatientSheet } from "@/components/patients/NewPatientSheet";
-import { cn, initialsOf } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { initialsOf, cn } from "@/lib/utils";
 import { patientsService } from "@/services/patients.service";
 
 export default function PatientsListPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["patients", { search }],
@@ -26,98 +36,161 @@ export default function PatientsListPage() {
       }),
   });
 
+  const patients = data?.items ?? [];
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6" data-testid="patients-list-page">
+    <div className="mx-auto max-w-6xl space-y-6 animate-in fade-in duration-500" data-testid="patients-list-page">
+      
+      {/* ─── Header ─── */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-            Pacientes
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
-            Lista de pacientes
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Selecione um paciente para abrir o prontuário e o odontograma.
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Clínica</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">Pacientes</h1>
+          <p className="mt-1 text-sm text-slate-500 font-medium">
+            Gerencie os pacientes da sua clínica.
           </p>
         </div>
-        <Button
-          variant="accent"
-          onClick={() => setSheetOpen(true)}
-          data-testid="new-patient-button"
-        >
-          <UserPlus className="h-4 w-4" />
-          Novo paciente
+        <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 h-10">
+          <UserPlus className="h-4 w-4 mr-2" />
+          Novo Paciente
         </Button>
       </header>
 
-      <NewPatientSheet open={sheetOpen} onOpenChange={setSheetOpen} />
-
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Buscar por nome, CPF, telefone ou e-mail…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-          data-testid="patients-search"
-        />
+      {/* ─── Barra de Busca e Filtros ─── */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            type="search"
+            placeholder="Buscar por nome, CPF, telefone ou e-mail..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 h-10 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-lg shadow-sm"
+          />
+        </div>
+        <Button variant="outline" className="h-10 border-slate-200 text-slate-700 bg-white">
+          <Filter className="h-4 w-4 mr-2 text-slate-400" /> Filtros
+        </Button>
       </div>
 
-      <Card className="overflow-hidden">
-        {isLoading ? (
-          <ul className="divide-y divide-border">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <li key={i} className="flex items-center gap-4 p-4">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-3 w-64" />
+      {/* ─── Tabela de Pacientes ─── */}
+      <Card className="border-slate-200 shadow-sm overflow-hidden">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-6 space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-64" />
+                  </div>
                 </div>
-                <Skeleton className="h-5 w-16" />
-              </li>
-            ))}
-          </ul>
-        ) : isError || !data ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">
-            Não foi possível carregar a lista de pacientes.
-          </div>
-        ) : data.items.length === 0 ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">
-            Nenhum paciente encontrado{search ? ` para “${search}”.` : "."}
-          </div>
-        ) : (
-          <ul className="divide-y divide-border" data-testid="patients-list">
-            {data.items.map((p) => (
-              <li key={p.id}>
-                <Link
-                  to={`/patients/${p.id}`}
-                  className={cn(
-                    "group flex items-center gap-4 p-4 transition-colors",
-                    "hover:bg-secondary/60",
-                  )}
-                  data-testid={`patient-item-${p.id}`}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent to-indigo-500 text-xs font-semibold text-white shadow-xs">
-                    {initialsOf(p.full_name)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-medium text-foreground">{p.full_name}</p>
-                      {p.is_minor && <Badge variant="warning">Menor</Badge>}
-                      {p.anonymized_at && <Badge variant="destructive">Anonimizado</Badge>}
-                    </div>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {p.cpf ?? "—"} · {p.phone_e164}
-                      {p.email ? ` · ${p.email}` : ""}
-                    </p>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-accent" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+              ))}
+            </div>
+          ) : isError || !data ? (
+            <div className="p-12 text-center">
+              <p className="text-sm text-slate-500">Não foi possível carregar a lista de pacientes.</p>
+            </div>
+          ) : patients.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center">
+              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                <Users className="w-8 h-8 text-slate-300" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1">Nenhum paciente encontrado</h3>
+              <p className="text-sm text-slate-500 max-w-sm mb-6">
+                {search ? `Não encontramos resultados para "${search}". Tente outro termo.` : "Sua clínica ainda não tem pacientes cadastrados."}
+              </p>
+              {!search && (
+                <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  <UserPlus className="h-4 w-4 mr-2" /> Cadastrar primeiro paciente
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-slate-50/50">
+                  <TableRow className="hover:bg-transparent border-slate-100">
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 pl-6">Paciente</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">CPF / Telefone</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Cadastro</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</TableHead>
+                    <TableHead className="text-right pr-6"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {patients.map((p) => (
+                    <TableRow 
+                      key={p.id} 
+                      className="cursor-pointer hover:bg-slate-50/50 transition-colors border-slate-100 group"
+                      onClick={() => navigate(`/patients/${p.id}`)}
+                    >
+                      {/* Avatar e Nome */}
+                      <TableCell className="pl-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold shadow-sm">
+                            {initialsOf(p.full_name)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-slate-900 truncate">{p.full_name}</p>
+                            <p className="text-xs text-slate-500 truncate">{p.email || "Sem e-mail cadastrado"}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* CPF / Telefone */}
+                      <TableCell>
+                        <p className="text-sm font-medium text-slate-700">{p.cpf || "—"}</p>
+                        <p className="text-xs text-slate-500">{p.phone_e164}</p>
+                      </TableCell>
+
+                      {/* Data de Cadastro */}
+                      <TableCell>
+                        <p className="text-sm text-slate-700">
+                          {format(new Date(p.created_at), "dd 'de' MMM, yyyy")}
+                        </p>
+                      </TableCell>
+
+                      {/* Status */}
+                      <TableCell>
+                        {p.anonymized_at ? (
+                          <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] uppercase">Anonimizado</Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] uppercase">Ativo</Badge>
+                        )}
+                      </TableCell>
+
+                      {/* Ações */}
+                      <TableCell className="text-right pr-6">
+                        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => navigate(`/patients/${p.id}`)}>
+                                <FileText className="h-4 w-4 mr-2 text-slate-400" /> Abrir Prontuário
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <CalendarDays className="h-4 w-4 mr-2 text-slate-400" /> Agendar Consulta
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          
+                          <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </div>
   );
