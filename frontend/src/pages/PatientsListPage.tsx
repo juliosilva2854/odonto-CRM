@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { format, parseISO, isThisMonth, differenceInYears } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, parseISO, isThisMonth } from "date-fns";
 import { 
   Search, UserPlus, MoreHorizontal, ChevronRight, 
   Users, Filter, CalendarDays, FileText, UserCheck, 
-  UserX, Plus, Mail, Phone, Calendar
+  UserX, Plus, Mail, Phone
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,16 +40,10 @@ export default function PatientsListPage() {
   const patients = data?.items ?? [];
   const total = data?.total ?? 0;
 
-  // Cálculos para os KPIs (baseados na página atual, já que a API não retorna contagem global por status)
-  const activeCount = patients.filter(p => !p.anonimized_at).length;
-  const inactiveCount = patients.filter(p => p.anonimized_at).length;
+  // Cálculos para os KPIs (baseados na página atual)
+  const activeCount = patients.filter(p => !p.anonymized_at).length;
+  const inactiveCount = patients.filter(p => p.anonymized_at).length;
   const newThisMonthCount = patients.filter(p => isThisMonth(parseISO(p.created_at))).length;
-
-  // Função para calcular idade
-  const calculateAge = (birthDate: string | null) => {
-    if (!birthDate) return null;
-    return differenceInYears(new Date(), new Date(birthDate));
-  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 animate-in fade-in duration-500" data-testid="patients-list-page">
@@ -187,94 +180,93 @@ export default function PatientsListPage() {
                   <TableRow className="hover:bg-transparent border-slate-100">
                     <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 pl-6">Paciente</TableHead>
                     <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 hidden md:table-cell">Contato</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 hidden lg:table-cell">CPF / Nasc.</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 hidden lg:table-cell">CPF</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Cadastro</TableHead>
                     <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500">Status</TableHead>
                     <TableHead className="text-right pr-6"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {patients.map((p) => {
-                    const age = calculateAge(p.birth_date);
-                    return (
-                      <TableRow 
-                        key={p.id} 
-                        className="cursor-pointer hover:bg-slate-50/50 transition-colors border-slate-100 group"
-                        onClick={() => navigate(`/patients/${p.id}`)}
-                      >
-                        {/* Paciente (Avatar + Nome + Email no Mobile) */}
-                        <TableCell className="pl-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold shadow-sm">
-                              {initialsOf(p.full_name)}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-slate-900 truncate">{p.full_name}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <p className="text-xs text-slate-500 truncate md:hidden">{p.phone_e164}</p>
-                                <p className="text-xs text-slate-500 truncate hidden md:block">{p.email || "Sem e-mail"}</p>
-                              </div>
+                  {patients.map((p) => (
+                    <TableRow 
+                      key={p.id} 
+                      className="cursor-pointer hover:bg-slate-50/50 transition-colors border-slate-100 group"
+                      onClick={() => navigate(`/patients/${p.id}`)}
+                    >
+                      {/* Paciente (Avatar + Nome + Email no Mobile) */}
+                      <TableCell className="pl-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold shadow-sm">
+                            {initialsOf(p.full_name)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-slate-900 truncate">{p.full_name}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-xs text-slate-500 truncate md:hidden">{p.phone_e164}</p>
+                              <p className="text-xs text-slate-500 truncate hidden md:block">{p.email || "Sem e-mail"}</p>
                             </div>
                           </div>
-                        </TableCell>
+                        </div>
+                      </TableCell>
 
-                        {/* Contato (Telefone + Email) - Escondido no Mobile */}
-                        <TableCell className="hidden md:table-cell">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-sm text-slate-700 flex items-center gap-1.5">
-                              <Phone className="w-3 h-3 text-slate-400" /> {p.phone_e164}
-                            </span>
-                            <span className="text-xs text-slate-500 flex items-center gap-1.5 truncate max-w-[200px]">
-                              <Mail className="w-3 h-3 text-slate-400" /> {p.email || "—"}
-                            </span>
-                          </div>
-                        </TableCell>
+                      {/* Contato (Telefone + Email) - Escondido no Mobile */}
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm text-slate-700 flex items-center gap-1.5">
+                            <Phone className="w-3 h-3 text-slate-400" /> {p.phone_e164}
+                          </span>
+                          <span className="text-xs text-slate-500 flex items-center gap-1.5 truncate max-w-[200px]">
+                            <Mail className="w-3 h-3 text-slate-400" /> {p.email || "—"}
+                          </span>
+                        </div>
+                      </TableCell>
 
-                        {/* CPF e Nascimento - Escondido em telas menores */}
-                        <TableCell className="hidden lg:table-cell">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-slate-700">{p.cpf || "—"}</span>
-                            <span className="text-xs text-slate-500 flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-slate-400" /> 
-                              {p.birth_date ? `${format(parseISO(p.birth_date), "dd/MM/yyyy")} (${age} anos)` : "Não informado"}
-                            </span>
-                          </div>
-                        </TableCell>
+                      {/* CPF - Escondido em telas menores */}
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-sm font-medium text-slate-700">{p.cpf || "—"}</span>
+                      </TableCell>
 
-                        {/* Status */}
-                        <TableCell>
-                          {p.anonymized_at ? (
-                            <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] uppercase">Anonimizado</Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] uppercase">Ativo</Badge>
-                          )}
-                        </TableCell>
+                      {/* Data de Cadastro */}
+                      <TableCell className="hidden sm:table-cell">
+                        <span className="text-sm text-slate-700">
+                          {format(new Date(p.created_at), "dd/MM/yyyy")}
+                        </span>
+                      </TableCell>
 
-                        {/* Ações */}
-                        <TableCell className="text-right pr-6">
-                          <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48">
-                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => navigate(`/patients/${p.id}`)}>
-                                  <FileText className="h-4 w-4 mr-2 text-slate-400" /> Abrir Prontuário
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <CalendarDays className="h-4 w-4 mr-2 text-slate-400" /> Agendar Consulta
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            
-                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                      {/* Status */}
+                      <TableCell>
+                        {p.anonymized_at ? (
+                          <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] uppercase">Anonimizado</Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] uppercase">Ativo</Badge>
+                        )}
+                      </TableCell>
+
+                      {/* Ações */}
+                      <TableCell className="text-right pr-6">
+                        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => navigate(`/patients/${p.id}`)}>
+                                <FileText className="h-4 w-4 mr-2 text-slate-400" /> Abrir Prontuário
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <CalendarDays className="h-4 w-4 mr-2 text-slate-400" /> Agendar Consulta
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          
+                          <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
