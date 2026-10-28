@@ -16,10 +16,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClinicalEvolutionTab } from "@/components/clinical/ClinicalEvolutionTab";
+import { AnamnesisTab } from "@/components/patients/AnamnesisTab";
 import { OdontogramChart } from "@/components/odontogram/OdontogramChart";
 import { ToothDetailSheet } from "@/components/odontogram/ToothDetailSheet";
 import { groupByTooth } from "@/components/odontogram/fdi";
 import { QuotesTab } from "@/components/quotes/QuotesTab";
+import { NewAppointmentSheet } from "@/components/agenda/NewAppointmentSheet";
 import { initialsOf } from "@/lib/utils";
 import { clinicalRecordsService } from "@/services/clinical-records.service";
 import { odontogramService } from "@/services/odontogram.service";
@@ -28,8 +30,14 @@ import { patientsService } from "@/services/patients.service";
 export default function PatientRecordPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
+  // Estado das Abas (Adicionado o controle aqui para o botão de anamnese funcionar)
+  const [activeTab, setActiveTab] = useState("odontogram");
+  
   const [selectedTooth, setSelectedTooth] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  
+  const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
 
   const patientId = id ?? "";
 
@@ -144,7 +152,11 @@ export default function PatientRecordPage() {
 
             <div className="flex flex-col gap-2 shrink-0 border-t xl:border-t-0 xl:border-l border-slate-100 pt-4 xl:pt-0 xl:pl-6">
               <CfoLockBadge lockState={lockState} />
-              <Button variant="outline" className="w-full border-slate-200 bg-white shadow-sm h-9 text-xs">
+              <Button 
+                variant="outline" 
+                className="w-full border-slate-200 bg-white shadow-sm h-9 text-xs"
+                onClick={() => setAppointmentSheetOpen(true)}
+              >
                 <CalendarPlus className="h-4 w-4 mr-2 text-slate-400" /> Agendar Consulta
               </Button>
             </div>
@@ -163,10 +175,14 @@ export default function PatientRecordPage() {
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-6 items-start">
         
         <div className="min-w-0">
-          <Tabs defaultValue="odontogram" className="w-full" data-testid="patient-tabs">
+          {/* Abas Controladas */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" data-testid="patient-tabs">
             <TabsList className="bg-slate-100/50 p-1 border border-slate-200 w-full justify-start overflow-x-auto">
               <TabsTrigger value="odontogram" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4">
                 <Sparkles className="h-4 w-4 mr-2" /> Odontograma
+              </TabsTrigger>
+              <TabsTrigger value="anamnesis" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4">
+                <HeartPulse className="h-4 w-4 mr-2" /> Anamnese
               </TabsTrigger>
               <TabsTrigger value="evolution" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4">
                 <Stethoscope className="h-4 w-4 mr-2" /> Evolução Clínica
@@ -186,6 +202,10 @@ export default function PatientRecordPage() {
                 />
               </TabsContent>
 
+              <TabsContent value="anamnesis" className="m-0 focus-visible:outline-none">
+                <AnamnesisTab patientId={patientId} />
+              </TabsContent>
+
               <TabsContent value="evolution" className="m-0 focus-visible:outline-none">
                 <ClinicalEvolutionTab
                   patientId={patientId}
@@ -200,7 +220,6 @@ export default function PatientRecordPage() {
           </Tabs>
         </div>
 
-        {/* Resumo Clínico (Sem o card da LGPD no final) */}
         <aside className="space-y-4">
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
@@ -225,7 +244,12 @@ export default function PatientRecordPage() {
                   </div>
                 </div>
               </div>
-              <Button variant="link" className="w-full text-xs text-indigo-600 mt-2 h-auto p-0">
+              {/* Botão que agora leva para a aba de Anamnese */}
+              <Button 
+                variant="link" 
+                className="w-full text-xs text-indigo-600 mt-2 h-auto p-0"
+                onClick={() => setActiveTab("anamnesis")}
+              >
                 Preencher Anamnese completa &rarr;
               </Button>
             </CardContent>
@@ -263,20 +287,31 @@ export default function PatientRecordPage() {
         </aside>
       </div>
 
-      {/* ─── AVISO LGPD (Movido para o rodapé da página) ─── */}
       <div className="flex items-center justify-center gap-2 pt-8 text-xs font-medium text-slate-400">
         <ShieldCheck className="w-4 h-4 text-emerald-500" />
         Todos os acessos a este prontuário estão sendo registrados em conformidade com a LGPD e o CFO.
       </div>
 
+      {/* AQUI ESTAVA O BUG: Removi o lockState.isLocked. O bloqueio do CFO não impede planejar novos procedimentos. */}
       <ToothDetailSheet
         patientId={patientId}
         toothFdi={selectedTooth}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         proceduresForTooth={proceduresForSelected}
-        disabled={isAnonymized || lockState.isLocked}
+        disabled={isAnonymized} 
       />
+
+      {/* Modal de Agendar Consulta */}
+      {appointmentSheetOpen && (
+        <NewAppointmentSheet
+          open={appointmentSheetOpen}
+          onOpenChange={setAppointmentSheetOpen}
+          defaultStart={null}
+          defaultEnd={null}
+          knownAppointments={[]}
+        />
+      )}
     </div>
   );
 }
