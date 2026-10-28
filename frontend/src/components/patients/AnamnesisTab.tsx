@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { 
   HeartPulse, AlertTriangle, Activity, Stethoscope, 
-  Save, Loader2, CheckCircle2, Plus
+  Save, Loader2 
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
