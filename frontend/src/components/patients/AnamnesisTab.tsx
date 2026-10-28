@@ -71,7 +71,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
       setFormData({
         ...INITIAL_STATE,
         ...q,
-        // 🛡️ A BLINDAGEM CONTRA TELA BRANCA AQUI:
+        // 🛡️ BLINDAGEM: Se o backend mandar null, transforma em array vazio.
         alergias: Array.isArray(q.alergias) ? q.alergias : [],
         doencas_preexistentes: Array.isArray(q.doencas_preexistentes) ? q.doencas_preexistentes : [],
       });
