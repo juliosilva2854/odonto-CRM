@@ -52,7 +52,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<AnamnesisData>(INITIAL_STATE);
 
-  // O try/catch interno evita que a tela quebre se der 404 (sem anamnese)
   const { data, isLoading } = useQuery({
     queryKey: ["anamnesis", patientId],
     queryFn: async () => {
@@ -60,17 +59,22 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
         const res = await api.get<AnamnesisRecord>(`/api/patients/${patientId}/anamnesis`);
         return res.data;
       } catch (err) {
-        return null; // Se não tem anamnese, retorna null
+        return null; 
       }
     },
     retry: false,
   });
 
+  // 🛡️ BLINDAGEM CONTRA TELA BRANCA
   useEffect(() => {
     if (data?.questionnaire) {
+      const q = data.questionnaire;
       setFormData({
         ...INITIAL_STATE,
-        ...data.questionnaire, // Mescla com os dados vindos da API
+        ...q,
+        // Força ser array. Se o banco mandar null, vira [] e a tela não quebra.
+        alergias: Array.isArray(q.alergias) ? q.alergias : [],
+        doencas_preexistentes: Array.isArray(q.doencas_preexistentes) ? q.doencas_preexistentes : [],
       });
     }
   }, [data]);
@@ -93,7 +97,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
 
   const toggleArrayItem = (field: "alergias" | "doencas_preexistentes", item: string) => {
     setFormData((prev) => {
-      const list = prev[field];
+      const list = Array.isArray(prev[field]) ? prev[field] : []; // Proteção extra
       if (list.includes(item)) return { ...prev, [field]: list.filter((i) => i !== item) };
       return { ...prev, [field]: [...list, item] };
     });
@@ -107,10 +111,13 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
     );
   }
 
+  // Variável segura para renderizar
+  const safeAlergias = Array.isArray(formData.alergias) ? formData.alergias : [];
+  const safeDoencas = Array.isArray(formData.doencas_preexistentes) ? formData.doencas_preexistentes : [];
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
       
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
@@ -150,7 +157,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                   type="button"
                   onClick={() => toggleArrayItem("alergias", item)}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                    formData.alergias.includes(item)
+                    safeAlergias.includes(item)
                       ? "bg-rose-100 text-rose-700 border-rose-300 shadow-sm"
                       : "bg-white text-slate-600 border-slate-200 hover:border-rose-200"
                   }`}
@@ -159,11 +166,11 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                 </button>
               ))}
             </div>
-            {formData.alergias.includes("Outros") && (
+            {safeAlergias.includes("Outros") && (
               <div className="animate-in slide-in-from-top-2">
                 <Label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Quais outras?</Label>
                 <Input 
-                  placeholder="Ex: Frutos do mar, poeira..." 
+                  placeholder="Ex: Frutos do mar..." 
                   value={formData.alergias_outros}
                   onChange={(e) => setFormData({ ...formData, alergias_outros: e.target.value })}
                   className="h-9 text-sm bg-slate-50"
@@ -188,7 +195,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                   type="button"
                   onClick={() => toggleArrayItem("doencas_preexistentes", item)}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                    formData.doencas_preexistentes.includes(item)
+                    safeDoencas.includes(item)
                       ? "bg-indigo-100 text-indigo-700 border-indigo-300 shadow-sm"
                       : "bg-white text-slate-600 border-slate-200 hover:border-indigo-200"
                   }`}
@@ -197,11 +204,11 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                 </button>
               ))}
             </div>
-            {formData.doencas_preexistentes.includes("Outros") && (
+            {safeDoencas.includes("Outros") && (
               <div className="animate-in slide-in-from-top-2">
                 <Label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Quais outras?</Label>
                 <Input 
-                  placeholder="Ex: Tireoide, depressão..." 
+                  placeholder="Ex: Tireoide..." 
                   value={formData.doencas_outros}
                   onChange={(e) => setFormData({ ...formData, doencas_outros: e.target.value })}
                   className="h-9 text-sm bg-slate-50"
@@ -223,7 +230,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase text-slate-500 font-bold">Medicamentos em Uso</Label>
               <Textarea 
-                placeholder="Ex: Losartana 50mg..." 
                 value={formData.medicamentos_uso}
                 onChange={(e) => setFormData({ ...formData, medicamentos_uso: e.target.value })}
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
@@ -233,7 +239,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase text-slate-500 font-bold">Cirurgias Anteriores</Label>
               <Textarea 
-                placeholder="Ex: Retirada de siso em 2020..." 
                 value={formData.cirurgias_anteriores}
                 onChange={(e) => setFormData({ ...formData, cirurgias_anteriores: e.target.value })}
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
@@ -243,7 +248,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase text-slate-500 font-bold">Histórico Familiar</Label>
               <Textarea 
-                placeholder="Ex: Pai diabético..." 
                 value={formData.historico_familiar}
                 onChange={(e) => setFormData({ ...formData, historico_familiar: e.target.value })}
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
@@ -281,7 +285,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
           </CardHeader>
           <CardContent className="p-4">
             <Textarea 
-              placeholder="Informações adicionais..." 
               value={formData.observacoes}
               onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
               className="min-h-[100px] text-sm bg-slate-50"
