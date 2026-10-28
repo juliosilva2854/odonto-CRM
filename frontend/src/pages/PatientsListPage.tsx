@@ -1,281 +1,376 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { format, parseISO, isThisMonth } from "date-fns";
-import { 
-  Search, UserPlus, MoreHorizontal, ChevronRight, 
-  Users, Filter, CalendarDays, FileText, UserCheck, 
-  UserX, Plus, Mail, Phone, ShieldAlert
+import { format, differenceInYears, parseISO } from "date-fns";
+import {
+  ArrowLeft, CalendarDays, IdCard, Lock, LockOpen, Mail,
+  MapPin, Phone, ReceiptText, Sparkles,
+  Stethoscope, User as UserIcon, AlertTriangle, CalendarPlus,
+  FileText, Activity, Clock, HeartPulse, ShieldCheck
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
-  DropdownMenuLabel, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClinicalEvolutionTab } from "@/components/clinical/ClinicalEvolutionTab";
+import { AnamnesisTab } from "@/components/patients/AnamnesisTab";
+import { OdontogramChart } from "@/components/odontogram/OdontogramChart";
+import { ToothDetailSheet } from "@/components/odontogram/ToothDetailSheet";
+import { groupByTooth } from "@/components/odontogram/fdi";
+import { QuotesTab } from "@/components/quotes/QuotesTab";
+import { NewAppointmentSheet } from "@/components/agenda/NewAppointmentSheet";
 import { initialsOf } from "@/lib/utils";
+import { clinicalRecordsService } from "@/services/clinical-records.service";
+import { odontogramService } from "@/services/odontogram.service";
 import { patientsService } from "@/services/patients.service";
 
-export default function PatientsListPage() {
+export default function PatientRecordPage() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
+  
+  const [activeTab, setActiveTab] = useState("odontogram");
+  const [selectedTooth, setSelectedTooth] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["patients", { search }],
-    queryFn: () =>
-      patientsService.list({
-        page: 1,
-        page_size: 50,
-        search: search.trim() || undefined,
-      }),
+  const patientId = id ?? "";
+
+  const patientQuery = useQuery({
+    queryKey: ["patient", patientId],
+    queryFn: () => patientsService.get(patientId),
+    enabled: !!patientId,
   });
 
-  const patients = data?.items ?? [];
-  const total = data?.total ?? 0;
+  const odontogramQuery = useQuery({
+    queryKey: ["odontogram", patientId],
+    queryFn: () => odontogramService.snapshot(patientId),
+    enabled: !!patientId,
+  });
 
-  // Cálculos para os KPIs
-  const activeCount = patients.filter(p => !p.anonymized_at).length;
-  const inactiveCount = patients.filter(p => p.anonymized_at).length;
-  const newThisMonthCount = patients.filter(p => isThisMonth(parseISO(p.created_at))).length;
+  const recordsQuery = useQuery({
+    queryKey: ["clinical-records", patientId, { page: 1, page_size: 1 }],
+    queryFn: () => clinicalRecordsService.list(patientId, { page: 1, page_size: 1 }),
+    enabled: !!patientId,
+    retry: false,
+  });
+
+  const lockState = useMemo(() => deriveLockState(recordsQuery.data?.items?.[0]), [recordsQuery.data]);
+
+  const groupedByTooth = useMemo(
+    () => (odontogramQuery.data ? groupByTooth(odontogramQuery.data.procedures) : {}),
+    [odontogramQuery.data]
+  );
+
+  const proceduresForSelected =
+    selectedTooth && groupedByTooth[selectedTooth] ? groupedByTooth[selectedTooth] : [];
+
+  function handleSelectTooth(fdi: string) {
+    setSelectedTooth(fdi);
+    setSheetOpen(true);
+  }
+
+  if (patientQuery.isLoading) {
+    return <PageSkeleton />;
+  }
+
+  if (patientQuery.isError || !patientQuery.data) {
+    return (
+      <div className="mx-auto max-w-3xl py-16">
+        <Alert variant="destructive">
+          <AlertDescription>Não foi possível carregar o paciente.</AlertDescription>
+        </Alert>
+        <Button variant="ghost" onClick={() => navigate("/patients")} className="mt-4">
+          <ArrowLeft className="h-4 w-4" /> Voltar para pacientes
+        </Button>
+      </div>
+    );
+  }
+
+  const patient = patientQuery.data;
+  const isAnonymized = !!patient.anonymized_at;
+  
+  const age = patient.birth_date 
+    ? differenceInYears(new Date(), parseISO(patient.birth_date)) 
+    : null;
 
   return (
-    // Alterado para w-full e max-w-[1600px] para expandir em telas grandes
-    <div className="w-full max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-500" data-testid="patients-list-page">
+    <div className="mx-auto max-w-7xl space-y-6 animate-in fade-in duration-500 pb-12" data-testid="patient-record-page">
       
-      {/* ─── Header ─── */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Clínica</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">Pacientes</h1>
-          <p className="mt-1 text-sm text-slate-500 font-medium">
-            Gerencie o cadastro e histórico dos seus pacientes.
-          </p>
-        </div>
-        <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 h-10">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Novo Paciente
-        </Button>
-      </header>
+      <button
+        type="button"
+        onClick={() => navigate("/patients")}
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" /> Voltar para lista de pacientes
+      </button>
 
-      {/* ─── KPIs (Largura total) ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white border-slate-200 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
+      <Card className="overflow-hidden border-slate-200 shadow-sm bg-white">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            
+            <div className="flex items-start gap-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-xl font-bold text-white shadow-md">
+                {initialsOf(patient.full_name)}
+              </div>
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total de Pacientes</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{total}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center">
-                <Users className="h-6 w-6 text-indigo-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border-slate-200 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pacientes Ativos</p>
-                <p className="text-3xl font-bold text-emerald-600 mt-1">{activeCount}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center">
-                <UserCheck className="h-6 w-6 text-emerald-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border-slate-200 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1" title="Pacientes que solicitaram exclusão de dados (LGPD)">
-                  Inativos (LGPD) <ShieldAlert className="w-3 h-3 text-slate-400" />
-                </p>
-                <p className="text-3xl font-bold text-rose-600 mt-1">{inactiveCount}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center">
-                <UserX className="h-6 w-6 text-rose-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border-slate-200 shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Novos (Este Mês)</p>
-                <p className="text-3xl font-bold text-indigo-600 mt-1">{newThisMonthCount}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center">
-                <Plus className="h-6 w-6 text-indigo-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* ─── Barra de Busca e Filtros ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input
-            type="search"
-            placeholder="Buscar por nome, CPF, telefone ou e-mail..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-11 bg-white border-slate-200 focus-visible:ring-indigo-600 rounded-lg shadow-sm w-full"
-          />
-        </div>
-        <Button variant="outline" className="h-11 border-slate-200 text-slate-700 bg-white w-full sm:w-auto shrink-0">
-          <Filter className="h-4 w-4 mr-2 text-slate-400" /> Filtros Avançados
-        </Button>
-      </div>
-
-      {/* ─── Tabela de Pacientes (Largura Total) ─── */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden w-full">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-6 space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-3 w-64" />
-                  </div>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h1 className="text-xl font-bold leading-tight text-slate-900">
+                    {patient.full_name}
+                  </h1>
+                  {patient.is_minor && (
+                    <Badge variant="warning" className="bg-amber-100 text-amber-800 text-[10px]">Menor</Badge>
+                  )}
+                  {isAnonymized && (
+                    <Badge variant="destructive" className="text-[10px]">Anonimizado (LGPD)</Badge>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : isError || !data ? (
-            <div className="p-12 text-center">
-              <p className="text-sm text-slate-500">Não foi possível carregar a lista de pacientes.</p>
-            </div>
-          ) : patients.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 text-center">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                <Users className="w-8 h-8 text-slate-300" />
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 font-medium">
+                  {patient.cpf && <span className="flex items-center gap-1"><IdCard className="h-3.5 w-3.5 text-slate-400" /> {patient.cpf}</span>}
+                  <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5 text-slate-400" /> {patient.phone_e164}</span>
+                  {patient.email && <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5 text-slate-400" /> {patient.email}</span>}
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">Nenhum paciente encontrado</h3>
-              <p className="text-sm text-slate-500 max-w-sm mb-6">
-                {search ? `Não encontramos resultados para "${search}".` : "Sua clínica ainda não tem pacientes cadastrados."}
-              </p>
-              {!search && (
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  <UserPlus className="h-4 w-4 mr-2" /> Cadastrar primeiro paciente
-                </Button>
-              )}
             </div>
-          ) : (
-            <div className="overflow-x-auto w-full">
-              <Table className="w-full">
-                <TableHeader className="bg-slate-50/50">
-                  <TableRow className="hover:bg-transparent border-slate-100">
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 pl-6 py-4">Paciente</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 py-4">Contato</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 py-4 hidden lg:table-cell">CPF</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 py-4 hidden md:table-cell">Data de Cadastro</TableHead>
-                    <TableHead className="text-xs font-bold uppercase tracking-wider text-slate-500 py-4">Status</TableHead>
-                    <TableHead className="text-right pr-6 py-4"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {patients.map((p) => (
-                    <TableRow 
-                      key={p.id} 
-                      className="cursor-pointer hover:bg-slate-50/50 transition-colors border-slate-100 group"
-                      onClick={() => navigate(`/patients/${p.id}`)}
-                    >
-                      {/* Paciente (Avatar + Nome + Email no Mobile) */}
-                      <TableCell className="pl-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold shadow-sm">
-                            {initialsOf(p.full_name)}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-slate-900 truncate">{p.full_name}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <p className="text-xs text-slate-500 truncate md:hidden">{p.phone_e164}</p>
-                              <p className="text-xs text-slate-500 truncate hidden md:block">{p.email || "Sem e-mail"}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
 
-                      {/* Contato (Telefone + Email) */}
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <span className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
-                            <Phone className="w-3.5 h-3.5 text-slate-400" /> {p.phone_e164}
-                          </span>
-                          <span className="text-xs text-slate-500 flex items-center gap-1.5 truncate max-w-[200px]">
-                            <Mail className="w-3.5 h-3.5 text-slate-400" /> {p.email || "—"}
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      {/* CPF - Escondido em telas menores */}
-                      <TableCell className="hidden lg:table-cell">
-                        <span className="text-sm font-medium text-slate-700">{p.cpf || "—"}</span>
-                      </TableCell>
-
-                      {/* Data de Cadastro */}
-                      <TableCell className="hidden md:table-cell">
-                        <span className="text-sm text-slate-600">
-                          {format(parseISO(p.created_at), "dd/MM/yyyy")}
-                        </span>
-                      </TableCell>
-
-                      {/* Status */}
-                      <TableCell>
-                        {p.anonymized_at ? (
-                          <Badge variant="outline" className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] uppercase font-bold px-2 py-0.5">Inativo (LGPD)</Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] uppercase font-bold px-2 py-0.5">Ativo</Badge>
-                        )}
-                      </TableCell>
-
-                      {/* Ações */}
-                      <TableCell className="text-right pr-6">
-                        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => navigate(`/patients/${p.id}`)}>
-                                <FileText className="h-4 w-4 mr-2 text-slate-400" /> Abrir Prontuário
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <CalendarDays className="h-4 w-4 mr-2 text-slate-400" /> Agendar Consulta
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          
-                          <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600 font-medium border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
+               <div className="flex flex-col gap-1">
+                 <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-slate-400" /> Nasc: {patient.birth_date ? `${format(parseISO(patient.birth_date), "dd/MM/yyyy")} (${age} anos)` : "—"}</span>
+                 <span className="flex items-center gap-1"><FileText className="h-3.5 w-3.5 text-slate-400" /> Cadastro: {format(parseISO(patient.created_at), "dd/MM/yyyy")}</span>
+               </div>
+               {patient.address_city && (
+                 <span className="flex items-center gap-1 max-w-[200px]"><MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" /> {patient.address_street}, {patient.address_number} - {patient.address_city}/{patient.address_state}</span>
+               )}
             </div>
-          )}
+
+            <div className="flex flex-col gap-2 shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
+              <CfoLockBadge lockState={lockState} />
+              <Button 
+                variant="outline" 
+                className="w-full border-slate-200 bg-white shadow-sm h-9 text-xs"
+                onClick={() => setAppointmentSheetOpen(true)}
+              >
+                <CalendarPlus className="h-4 w-4 mr-2 text-slate-400" /> Agendar Consulta
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {isAnonymized && (
+        <Alert variant="destructive" className="bg-rose-50 border-rose-200">
+          <AlertDescription className="text-rose-800 font-medium text-sm">
+            Este paciente foi anonimizado por solicitação LGPD. Edições estão bloqueadas.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Grid Responsivo: lg:grid-cols para não apertar em notebooks */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+        
+        <div className="min-w-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" data-testid="patient-tabs">
+            <TabsList className="bg-slate-100 p-1 border border-slate-200 w-full grid grid-cols-2 md:grid-cols-4 h-auto gap-1 rounded-xl">
+              <TabsTrigger value="odontogram" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-lg py-2 text-xs sm:text-sm font-semibold">
+                <Sparkles className="h-4 w-4 mr-2" /> Odontograma
+              </TabsTrigger>
+              <TabsTrigger value="anamnesis" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-lg py-2 text-xs sm:text-sm font-semibold">
+                <HeartPulse className="h-4 w-4 mr-2" /> Anamnese
+              </TabsTrigger>
+              <TabsTrigger value="evolution" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-lg py-2 text-xs sm:text-sm font-semibold">
+                <Stethoscope className="h-4 w-4 mr-2" /> Evolução
+              </TabsTrigger>
+              <TabsTrigger value="quotes" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-lg py-2 text-xs sm:text-sm font-semibold">
+                <ReceiptText className="h-4 w-4 mr-2" /> Orçamentos
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="mt-4">
+              <TabsContent value="odontogram" className="m-0 focus-visible:outline-none">
+                <OdontogramChart
+                  snapshot={odontogramQuery.data}
+                  isLoading={odontogramQuery.isLoading}
+                  onSelectTooth={handleSelectTooth}
+                  selectedTooth={selectedTooth}
+                />
+              </TabsContent>
+
+              <TabsContent value="anamnesis" className="m-0 focus-visible:outline-none">
+                <AnamnesisTab patientId={patientId} />
+              </TabsContent>
+
+              <TabsContent value="evolution" className="m-0 focus-visible:outline-none">
+                <ClinicalEvolutionTab
+                  patientId={patientId}
+                  patientReadOnly={isAnonymized}
+                />
+              </TabsContent>
+
+              <TabsContent value="quotes" className="m-0 focus-visible:outline-none">
+                <QuotesTab patientId={patientId} patientReadOnly={isAnonymized} />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+
+        <aside className="space-y-4">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
+              <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <HeartPulse className="w-4 h-4 text-rose-500" /> Alertas Clínicos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Alergias</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Nenhuma registrada.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Activity className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Condições</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Nenhuma registrada.</p>
+                  </div>
+                </div>
+              </div>
+              <Button 
+                variant="link" 
+                className="w-full text-xs text-indigo-600 mt-2 h-auto p-0"
+                onClick={() => setActiveTab("anamnesis")}
+              >
+                Preencher Anamnese &rarr;
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
+              <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-slate-500" /> Última Atividade
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px before:h-full before:w-0.5 before:bg-slate-100">
+                <div className="relative flex items-start gap-4">
+                  <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-100 ring-4 ring-white mt-0.5 z-10">
+                    <div className="h-1.5 w-1.5 rounded-full bg-indigo-600"></div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Orçamento criado</p>
+                    <p className="text-[10px] text-slate-500">Há 2 dias</p>
+                  </div>
+                </div>
+                <div className="relative flex items-start gap-4">
+                  <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-teal-100 ring-4 ring-white mt-0.5 z-10">
+                    <div className="h-1.5 w-1.5 rounded-full bg-teal-600"></div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Evolução registrada</p>
+                    <p className="text-[10px] text-slate-500">Há 5 dias</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 pt-8 text-xs font-medium text-slate-400">
+        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+        Todos os acessos a este prontuário estão sendo registrados em conformidade com a LGPD e o CFO.
+      </div>
+
+      {/* O ToothDetailSheet precisa do isLocked para bloqueio de edição do PASSADO, 
+          mas você pode clicar para ver ou planejar novos. */}
+      <ToothDetailSheet
+        patientId={patientId}
+        toothFdi={selectedTooth}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        proceduresForTooth={proceduresForSelected}
+        disabled={isAnonymized} 
+      />
+
+      {appointmentSheetOpen && (
+        <NewAppointmentSheet
+          open={appointmentSheetOpen}
+          onOpenChange={setAppointmentSheetOpen}
+          defaultStart={null}
+          defaultEnd={null}
+          knownAppointments={[]}
+        />
+      )}
+    </div>
+  );
+}
+
+// Funções mantidas
+interface LockState {
+  hasRecord: boolean;
+  isLocked: boolean;
+  locksAt: Date | null;
+  hoursUntilLock: number | null;
+}
+
+function deriveLockState(record: { is_locked?: boolean; locks_at?: string | null } | undefined): LockState {
+  if (!record) return { hasRecord: false, isLocked: false, locksAt: null, hoursUntilLock: null };
+  const locksAt = record.locks_at ? new Date(record.locks_at) : null;
+  const now = Date.now();
+  const hoursUntilLock = locksAt ? Math.max(0, Math.round((locksAt.getTime() - now) / (60 * 60 * 1000))) : null;
+  return { hasRecord: true, isLocked: !!record.is_locked, locksAt, hoursUntilLock };
+}
+
+function CfoLockBadge({ lockState }: { lockState: LockState }) {
+  if (!lockState.hasRecord) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2">
+        <UserIcon className="h-4 w-4 text-slate-400" />
+        <p className="text-[11px] font-medium text-slate-500">Sem evolução criada</p>
+      </div>
+    );
+  }
+  if (lockState.isLocked) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
+        <Lock className="h-4 w-4 text-rose-500" />
+        <p className="text-[11px] font-bold text-rose-700">Prontuário Bloqueado (CFO)</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+      <LockOpen className="h-4 w-4 text-emerald-500" />
+      <p className="text-[11px] font-bold text-emerald-700">Editável por mais ~{lockState.hoursUntilLock ?? 0}h</p>
+    </div>
+  );
+}
+
+function PageSkeleton() {
+  return (
+    <div className="mx-auto max-w-7xl space-y-6">
+      <Skeleton className="h-4 w-32" />
+      <Card>
+        <CardContent className="flex items-center gap-6 p-6">
+          <Skeleton className="h-16 w-16 rounded-xl" />
+          <div className="flex-1 space-y-3">
+            <Skeleton className="h-6 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+        </CardContent>
+      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+        <Skeleton className="h-[600px] rounded-xl" />
+        <div className="space-y-4">
+          <Skeleton className="h-40 rounded-xl" />
+          <Skeleton className="h-40 rounded-xl" />
+        </div>
+      </div>
     </div>
   );
 }
