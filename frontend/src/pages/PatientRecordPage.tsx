@@ -7,7 +7,7 @@ import {
   ArrowLeft, CalendarDays, IdCard, Lock, LockOpen, Mail,
   MapPin, Phone, ReceiptText, Sparkles,
   Stethoscope, User as UserIcon, AlertTriangle, CalendarPlus,
-  FileText, Activity, Clock, HeartPulse
+  FileText, Activity, Clock, HeartPulse, ShieldCheck
 } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -90,82 +90,66 @@ export default function PatientRecordPage() {
   const patient = patientQuery.data;
   const isAnonymized = !!patient.anonymized_at;
   
-  // Cálculo de idade
   const age = patient.birth_date 
     ? differenceInYears(new Date(), parseISO(patient.birth_date)) 
     : null;
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6 animate-in fade-in duration-500" data-testid="patient-record-page">
+    <div className="mx-auto max-w-[1500px] space-y-6 animate-in fade-in duration-500" data-testid="patient-record-page">
       
-      {/* ─── Header (Voltar) ─── */}
       <button
         type="button"
         onClick={() => navigate("/patients")}
         className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors"
-        data-testid="back-to-patients"
       >
-        <ArrowLeft className="h-4 w-4" />
-        Voltar para lista de pacientes
+        <ArrowLeft className="h-4 w-4" /> Voltar para lista de pacientes
       </button>
 
-      {/* ─── Cartão de Perfil do Paciente ─── */}
+      {/* ─── Cartão de Perfil do Paciente (Mais compacto e completo) ─── */}
       <Card className="overflow-hidden border-slate-200 shadow-sm bg-white">
-        <CardContent className="p-6 sm:p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <CardContent className="p-6">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
             
-            <div className="flex items-center gap-5">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-2xl font-bold text-white shadow-lg shadow-indigo-500/30">
+            {/* Coluna 1: Avatar + Nome + Info Básica */}
+            <div className="flex items-start gap-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-xl font-bold text-white shadow-md">
                 {initialsOf(patient.full_name)}
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h1 className="text-2xl font-bold leading-tight text-slate-900">
+                  <h1 className="text-xl font-bold leading-tight text-slate-900">
                     {patient.full_name}
                   </h1>
-                  {patient.social_name && (
-                    <Badge variant="outline" className="text-xs border-slate-300">
-                      Nome social: {patient.social_name}
-                    </Badge>
-                  )}
                   {patient.is_minor && (
-                    <Badge variant="warning" className="bg-amber-100 text-amber-800 border-amber-200">
-                      Menor de idade
-                    </Badge>
+                    <Badge variant="warning" className="bg-amber-100 text-amber-800 text-[10px]">Menor</Badge>
                   )}
                   {isAnonymized && (
-                    <Badge variant="destructive" className="bg-rose-100 text-rose-800 border-rose-200">Anonimizado (LGPD)</Badge>
+                    <Badge variant="destructive" className="text-[10px]">Anonimizado (LGPD)</Badge>
                   )}
                 </div>
-                
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-600 mt-2 font-medium">
-                  {patient.cpf && (
-                    <span className="flex items-center gap-1.5">
-                      <IdCard className="h-4 w-4 text-slate-400" /> {patient.cpf}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1.5">
-                    <Phone className="h-4 w-4 text-slate-400" /> {patient.phone_e164}
-                  </span>
-                  {patient.birth_date && (
-                    <span className="flex items-center gap-1.5">
-                      <CalendarDays className="h-4 w-4 text-slate-400" /> 
-                      {format(parseISO(patient.birth_date), "dd/MM/yyyy")} {age !== null && `(${age} anos)`}
-                    </span>
-                  )}
-                  {patient.email && (
-                    <span className="flex items-center gap-1.5">
-                      <Mail className="h-4 w-4 text-slate-400" /> {patient.email}
-                    </span>
-                  )}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 font-medium">
+                  {patient.cpf && <span className="flex items-center gap-1"><IdCard className="h-3.5 w-3.5 text-slate-400" /> {patient.cpf}</span>}
+                  <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5 text-slate-400" /> {patient.phone_e164}</span>
+                  {patient.email && <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5 text-slate-400" /> {patient.email}</span>}
                 </div>
               </div>
             </div>
 
-            {/* Status CFO e Ações Rápidas */}
-            <div className="flex flex-col gap-3 shrink-0">
+            {/* Coluna 2: Dados Clínicos (Idade, Endereço) */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600 font-medium border-t xl:border-t-0 xl:border-l border-slate-100 pt-4 xl:pt-0 xl:pl-6">
+               <div className="flex flex-col gap-1">
+                 <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-slate-400" /> Nasc: {patient.birth_date ? `${format(parseISO(patient.birth_date), "dd/MM/yyyy")} (${age} anos)` : "—"}</span>
+                 <span className="flex items-center gap-1"><FileText className="h-3.5 w-3.5 text-slate-400" /> Cadastro: {format(parseISO(patient.created_at), "dd/MM/yyyy")}</span>
+               </div>
+               {patient.address_city && (
+                 <span className="flex items-center gap-1 max-w-[200px]"><MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" /> {patient.address_street}, {patient.address_number} - {patient.address_city}/{patient.address_state}</span>
+               )}
+            </div>
+
+            {/* Coluna 3: Status e Ação */}
+            <div className="flex flex-col gap-2 shrink-0 border-t xl:border-t-0 xl:border-l border-slate-100 pt-4 xl:pt-0 xl:pl-6">
               <CfoLockBadge lockState={lockState} />
-              <Button variant="outline" className="w-full border-slate-200 bg-white">
+              <Button variant="outline" className="w-full border-slate-200 bg-white shadow-sm h-9 text-xs">
                 <CalendarPlus className="h-4 w-4 mr-2 text-slate-400" /> Agendar Consulta
               </Button>
             </div>
@@ -176,15 +160,14 @@ export default function PatientRecordPage() {
       {/* ─── Banner de Anonimizado ─── */}
       {isAnonymized && (
         <Alert variant="destructive" className="bg-rose-50 border-rose-200">
-          <AlertDescription className="text-rose-800 font-medium">
-            Este paciente foi anonimizado por solicitação LGPD em{" "}
-            {new Date(patient.anonymized_at!).toLocaleString("pt-BR")}. Edições estão bloqueadas.
+          <AlertDescription className="text-rose-800 font-medium text-sm">
+            Este paciente foi anonimizado por solicitação LGPD em {new Date(patient.anonymized_at!).toLocaleString("pt-BR")}. Edições estão bloqueadas.
           </AlertDescription>
         </Alert>
       )}
 
       {/* ─── Layout Principal (Abas à esquerda, Resumo à direita) ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-6 items-start">
         
         {/* Coluna Esquerda: Abas do Prontuário */}
         <div className="min-w-0">
@@ -199,7 +182,6 @@ export default function PatientRecordPage() {
               <TabsTrigger value="quotes" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4">
                 <ReceiptText className="h-4 w-4 mr-2" /> Orçamentos
               </TabsTrigger>
-              {/* Aba de Anamnese (se existir o componente, adicione aqui) */}
             </TabsList>
 
             <div className="mt-4">
@@ -292,31 +274,13 @@ export default function PatientRecordPage() {
             </CardContent>
           </Card>
 
-          {/* Informações de Contato Extra */}
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
-              <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <UserIcon className="w-4 h-4 text-slate-500" /> Informações Pessoais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-               {patient.address_city && (
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-slate-600">
-                    {patient.address_street}, {patient.address_number}<br/>
-                    {patient.address_neighborhood} - {patient.address_city}/{patient.address_state}
-                  </p>
-                </div>
-              )}
-              <div className="flex items-start gap-2">
-                  <FileText className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-slate-600">
-                    Cadastrado em {format(parseISO(patient.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                  </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Dica de Segurança */}
+          <div className="flex items-start gap-2 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+            <ShieldCheck className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-indigo-700 font-medium leading-relaxed">
+              Todos os acessos a este prontuário estão sendo registrados em conformidade com a LGPD.
+            </p>
+          </div>
 
         </aside>
       </div>
@@ -390,19 +354,18 @@ function CfoLockBadge({ lockState }: { lockState: LockState }) {
 
 function PageSkeleton() {
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6">
+    <div className="mx-auto max-w-[1500px] space-y-6">
       <Skeleton className="h-4 w-32" />
       <Card>
-        <CardContent className="flex items-center gap-6 p-8">
-          <Skeleton className="h-20 w-20 rounded-2xl" />
+        <CardContent className="flex items-center gap-6 p-6">
+          <Skeleton className="h-16 w-16 rounded-xl" />
           <div className="flex-1 space-y-3">
             <Skeleton className="h-6 w-64" />
             <Skeleton className="h-4 w-96" />
           </div>
-          <Skeleton className="h-12 w-40 rounded-xl" />
         </CardContent>
       </Card>
-      <div className="grid grid-cols-[1fr_320px] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-6">
         <Skeleton className="h-[600px] rounded-xl" />
         <div className="space-y-4">
           <Skeleton className="h-40 rounded-xl" />
