@@ -6,7 +6,7 @@ import {
   ArrowLeft, CalendarDays, IdCard, Lock, LockOpen, Mail,
   MapPin, Phone, ReceiptText, Sparkles,
   Stethoscope, User as UserIcon, AlertTriangle, CalendarPlus,
-  FileText, Activity, Clock, HeartPulse, ShieldCheck
+  FileText, Activity, HeartPulse, ShieldCheck
 } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
