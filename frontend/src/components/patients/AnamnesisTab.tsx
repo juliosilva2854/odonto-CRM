@@ -15,7 +15,6 @@ import { toast } from "@/components/ui/toaster";
 import { getErrorMessage } from "@/lib/api";
 import { api } from "@/lib/api";
 
-// ─── Tipagem do Template ───
 interface AnamnesisData {
   alergias: string[];
   alergias_outros: string;
@@ -36,51 +35,46 @@ interface AnamnesisRecord {
   created_at: string;
 }
 
+const INITIAL_STATE: AnamnesisData = {
+  alergias: [],
+  alergias_outros: "",
+  doencas_preexistentes: [],
+  doencas_outros: "",
+  cirurgias_anteriores: "",
+  medicamentos_uso: "",
+  gestante: false,
+  fumante: false,
+  historico_familiar: "",
+  observacoes: "",
+};
+
 export function AnamnesisTab({ patientId }: { patientId: string }) {
   const queryClient = useQueryClient();
-  
-  const [formData, setFormData] = useState<AnamnesisData>({
-    alergias: [],
-    alergias_outros: "",
-    doencas_preexistentes: [],
-    doencas_outros: "",
-    cirurgias_anteriores: "",
-    medicamentos_uso: "",
-    gestante: false,
-    fumante: false,
-    historico_familiar: "",
-    observacoes: "",
-  });
+  const [formData, setFormData] = useState<AnamnesisData>(INITIAL_STATE);
 
-  // Buscar última anamnese
+  // O try/catch interno evita que a tela quebre se der 404 (sem anamnese)
   const { data, isLoading } = useQuery({
     queryKey: ["anamnesis", patientId],
     queryFn: async () => {
-      const res = await api.get<AnamnesisRecord>(`/api/patients/${patientId}/anamnesis`);
-      return res.data;
+      try {
+        const res = await api.get<AnamnesisRecord>(`/api/patients/${patientId}/anamnesis`);
+        return res.data;
+      } catch (err) {
+        return null; // Se não tem anamnese, retorna null
+      }
     },
     retry: false,
   });
 
-  // Preencher formulário com dados existentes
   useEffect(() => {
     if (data?.questionnaire) {
       setFormData({
-        alergias: data.questionnaire.alergias || [],
-        alergias_outros: data.questionnaire.alergias_outros || "",
-        doencas_preexistentes: data.questionnaire.doencas_preexistentes || [],
-        doencas_outros: data.questionnaire.doencas_outros || "",
-        cirurgias_anteriores: data.questionnaire.cirurgias_anteriores || "",
-        medicamentos_uso: data.questionnaire.medicamentos_uso || "",
-        gestante: data.questionnaire.gestante || false,
-        fumante: data.questionnaire.fumante || false,
-        historico_familiar: data.questionnaire.historico_familiar || "",
-        observacoes: data.questionnaire.observacoes || "",
+        ...INITIAL_STATE,
+        ...data.questionnaire, // Mescla com os dados vindos da API
       });
     }
   }, [data]);
 
-  // Salvar anamnese
   const mutation = useMutation({
     mutationFn: async (payload: AnamnesisData) => {
       await api.post(`/api/patients/${patientId}/anamnesis`, {
@@ -100,44 +94,46 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
   const toggleArrayItem = (field: "alergias" | "doencas_preexistentes", item: string) => {
     setFormData((prev) => {
       const list = prev[field];
-      if (list.includes(item)) {
-        return { ...prev, [field]: list.filter((i) => i !== item) };
-      }
+      if (list.includes(item)) return { ...prev, [field]: list.filter((i) => i !== item) };
       return { ...prev, [field]: [...list, item] };
     });
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-slate-500">Carregando anamnese...</div>;
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-8">
       
-      {/* Header do Formulário */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
             <HeartPulse className="w-5 h-5 text-indigo-600" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900">Anamnese Digital</h2>
             <p className="text-xs text-slate-500">
-              {data ? `Última atualização: ${format(new Date(data.created_at), "dd/MM/yyyy 'às' HH:mm")}` : "Nenhuma anamnese registrada ainda."}
+              {data ? `Atualizada em: ${format(new Date(data.created_at), "dd/MM/yyyy 'às' HH:mm")}` : "Preencha os dados abaixo para registrar."}
             </p>
           </div>
         </div>
         <Button 
           onClick={() => mutation.mutate(formData)} 
           disabled={mutation.isPending}
-          className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20"
+          className="bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 w-full sm:w-auto shrink-0"
         >
           {mutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
           Salvar Anamnese
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* ALERGIAS */}
         <Card className="border-slate-200 shadow-sm">
@@ -165,7 +161,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             </div>
             {formData.alergias.includes("Outros") && (
               <div className="animate-in slide-in-from-top-2">
-                <Label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Especifique as outras alergias</Label>
+                <Label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Quais outras?</Label>
                 <Input 
                   placeholder="Ex: Frutos do mar, poeira..." 
                   value={formData.alergias_outros}
@@ -174,11 +170,10 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                 />
               </div>
             )}
-            <p className="text-[11px] text-slate-400">Selecione todas as alergias conhecidas do paciente.</p>
           </CardContent>
         </Card>
 
-        {/* DOENÇAS PREEXISTENTES */}
+        {/* DOENÇAS */}
         <Card className="border-slate-200 shadow-sm">
           <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
             <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -204,7 +199,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             </div>
             {formData.doencas_preexistentes.includes("Outros") && (
               <div className="animate-in slide-in-from-top-2">
-                <Label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Especifique as outras doenças</Label>
+                <Label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Quais outras?</Label>
                 <Input 
                   placeholder="Ex: Tireoide, depressão..." 
                   value={formData.doencas_outros}
@@ -213,12 +208,11 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                 />
               </div>
             )}
-            <p className="text-[11px] text-slate-400">Selecione todas as condições sistêmicas relatadas.</p>
           </CardContent>
         </Card>
 
-        {/* HISTÓRICO E HÁBITOS */}
-        <Card className="border-slate-200 shadow-sm md:col-span-2">
+        {/* HISTÓRICO */}
+        <Card className="border-slate-200 shadow-sm lg:col-span-2">
           <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
             <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Stethoscope className="w-4 h-4 text-teal-500" /> Histórico e Hábitos
@@ -229,7 +223,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase text-slate-500 font-bold">Medicamentos em Uso</Label>
               <Textarea 
-                placeholder="Ex: Losartana 50mg, Dipirona se dor..." 
+                placeholder="Ex: Losartana 50mg..." 
                 value={formData.medicamentos_uso}
                 onChange={(e) => setFormData({ ...formData, medicamentos_uso: e.target.value })}
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
@@ -237,9 +231,9 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase text-slate-500 font-bold">Histórico de Cirurgias</Label>
+              <Label className="text-[10px] uppercase text-slate-500 font-bold">Cirurgias Anteriores</Label>
               <Textarea 
-                placeholder="Ex: Apendicite em 2015, retirada de siso..." 
+                placeholder="Ex: Retirada de siso em 2020..." 
                 value={formData.cirurgias_anteriores}
                 onChange={(e) => setFormData({ ...formData, cirurgias_anteriores: e.target.value })}
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
@@ -249,14 +243,14 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase text-slate-500 font-bold">Histórico Familiar</Label>
               <Textarea 
-                placeholder="Ex: Pai com diabetes, mãe com hipertensão..." 
+                placeholder="Ex: Pai diabético..." 
                 value={formData.historico_familiar}
                 onChange={(e) => setFormData({ ...formData, historico_familiar: e.target.value })}
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
               />
             </div>
 
-            <div className="space-y-3 flex flex-col justify-center">
+            <div className="space-y-3 flex flex-col justify-center pl-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input 
                   type="checkbox" 
@@ -281,13 +275,13 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
         </Card>
 
         {/* OBSERVAÇÕES */}
-        <Card className="border-slate-200 shadow-sm md:col-span-2">
+        <Card className="border-slate-200 shadow-sm lg:col-span-2">
           <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
             <CardTitle className="text-sm font-bold text-slate-900">Observações Gerais</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             <Textarea 
-              placeholder="Informações adicionais relevantes para o tratamento..." 
+              placeholder="Informações adicionais..." 
               value={formData.observacoes}
               onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
               className="min-h-[100px] text-sm bg-slate-50"
