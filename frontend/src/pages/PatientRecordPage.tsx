@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format, differenceInYears, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import {
   ArrowLeft, CalendarDays, IdCard, Lock, LockOpen, Mail,
   MapPin, Phone, ReceiptText, Sparkles,
@@ -105,7 +104,7 @@ export default function PatientRecordPage() {
         <ArrowLeft className="h-4 w-4" /> Voltar para lista de pacientes
       </button>
 
-      {/* ─── Cartão de Perfil do Paciente (Mais compacto e completo) ─── */}
+      {/* ─── Cartão de Perfil do Paciente ─── */}
       <Card className="overflow-hidden border-slate-200 shadow-sm bg-white">
         <CardContent className="p-6">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
