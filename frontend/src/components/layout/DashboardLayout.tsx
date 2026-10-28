@@ -1,33 +1,28 @@
-import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { Sidebar } from "./Sidebar";
+import { Header } from "./Header";
 
-import { Header } from "@/components/layout/Header";
-import { Sidebar, MobileSidebar } from "@/components/layout/Sidebar";
-
-export function DashboardLayout() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
+export default function DashboardLayout() {
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden">
-      {/* Menu Desktop */}
+    <div className="flex h-screen w-full bg-slate-50 overflow-hidden">
+      
+      {/* Menu Lateral Fixo */}
       <Sidebar />
 
-      {/* Menu Mobile */}
-      <MobileSidebar open={mobileOpen} onOpenChange={setMobileOpen} />
-
-      {/* Área principal da direita (Header + Conteúdo) */}
-      <div className="flex flex-1 flex-col min-w-0 h-full">
-        <Header onMenuClick={() => setMobileOpen(true)} />
+      {/* Área da Direita (Header + Conteúdo) */}
+      <div className="flex-1 flex flex-col min-w-0 h-full">
         
-        <main
-          className="flex-1 flex flex-col min-h-0 px-4 py-4 sm:px-8 sm:py-6 overflow-hidden animate-fade-in"
-          data-testid="dashboard-main"
-        >
-          <Outlet />
+        {/* Cabeçalho Fixo */}
+        <Header />
+
+        {/* Área rolável */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative">
+          <div className="mx-auto max-w-[1600px]">
+            <Outlet />
+          </div>
         </main>
+
       </div>
     </div>
   );
 }
-
-export default DashboardLayout;
