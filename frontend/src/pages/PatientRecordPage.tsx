@@ -5,7 +5,7 @@ import { format, differenceInYears, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   ArrowLeft, CalendarDays, IdCard, Lock, LockOpen, Mail,
-  MapPin, Phone, ReceiptText, ShieldCheck, Sparkles,
+  MapPin, Phone, ReceiptText, Sparkles,
   Stethoscope, User as UserIcon, AlertTriangle, CalendarPlus,
   FileText, Activity, Clock, HeartPulse
 } from "lucide-react";
@@ -21,7 +21,7 @@ import { OdontogramChart } from "@/components/odontogram/OdontogramChart";
 import { ToothDetailSheet } from "@/components/odontogram/ToothDetailSheet";
 import { groupByTooth } from "@/components/odontogram/fdi";
 import { QuotesTab } from "@/components/quotes/QuotesTab";
-import { cn, initialsOf } from "@/lib/utils";
+import { initialsOf } from "@/lib/utils";
 import { clinicalRecordsService } from "@/services/clinical-records.service";
 import { odontogramService } from "@/services/odontogram.service";
 import { patientsService } from "@/services/patients.service";
