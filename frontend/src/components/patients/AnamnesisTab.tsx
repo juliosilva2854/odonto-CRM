@@ -65,14 +65,13 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
     retry: false,
   });
 
-  // 🛡️ BLINDAGEM CONTRA TELA BRANCA
   useEffect(() => {
     if (data?.questionnaire) {
       const q = data.questionnaire;
       setFormData({
         ...INITIAL_STATE,
         ...q,
-        // Força ser array. Se o banco mandar null, vira [] e a tela não quebra.
+        // 🛡️ A BLINDAGEM CONTRA TELA BRANCA AQUI:
         alergias: Array.isArray(q.alergias) ? q.alergias : [],
         doencas_preexistentes: Array.isArray(q.doencas_preexistentes) ? q.doencas_preexistentes : [],
       });
@@ -97,7 +96,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
 
   const toggleArrayItem = (field: "alergias" | "doencas_preexistentes", item: string) => {
     setFormData((prev) => {
-      const list = Array.isArray(prev[field]) ? prev[field] : []; // Proteção extra
+      const list = Array.isArray(prev[field]) ? prev[field] : [];
       if (list.includes(item)) return { ...prev, [field]: list.filter((i) => i !== item) };
       return { ...prev, [field]: [...list, item] };
     });
@@ -111,13 +110,11 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
     );
   }
 
-  // Variável segura para renderizar
   const safeAlergias = Array.isArray(formData.alergias) ? formData.alergias : [];
   const safeDoencas = Array.isArray(formData.doencas_preexistentes) ? formData.doencas_preexistentes : [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-8">
-      
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
@@ -126,7 +123,7 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
           <div>
             <h2 className="text-lg font-bold text-slate-900">Anamnese Digital</h2>
             <p className="text-xs text-slate-500">
-              {data ? `Atualizada em: ${format(new Date(data.created_at), "dd/MM/yyyy 'às' HH:mm")}` : "Preencha os dados abaixo para registrar."}
+              {data ? `Atualizada em: ${format(new Date(data.created_at), "dd/MM/yyyy 'às' HH:mm")}` : "Preencha os dados abaixo."}
             </p>
           </div>
         </div>
@@ -141,8 +138,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* ALERGIAS */}
         <Card className="border-slate-200 shadow-sm">
           <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
             <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -180,7 +175,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
           </CardContent>
         </Card>
 
-        {/* DOENÇAS */}
         <Card className="border-slate-200 shadow-sm">
           <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
             <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -218,7 +212,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
           </CardContent>
         </Card>
 
-        {/* HISTÓRICO */}
         <Card className="border-slate-200 shadow-sm lg:col-span-2">
           <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
             <CardTitle className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -226,7 +219,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase text-slate-500 font-bold">Medicamentos em Uso</Label>
               <Textarea 
@@ -235,7 +227,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
               />
             </div>
-
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase text-slate-500 font-bold">Cirurgias Anteriores</Label>
               <Textarea 
@@ -244,7 +235,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
               />
             </div>
-
             <div className="space-y-1.5">
               <Label className="text-[10px] uppercase text-slate-500 font-bold">Histórico Familiar</Label>
               <Textarea 
@@ -253,7 +243,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                 className="min-h-[80px] text-sm bg-slate-50 resize-none"
               />
             </div>
-
             <div className="space-y-3 flex flex-col justify-center pl-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input 
@@ -274,11 +263,9 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
                 <span className="text-sm font-medium text-slate-700">Paciente Fumante</span>
               </label>
             </div>
-
           </CardContent>
         </Card>
 
-        {/* OBSERVAÇÕES */}
         <Card className="border-slate-200 shadow-sm lg:col-span-2">
           <CardHeader className="p-4 border-b border-slate-100 bg-slate-50/50">
             <CardTitle className="text-sm font-bold text-slate-900">Observações Gerais</CardTitle>
@@ -291,7 +278,6 @@ export function AnamnesisTab({ patientId }: { patientId: string }) {
             />
           </CardContent>
         </Card>
-
       </div>
     </div>
   );
