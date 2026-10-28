@@ -31,12 +31,9 @@ export default function PatientRecordPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // Estado das Abas (Adicionado o controle aqui para o botão de anamnese funcionar)
   const [activeTab, setActiveTab] = useState("odontogram");
-  
   const [selectedTooth, setSelectedTooth] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  
   const [appointmentSheetOpen, setAppointmentSheetOpen] = useState(false);
 
   const patientId = id ?? "";
@@ -83,9 +80,7 @@ export default function PatientRecordPage() {
     return (
       <div className="mx-auto max-w-3xl py-16">
         <Alert variant="destructive">
-          <AlertDescription>
-            Não foi possível carregar o paciente.
-          </AlertDescription>
+          <AlertDescription>Não foi possível carregar o paciente.</AlertDescription>
         </Alert>
         <Button variant="ghost" onClick={() => navigate("/patients")} className="mt-4">
           <ArrowLeft className="h-4 w-4" /> Voltar para pacientes
@@ -175,19 +170,20 @@ export default function PatientRecordPage() {
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-6 items-start">
         
         <div className="min-w-0">
-          {/* Abas Controladas */}
+          
+          {/* CORREÇÃO DAS ABAS: Grid fixo, sem overflow, design limpo */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" data-testid="patient-tabs">
-            <TabsList className="bg-slate-100/50 p-1 border border-slate-200 w-full justify-start overflow-x-auto">
-              <TabsTrigger value="odontogram" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4">
+            <TabsList className="bg-slate-100 p-1 border border-slate-200 w-full grid grid-cols-2 md:grid-cols-4 h-auto gap-1 rounded-xl">
+              <TabsTrigger value="odontogram" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-lg py-2 text-xs sm:text-sm font-semibold">
                 <Sparkles className="h-4 w-4 mr-2" /> Odontograma
               </TabsTrigger>
-              <TabsTrigger value="anamnesis" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4">
+              <TabsTrigger value="anamnesis" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-lg py-2 text-xs sm:text-sm font-semibold">
                 <HeartPulse className="h-4 w-4 mr-2" /> Anamnese
               </TabsTrigger>
-              <TabsTrigger value="evolution" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4">
+              <TabsTrigger value="evolution" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-lg py-2 text-xs sm:text-sm font-semibold">
                 <Stethoscope className="h-4 w-4 mr-2" /> Evolução Clínica
               </TabsTrigger>
-              <TabsTrigger value="quotes" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-md px-4">
+              <TabsTrigger value="quotes" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-lg py-2 text-xs sm:text-sm font-semibold">
                 <ReceiptText className="h-4 w-4 mr-2" /> Orçamentos
               </TabsTrigger>
             </TabsList>
@@ -244,7 +240,6 @@ export default function PatientRecordPage() {
                   </div>
                 </div>
               </div>
-              {/* Botão que agora leva para a aba de Anamnese */}
               <Button 
                 variant="link" 
                 className="w-full text-xs text-indigo-600 mt-2 h-auto p-0"
@@ -292,7 +287,6 @@ export default function PatientRecordPage() {
         Todos os acessos a este prontuário estão sendo registrados em conformidade com a LGPD e o CFO.
       </div>
 
-      {/* AQUI ESTAVA O BUG: Removi o lockState.isLocked. O bloqueio do CFO não impede planejar novos procedimentos. */}
       <ToothDetailSheet
         patientId={patientId}
         toothFdi={selectedTooth}
@@ -302,7 +296,6 @@ export default function PatientRecordPage() {
         disabled={isAnonymized} 
       />
 
-      {/* Modal de Agendar Consulta */}
       {appointmentSheetOpen && (
         <NewAppointmentSheet
           open={appointmentSheetOpen}
